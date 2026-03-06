@@ -1,0 +1,223 @@
+<div class="space-y-6">
+  <!-- Hero -->
+  <div class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-semibold">Inventory</h1>
+        <p class="text-sm text-white/70 mt-1">Track products available vs sold</p>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+          <div class="text-xs text-white/70">Products</div>
+          <div class="text-xl font-semibold">{{ totalProducts }}</div>
+        </div>
+        <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+          <div class="text-xs text-white/70">Available</div>
+          <div class="text-xl font-semibold">{{ totalAvailable }}</div>
+        </div>
+        <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+          <div class="text-xs text-white/70">Sold</div>
+          <div class="text-xl font-semibold">{{ totalSold }}</div>
+        </div>
+        <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+          <div class="text-xs text-white/70">Low Stock</div>
+          <div class="text-xl font-semibold">{{ lowStockCount }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search + filter -->
+    <div class="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div class="md:col-span-2">
+        <div class="relative">
+          <input
+            [(ngModel)]="query"
+            placeholder="Search by name, SKU, type..."
+            class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 pl-11 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
+          />
+          <svg class="w-5 h-5 text-white/70 absolute left-4 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none">
+            <path d="M21 21l-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <div>
+        <select
+          [(ngModel)]="filterType"
+          class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+        >
+          <option class="text-black" value="All">All Types</option>
+          <option class="text-black" value="Tire">Tire</option>
+          <option class="text-black" value="Rim">Rim</option>
+          <option class="text-black" value="Cover">Cover</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- List -->
+  <div class="rounded-3xl border bg-white shadow-sm overflow-hidden">
+    <div class="px-6 py-5 border-b flex items-center justify-between">
+      <div>
+        <div class="text-lg font-semibold text-gray-900">Stock List</div>
+        <div class="text-sm text-gray-500">Update available & sold numbers</div>
+      </div>
+
+      <div class="text-sm text-gray-600">
+        Showing <span class="font-semibold text-gray-900">{{ filtered.length }}</span>
+      </div>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="hidden md:block">
+      <table class="w-full">
+        <thead class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          <tr>
+            <th class="px-6 py-3">Product</th>
+            <th class="px-6 py-3">Type</th>
+            <th class="px-6 py-3">SKU</th>
+            <th class="px-6 py-3">Price</th>
+            <th class="px-6 py-3">Available</th>
+            <th class="px-6 py-3">Sold</th>
+            <th class="px-6 py-3">Updated</th>
+            <th class="px-6 py-3 text-right">Action</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y">
+          <tr *ngFor="let x of filtered" class="hover:bg-gray-50 transition">
+            <td class="px-6 py-4">
+              <div class="font-semibold text-gray-900">{{ x.name }}</div>
+              <div *ngIf="lowStock(x)" class="text-xs text-rose-600 mt-1">Low stock</div>
+            </td>
+
+            <td class="px-6 py-4">
+              <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="typeBadge(x.type)">
+                {{ x.type }}
+              </span>
+            </td>
+
+            <td class="px-6 py-4 text-sm text-gray-700">{{ x.sku }}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">${{ x.price }}</td>
+
+            <td class="px-6 py-4">
+              <span
+                class="text-sm font-semibold"
+                [class.text-rose-600]="lowStock(x)"
+                [class.text-gray-900]="!lowStock(x)"
+              >
+                {{ x.available }}
+              </span>
+            </td>
+
+            <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ x.sold }}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">{{ x.updatedAt }}</td>
+
+            <td class="px-6 py-4 text-right">
+              <button
+                type="button"
+                (click)="openUpdate(x)"
+                class="px-3 py-2 rounded-xl border hover:bg-gray-50 text-sm"
+              >
+                Update
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="filtered.length === 0">
+            <td colspan="8" class="px-6 py-10 text-center text-sm text-gray-500">
+              No inventory items found.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="md:hidden p-4 space-y-3">
+      <div *ngFor="let x of filtered" class="rounded-3xl border p-4 shadow-sm">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <div class="font-semibold text-gray-900 truncate">{{ x.name }}</div>
+            <div class="text-xs text-gray-500 mt-1">{{ x.sku }}</div>
+          </div>
+
+          <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="typeBadge(x.type)">
+            {{ x.type }}
+          </span>
+        </div>
+
+        <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+          <div class="rounded-2xl bg-gray-50 border p-3">
+            <div class="text-xs text-gray-500">Available</div>
+            <div class="font-semibold mt-1" [class.text-rose-600]="lowStock(x)">{{ x.available }}</div>
+          </div>
+
+          <div class="rounded-2xl bg-gray-50 border p-3">
+            <div class="text-xs text-gray-500">Sold</div>
+            <div class="font-semibold mt-1">{{ x.sold }}</div>
+          </div>
+        </div>
+
+        <div class="mt-3 flex items-center justify-between">
+          <div class="text-xs text-gray-500">Updated: {{ x.updatedAt }}</div>
+          <button type="button" (click)="openUpdate(x)" class="px-3 py-2 rounded-xl border text-sm">
+            Update
+          </button>
+        </div>
+
+        <div *ngIf="lowStock(x)" class="mt-2 text-xs text-rose-600">Low stock</div>
+      </div>
+
+      <div *ngIf="filtered.length === 0" class="text-center text-sm text-gray-500 py-10">
+        No inventory items found.
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Stock Modal -->
+  <div *ngIf="modalOpen && selected" class="fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/50" (click)="closeModal()"></div>
+
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden">
+        <div class="px-6 py-5 border-b flex items-center justify-between">
+          <div>
+            <div class="text-lg font-semibold text-gray-900">Update Stock</div>
+            <div class="text-sm text-gray-500">{{ selected.name }}</div>
+          </div>
+
+          <button type="button" class="p-2 rounded-xl hover:bg-gray-100" (click)="closeModal()">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <form class="p-6 space-y-4" [formGroup]="stockForm" (ngSubmit)="saveStock()">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Available</label>
+              <input type="number" formControlName="available" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+            </div>
+
+            <div>
+              <label class="text-sm font-medium text-gray-700">Sold</label>
+              <input type="number" formControlName="sold" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-2">
+            <button type="button" (click)="closeModal()" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900">
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

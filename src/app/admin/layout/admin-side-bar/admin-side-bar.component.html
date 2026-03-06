@@ -1,0 +1,290 @@
+<aside class="h-full w-72  bg-white p-4 flex flex-col" >
+
+  <!-- ===== Sidebar Body ===== -->
+  <div class="p-4 flex-1 overflow-y-auto">
+    <!-- Profile -->
+    <!-- <div class="flex items-center gap-3 p-3 rounded-2xl bg-gray-50 border border-gray-400">
+      <div class="w-12 h-12 rounded-2xl bg-black/10 overflow-hidden flex items-center justify-center">
+        <img src="assets/images/profile.png" alt="Profile" class="w-full h-full object-cover" />
+      </div>
+      <div class="min-w-0">
+        <div class="font-semibold text-gray-900 truncate">{{ adminName }}</div>
+        <div class="text-xs text-gray-500">Administrator</div>
+      </div>
+    </div> -->
+<a
+  routerLink="/admin/profile"
+  (click)="close.emit()"
+  routerLinkActive="ring-2 ring-black"
+  class="flex items-center gap-3 p-3 rounded-2xl bg-gray-50 border border-gray-300 hover:bg-gray-100 transition cursor-pointer"
+>
+  <div class="w-12 h-12 rounded-2xl bg-black/10 overflow-hidden flex items-center justify-center">
+    <img
+      src="assets/images/profile.png"
+      alt="Profile"
+      class="w-full h-full object-cover"
+    />
+  </div>
+
+  <div class="min-w-0 flex-1">
+    <div class="font-semibold text-gray-900 truncate">
+      {{ adminName }}
+    </div>
+    <div class="text-xs text-gray-500">
+      Administrator
+    </div>
+  </div>
+
+  <!-- Right arrow icon -->
+  <svg
+    class="w-4 h-4 text-gray-400"
+    viewBox="0 0 24 24"
+    fill="none"
+  >
+    <path
+      d="M9 6l6 6-6 6"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </svg>
+</a>
+    <!-- Nav -->
+    <div class="mt-5">
+      <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+        Menu
+      </div>
+
+      <nav class="space-y-1">
+        <a
+          routerLink="/admin"
+          (click)="close.emit()"
+          routerLinkActive="bg-gray-100"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+        >
+          <!-- dashboard icon -->
+          <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3 13h8V3H3v10Zm10 8h8V11h-8v10ZM3 21h8V15H3v6Zm10-10h8V3h-8v8Z"
+              fill="currentColor"
+            />
+          </svg>
+          <span class="font-medium text-gray-800">Dashboard</span>
+        </a>
+
+        <a
+          routerLink="/admin/car-model"
+          (click)="close.emit()"
+          routerLinkActive="bg-gray-100"
+          class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+        >
+          <!-- car icon -->
+          <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M5 11h14a2 2 0 0 1 2 2v4h-2a2 2 0 1 1-4 0H9a2 2 0 1 1-4 0H3v-4a2 2 0 0 1 2-2Z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="font-medium text-gray-800">Car Model</span>
+        </a>
+
+        <a
+  routerLink="/admin/category"
+  (click)="close.emit()"
+  routerLinkActive="bg-gray-100"
+  class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+>
+  <!-- category icon -->
+  <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M4 7.5A1.5 1.5 0 0 1 5.5 6h4.379a1.5 1.5 0 0 1 1.06.44l.621.62a1.5 1.5 0 0 0 1.06.44H18.5A1.5 1.5 0 0 1 20 9v8.5A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5v-10Z"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M8 12h8M8 15h5"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+    />
+  </svg>
+  <span class="font-medium text-gray-800">Category</span>
+</a>
+<a
+  routerLink="/admin/attributes"
+  (click)="close.emit()"
+  routerLinkActive="bg-gray-100"
+  class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+>
+  <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+    <path d="M4 7h16M4 12h10M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+  <span class="font-medium text-gray-800">Attributes</span>
+</a>
+        <a
+            routerLink="/admin/products"
+            (click)="close.emit()"
+            routerLinkActive="bg-gray-100"
+            class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+            >
+            <!-- products icon -->
+            <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+                <path d="M7 7h10v14H7V7Z" stroke="currentColor" stroke-width="2" />
+                <path d="M9 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M9 12h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="font-medium text-gray-800">Products</span>
+            </a>
+            <a
+              routerLink="/admin/products-list"
+              (click)="close.emit()"
+              routerLinkActive="bg-gray-100"
+              class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+            >
+              <!-- list / products icon -->
+              <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+                <path d="M4 6h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M4 12h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="2.5" cy="6" r="1" fill="currentColor"/>
+                <circle cx="2.5" cy="12" r="1" fill="currentColor"/>
+                <circle cx="2.5" cy="18" r="1" fill="currentColor"/>
+              </svg>
+
+              <span class="font-medium text-gray-800">
+                Product List
+              </span>
+            </a>
+            <a
+                routerLink="/admin/coupons"
+                (click)="close.emit()"
+                routerLinkActive="bg-gray-100"
+                class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+                >
+                <!-- coupon / ticket icon -->
+                <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+                    <path
+                    d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4V9Z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linejoin="round"
+                    />
+                    <path
+                    d="M12 7v10"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-dasharray="2 2"
+                    stroke-linecap="round"
+                    />
+                </svg>
+
+                <span class="font-medium text-gray-800">Coupons</span>
+                </a>
+                <a
+  routerLink="/admin/product-return"
+  (click)="close.emit()"
+  routerLinkActive="bg-gray-100"
+  class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+>
+  <!-- return icon -->
+  <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+    <path d="M7 7h10v10H7V7Z" stroke="currentColor" stroke-width="2"/>
+    <path d="M10 9H8V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M8 9c0 0 1-2 4-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M14 13h2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M16 13c0 0-1 2-4 2H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+
+  <span class="font-medium text-gray-800">Product Return</span>
+</a>
+<a
+  routerLink="/admin/inventory"
+  (click)="close.emit()"
+  routerLinkActive="bg-gray-100"
+  class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+>
+  <!-- inventory icon -->
+  <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+    <path d="M4 7h16v14H4V7Z" stroke="currentColor" stroke-width="2"/>
+    <path d="M7 7V5h10v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M7 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M7 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+  <span class="font-medium text-gray-800">Inventory</span>
+</a>
+<a
+  routerLink="/admin/users"
+  (click)="close.emit()"
+  routerLinkActive="bg-gray-100"
+  class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+>
+  <!-- users icon -->
+  <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+    <path d="M16 11a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" stroke="currentColor" stroke-width="2"/>
+    <path d="M4 20c2.5-5 13.5-5 16 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+  <span class="font-medium text-gray-800">Users</span>
+</a>
+<a
+  routerLink="/admin/products-reviews"
+  (click)="close.emit()"
+  routerLinkActive="bg-gray-100"
+  class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+>
+  <!-- reviews icon -->
+  <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M12 8l1.5 3 3.5.5-2.5 2.5.6 3.5L12 16l-3.1 1.5.6-3.5L7 11.5l3.5-.5L12 8Z"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linejoin="round"
+    />
+  </svg>
+
+  <span class="font-medium text-gray-800">Reviews</span>
+</a>
+<a
+  routerLink="buyer"
+  (click)="close.emit()"
+  routerLinkActive="bg-gray-100"
+  class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+>
+  <!-- buyers icon -->
+  <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+    <path d="M16 11c1.66 0 3-1.79 3-4s-1.34-4-3-4-3 1.79-3 4 1.34 4 3 4Z" stroke="currentColor" stroke-width="2"/>
+    <path d="M8 11c1.66 0 3-1.79 3-4S9.66 3 8 3 5 4.79 5 7s1.34 4 3 4Z" stroke="currentColor" stroke-width="2"/>
+    <path d="M2 21c0-3.31 2.69-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M22 21c0-3.31-2.69-6-6-6s-6 2.69-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+  <span class="font-medium text-gray-800">Buyers</span>
+</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ===== Sidebar Footer (sticks bottom) ===== -->
+  <div class="px-4 py-4 border-t mt-auto">
+    <div class="flex items-center justify-between text-xs text-gray-500">
+      <span>Version 1.0.0-Beta Version</span>
+     
+    </div>
+
+  </div>
+</aside>

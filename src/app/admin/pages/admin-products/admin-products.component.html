@@ -1,0 +1,255 @@
+<div class="space-y-6">
+  <!-- Top bar -->
+  <div class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-semibold">Create Product</h1>
+        <p class="text-sm text-white/70 mt-1">Add Tire, Rim, or Cover products with dynamic attributes</p>
+      </div>
+
+      <div class="flex gap-2">
+        <button
+          type="button"
+          (click)="goBack()"
+          class="px-4 py-2 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/15 transition"
+        >
+          ← Return
+        </button>
+        <button
+          type="button"
+          (click)="save()"
+          class="px-4 py-2 rounded-2xl bg-white text-black font-medium hover:bg-gray-100 transition"
+        >
+          Save Product
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form card -->
+  <div class="rounded-3xl border bg-white shadow-sm overflow-hidden">
+    <div class="px-6 py-5 border-b">
+      <div class="text-lg font-semibold text-gray-900">Product Information</div>
+      <div class="text-sm text-gray-500">Common fields + type-specific attributes</div>
+    </div>
+
+    <form class="p-6 space-y-6" [formGroup]="form" (ngSubmit)="save()">
+      <!-- Row 1 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="text-sm font-medium text-gray-700">Product Type</label>
+          <select
+            formControlName="productType"
+            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+          >
+            <option value="tire">Tire</option>
+            <option value="rim">Rim</option>
+            <option value="cover">Cover</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-gray-700">SKU</label>
+          <input
+            formControlName="sku"
+            placeholder="e.g. TIRE-20555R16-MIC"
+            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-gray-700">Status</label>
+          <select
+            formControlName="status"
+            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+          >
+            <option>Active</option>
+            <option>Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="md:col-span-2">
+          <label class="text-sm font-medium text-gray-700">Product Name</label>
+          <input
+            formControlName="name"
+            placeholder="e.g. Michelin Pilot Sport 4"
+            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-gray-700">Price</label>
+          <input
+            type="number"
+            formControlName="price"
+            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
+      </div>
+
+      <!-- Tire dependent selects -->
+      <div *ngIf="productType === 'tire'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm font-medium text-gray-700">Tire Brand</label>
+          <select
+            formControlName="brandId"
+            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+          >
+            <option value="">Select brand</option>
+            <option *ngFor="let b of brands" [value]="b.id">{{ b.name }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-gray-700">Tire Model</label>
+          <select
+            formControlName="modelId"
+            [disabled]="!form.value.brandId"
+            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black disabled:bg-gray-100"
+          >
+            <option value="">Select model</option>
+            <option *ngFor="let m of availableModels" [value]="m.id">{{ m.name }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="text-sm font-medium text-gray-700">Description</label>
+        <textarea
+          rows="4"
+          formControlName="description"
+          placeholder="Write product details..."
+          class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+        ></textarea>
+      </div>
+
+      <!-- Image upload + preview -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+        <div>
+          <label class="text-sm font-medium text-gray-700">Product Image</label>
+          <input
+            type="file"
+            accept="image/*"
+            (change)="onFileChange($event)"
+            class="mt-1 w-full rounded-2xl border px-4 py-2.5"
+          />
+          <p class="text-xs text-gray-500 mt-1">Max 2MB • JPG/PNG/WebP</p>
+        </div>
+
+        <div class="rounded-2xl border bg-gray-50 p-4 flex items-center gap-4">
+          <div class="w-20 h-20 rounded-2xl bg-white overflow-hidden border flex items-center justify-center">
+            <ng-container *ngIf="form.value.imageUrl; else noImg">
+              <img [src]="form.value.imageUrl!" class="w-full h-full object-cover" alt="preview" />
+            </ng-container>
+            <ng-template #noImg>
+              <span class="text-xs text-gray-400">No Image</span>
+            </ng-template>
+          </div>
+
+          <div class="text-sm text-gray-600">
+            <div class="font-semibold text-gray-900">{{ form.value.name || 'Product Preview' }}</div>
+            <div class="text-gray-500">{{ productType | uppercase }} • SKU: {{ form.value.sku || '-' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Attributes (type-based) ===== -->
+      <div class="rounded-3xl border bg-white">
+        <div class="px-5 py-4 border-b">
+          <div class="font-semibold text-gray-900">Attributes</div>
+          <div class="text-sm text-gray-500">Fields change based on product type</div>
+        </div>
+
+        <div class="p-5" formGroupName="attrs">
+          <!-- Tire attributes -->
+          <div *ngIf="productType === 'tire'" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Width</label>
+              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="width" placeholder="205" />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Aspect Ratio</label>
+              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="aspect" placeholder="55" />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Diameter</label>
+              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="diameter" placeholder="16" />
+            </div>
+
+            <div>
+              <label class="text-sm font-medium text-gray-700">Season</label>
+              <select class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="season">
+                <option value="">Select</option>
+                <option>Summer</option>
+                <option>Winter</option>
+                <option>All-season</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Load Index</label>
+              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="loadIndex" placeholder="91" />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Speed Rating</label>
+              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="speedRating" placeholder="V" />
+            </div>
+          </div>
+
+          <!-- Rim attributes -->
+          <div *ngIf="productType === 'rim'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Rim Size</label>
+              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="rimSize" placeholder="17x7.5" />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Bolt Pattern</label>
+              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="boltPattern" placeholder="5x114.3" />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Offset</label>
+              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="offset" placeholder="+35" />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Material</label>
+              <select class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="material">
+                <option value="">Select</option>
+                <option>Alloy</option>
+                <option>Steel</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Cover attributes -->
+          <div *ngIf="productType === 'cover'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Cover Size</label>
+              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="coverSize" placeholder='16"' />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Material</label>
+              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="coverMaterial" placeholder="ABS / Plastic" />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Color</label>
+              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="color" placeholder="Black / Silver" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit row -->
+      <div class="flex justify-end gap-3">
+        <button type="button" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50" (click)="goBack()">
+          Return
+        </button>
+        <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900">
+          Save Product
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
