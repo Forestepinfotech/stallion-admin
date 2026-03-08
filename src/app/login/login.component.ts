@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthSessionService } from '../core/auth/auth-session.service';
+import { ToastService } from '../core/notification/toast.service';
 @Component({
   selector: 'app-login',
   imports: [CommonModule, ReactiveFormsModule],
@@ -16,14 +17,15 @@ export class LoginComponent {
   error = '';
   private fb = inject(FormBuilder);
   private auth = inject(AuthSessionService);
+  private toast = inject(ToastService);
   form = this.fb.group({
-    username: ['', [Validators.required]],
+    identifier: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
   constructor() {}
 
-  isInvalid(controlName: 'username' | 'password') {
+  isInvalid(controlName: 'identifier' | 'password') {
     const c = this.form.get(controlName);
     return !!c && c.invalid && (c.dirty || c.touched);
   }
@@ -37,16 +39,21 @@ export class LoginComponent {
 
     this.loading = true;
     try {
-      const { username, password } = this.form.value;
+      const { identifier, password } = this.form.value;
       await firstValueFrom(
         this.auth.login({
-          username: username ?? '',
+          identifier: identifier ?? '',
           password: password ?? '',
         }),
       );
       this.router.navigateByUrl('/admin');
     } catch (e) {
-      this.error = 'Login failed. Please try again.';
+      const msg =
+        (e as any)?.error?.message ||
+        (e as Error)?.message ||
+        'Login failed. Please try again.';
+      this.error = msg;
+      this.toast.error(msg, 'Login failed');
     } finally {
       this.loading = false;
     }

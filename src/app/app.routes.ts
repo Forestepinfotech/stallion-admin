@@ -16,8 +16,10 @@ import { AdminProductListComponent } from './admin/pages/admin-product-list/admi
 import { AdminProductReviewComponent } from './admin/pages/admin-product-review/admin-product-review.component';
 import { AdminProductBuyerComponent } from './admin/pages/admin-product-buyer/admin-product-buyer.component';
 import { AdminCategoryComponent } from './admin/pages/admin-category/admin-category.component';
+import { LandingRedirectComponent } from './core/auth/landing-redirect.component';
 
 export const routes: Routes = [
+  { path: '', component: LandingRedirectComponent },
   { path: 'login', component: LoginComponent },
   {
     path: 'admin',

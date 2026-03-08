@@ -5,6 +5,7 @@ export interface AuthTokens {
   refreshToken: string;
   accessTokenExpiresAt: number; // epoch ms
   refreshTokenExpiresAt?: number; // epoch ms
+  role?: Role | string;
 }
 
 export interface AuthUser {
@@ -20,7 +21,7 @@ export interface AuthState {
 }
 
 export interface LoginPayload {
-  username: string;
+  identifier: string;
   password: string;
 }
 
@@ -28,10 +29,12 @@ export interface LoginResponse extends AuthTokens {
   user?: AuthUser;
   accessTokenExpiresIn?: number;
   refreshTokenExpiresIn?: number;
+  role?: Role | string;
 }
 
 export interface RefreshResponse extends AuthTokens {
   accessTokenExpiresIn?: number;
   refreshTokenExpiresIn?: number;
   user?: AuthUser;
+  role?: Role | string;
 }

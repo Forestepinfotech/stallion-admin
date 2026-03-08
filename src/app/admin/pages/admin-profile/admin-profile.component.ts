@@ -1,6 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { DashboardService } from '../../../core/api/generated/dashboard/dashboard.service';
 import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import {
+  ActivityItemDto,
+  ProfileActivityDto,
+  ProfileDto,
+  ProfileStatsDto,
+} from '../../../core/api/generated/schemas';
+import { ToastService } from '../../../core/notification/toast.service';
+import { Store } from '@ngrx/store';
+import { AuthActions } from '../../../core/state/auth/auth.actions';
+import { selectProfile, selectProfileLoading } from '../../../core/state/auth/auth.selectors';
+import { SkeletonPanelComponent } from '../../../core/ui/skeleton-panel.component';
 
 type Profile = {
   name: string;
@@ -22,71 +35,41 @@ type Activity = {
 };
 @Component({
   selector: 'app-admin-profile',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, SkeletonPanelComponent],
   templateUrl: './admin-profile.component.html',
   styleUrl: './admin-profile.component.css',
 })
-export class AdminProfileComponent {
-  // ======== DATA (replace later from backend) ========
+export class AdminProfileComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly toast = inject(ToastService);
+  private readonly http = inject(HttpClient);
+  private readonly store = inject(Store);
+  private readonly dashboard = inject(DashboardService);
+
   profile: Profile = {
-    name: 'Admin User',
-    role: 'Administrator',
-    email: 'admin@example.com',
-    phone: '+1 (000) 000-0000',
-    location: 'Edmonton, AB',
-    joined: '2025-01-12',
-    avatarUrl: 'assets/images/profile.png',
+    name: 'Loading...',
+    role: '',
+    email: '',
+    phone: '',
+    location: '',
+    joined: '',
+    avatarUrl: '',
   };
 
-  stats = [
-    { label: 'Orders Managed', value: 1284 },
-    { label: 'Products', value: 342 },
-    { label: 'Coupons', value: 27 },
-    { label: 'Revenue', value: '$142,800' },
-  ];
-
-  activityStats = [
-    { label: 'This week', value: 12 },
-    { label: 'This month', value: 48 },
-    { label: 'Avg/day', value: 3 },
-  ];
-
-  recentActivity: Activity[] = [
-    {
-      type: 'coupon',
-      title: 'Created coupon',
-      desc: 'WELCOME10 • 10% off (limit 200)',
-      time: '2 hours ago',
-    },
-    {
-      type: 'product',
-      title: 'Added product',
-      desc: 'Tire • SKU: TIRE-20555R16-MIC',
-      time: 'Yesterday',
-    },
-    {
-      type: 'order',
-      title: 'Order updated',
-      desc: 'Order #10293 marked as Shipped',
-      time: '2 days ago',
-    },
-    {
-      type: 'profile',
-      title: 'Profile updated',
-      desc: 'Phone number changed',
-      time: '1 week ago',
-    },
-  ];
+  stats: { label: string; value: number | string }[] = [];
+  activityStats: { label: string; value: number }[] = [];
+  recentActivity: Activity[] = [];
 
   // ======== UI STATE ========
   editOpen = false;
   passwordOpen = false;
+  loading = false;
 
   // ======== FORMS ========
   editForm;
   passwordForm;
 
-  constructor(private fb: FormBuilder) {
+  constructor() {
     // Edit Profile form
     this.editForm = this.fb.nonNullable.group({
       name: this.fb.nonNullable.control(this.profile.name, [
@@ -128,6 +111,19 @@ export class AdminProfileComponent {
     );
   }
 
+  ngOnInit(): void {
+    this.store.dispatch(AuthActions.loadProfile());
+    this.loadRecentActivity();
+    this.store.select(selectProfile).subscribe((profile) => {
+      if (profile) {
+        this.applyProfile(profile);
+        this.applyStats(profile.stats);
+        this.applyActivityStats(profile.activity);
+      }
+    });
+    this.store.select(selectProfileLoading).subscribe((loading) => (this.loading = loading));
+  }
+
   // ======== MODALS ========
   openEdit() {
     this.editForm.reset({
@@ -166,7 +162,6 @@ export class AdminProfileComponent {
 
     const v = this.editForm.getRawValue();
 
-    // Update local state (replace with API call)
     this.profile = {
       ...this.profile,
       name: v.name,
@@ -176,19 +171,9 @@ export class AdminProfileComponent {
       avatarUrl: v.avatarUrl ?? '',
     };
 
-    // add activity entry
-    this.recentActivity = [
-      {
-        type: 'profile',
-        title: 'Profile updated',
-        desc: 'Profile details updated',
-        time: 'Just now',
-      },
-      ...this.recentActivity,
-    ];
-
     this.closeEdit();
-    alert('Profile updated (demo). Connect backend API here.');
+    this.toast.success('Profile updated locally. Hook update endpoint to persist.');
+    // TODO: call backend update endpoint when available.
   }
 
   changePassword() {
@@ -199,26 +184,9 @@ export class AdminProfileComponent {
 
     const v = this.passwordForm.getRawValue();
 
-    // Call backend API here:
-    // POST /auth/change-password { currentPassword, newPassword }
-    console.log('Change password payload:', {
-      currentPassword: v.currentPassword,
-      newPassword: v.newPassword,
-    });
-
-    // add activity entry
-    this.recentActivity = [
-      {
-        type: 'profile',
-        title: 'Password changed',
-        desc: 'Account password updated',
-        time: 'Just now',
-      },
-      ...this.recentActivity,
-    ];
-
+    // TODO: replace with backend change-password endpoint.
+    this.toast.success('Password change submitted (demo). Wire API when available.');
     this.closePassword();
-    alert('Password changed (demo). Connect backend API here.');
   }
 
   // ======== AVATAR UPLOAD ========
@@ -299,14 +267,94 @@ export class AdminProfileComponent {
 
   // Demo button handlers
   viewAllActivity() {
-    alert('View all activity (demo). Add pagination / route later.');
+    this.toast.info('Pagination/route not wired yet.');
   }
 
   openActivity(a: Activity) {
-    alert(`Open: ${a.title} (demo). Route to details page later.`);
+    this.toast.info(`${a.title}`, 'Open activity (todo)');
   }
 
   activityDetails(a: Activity) {
-    alert(`Details: ${a.desc} (demo).`);
+    this.toast.info(a.desc, 'Activity details');
+  }
+
+  // ======== DATA LOADING ========
+  private loadRecentActivity() {
+    this.dashboard.dashboardControllerRecentActivity<ActivityItemDto[]>().subscribe({
+      next: (items) => (this.recentActivity = items.map((x) => this.mapActivity(x))),
+      error: (err) => {
+        console.error(err);
+        this.toast.error('Failed to load activity');
+      },
+    });
+  }
+
+  private applyProfile(dto: ProfileDto) {
+    const user = dto.user;
+    const addr = dto.address;
+    const location = [addr?.line1, addr?.province_name, addr?.country_name].filter(Boolean).join(', ');
+    const joined = user?.created_at ? new Date(user.created_at).toISOString().split('T')[0] : '';
+
+    this.profile = {
+      name: user?.email?.split('@')[0] ?? 'User',
+      role: user?.usertypename ?? 'Administrator',
+      email: user?.email ?? '',
+      phone: this.safeString(user?.phone),
+      location,
+      joined,
+      avatarUrl: typeof user?.user_pic === 'string' ? (user.user_pic as string) : '',
+    };
+
+    this.editForm.patchValue({
+      name: this.profile.name,
+      email: this.profile.email,
+      phone: this.profile.phone,
+      location: this.profile.location,
+      avatarUrl: this.profile.avatarUrl,
+    });
+  }
+
+  private applyStats(stats?: ProfileStatsDto | null) {
+    const s = stats ?? { orders: 0, products: 0, coupons: 0, revenue: 0 };
+    this.stats = [
+      { label: 'Orders Managed', value: s.orders ?? 0 },
+      { label: 'Products', value: s.products ?? 0 },
+      { label: 'Coupons', value: s.coupons ?? 0 },
+      { label: 'Revenue', value: `$${(s.revenue ?? 0).toLocaleString()}` },
+    ];
+  }
+
+  private applyActivityStats(a?: ProfileActivityDto | null) {
+    const stats = a ?? { week: 0, month: 0, avgDay: 0 };
+    this.activityStats = [
+      { label: 'This week', value: stats.week ?? 0 },
+      { label: 'This month', value: stats.month ?? 0 },
+      { label: 'Avg/day', value: stats.avgDay ?? 0 },
+    ];
+  }
+
+  private mapActivity(a: ActivityItemDto): Activity {
+    const type = this.mapActivityType(a.entity);
+    const desc = `${a.entity} ${a.entity_id} • ${a.action}`;
+    const time = this.formatTime(a.created_at);
+    return { type, title: a.action, desc, time };
+  }
+
+  private mapActivityType(entity: string): ActivityType {
+    const e = (entity ?? '').toLowerCase();
+    if (e.includes('coupon')) return 'coupon';
+    if (e.includes('product')) return 'product';
+    if (e.includes('order')) return 'order';
+    return 'profile';
+  }
+
+  private formatTime(createdAt: string) {
+    const d = new Date(createdAt);
+    if (Number.isNaN(d.getTime())) return createdAt;
+    return d.toLocaleString();
+  }
+
+  private safeString(value: unknown): string {
+    return typeof value === 'string' ? value : '';
   }
 }

@@ -1,4 +1,5 @@
 <div class="space-y-6">
+  <ng-container *ngIf="!loading; else profileSkeleton">
   <!-- ===== HERO ===== -->
   <div class="rounded-3xl p-6 md:p-8 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -197,6 +198,30 @@
       </div>
     </div>
   </div>
+
+  <!-- ================= EDIT PROFILE MODAL ================= -->
+  </ng-container>
+  <ng-template #profileSkeleton>
+    <app-skeleton-panel [minHeight]="200" extraClasses="bg-gradient-to-br from-gray-900 to-black text-white shadow-2xl">
+      <div class="h-6 w-40 bg-white/20 rounded"></div>
+      <div class="h-4 w-24 bg-white/10 rounded"></div>
+    </app-skeleton-panel>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <app-skeleton-panel *ngFor="let _ of [1,2,3,4]" [minHeight]="112"></app-skeleton-panel>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <app-skeleton-panel>
+        <div class="h-5 w-32 bg-gray-200 rounded"></div>
+        <div class="h-4 w-24 bg-gray-200 rounded"></div>
+        <div class="h-4 w-28 bg-gray-200 rounded"></div>
+      </app-skeleton-panel>
+      <app-skeleton-panel class="lg:col-span-2">
+        <div class="space-y-3">
+          <div *ngFor="let _ of [1,2,3]" class="h-20 bg-gray-100 rounded"></div>
+        </div>
+      </app-skeleton-panel>
+    </div>
+  </ng-template>
 
   <!-- ================= EDIT PROFILE MODAL ================= -->
   <div *ngIf="editOpen" class="fixed inset-0 z-50">

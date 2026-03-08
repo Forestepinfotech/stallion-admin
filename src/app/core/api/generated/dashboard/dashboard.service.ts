@@ -16,7 +16,12 @@ import { Injectable, inject } from "@angular/core";
 
 import { Observable } from "rxjs";
 
-import type { DashboardOverviewDto, ProfileDto } from "../schemas";
+import type {
+  CustomerProfileDto,
+  DashboardOverviewDto,
+  DealerProfileDto,
+  ProfileDto,
+} from "../schemas";
 
 interface HttpClientOptions {
   readonly headers?: HttpHeaders | Record<string, string | string[]>;
@@ -226,6 +231,99 @@ export class DashboardService {
     }
 
     return this.http.get<TData>(`/dashboard/profile`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+    });
+  }
+  dashboardControllerAdminProfile<TData = ProfileDto>(
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  dashboardControllerAdminProfile<TData = ProfileDto>(
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  dashboardControllerAdminProfile<TData = ProfileDto>(
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  dashboardControllerAdminProfile<TData = ProfileDto>(
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/dashboard/profile/admin`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/dashboard/profile/admin`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+      });
+    }
+
+    return this.http.get<TData>(`/dashboard/profile/admin`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+    });
+  }
+  dashboardControllerCustomerProfile<TData = CustomerProfileDto>(
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  dashboardControllerCustomerProfile<TData = CustomerProfileDto>(
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  dashboardControllerCustomerProfile<TData = CustomerProfileDto>(
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  dashboardControllerCustomerProfile<TData = CustomerProfileDto>(
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/dashboard/profile/customer`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/dashboard/profile/customer`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+      });
+    }
+
+    return this.http.get<TData>(`/dashboard/profile/customer`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+    });
+  }
+  dashboardControllerDealerProfile<TData = DealerProfileDto>(
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  dashboardControllerDealerProfile<TData = DealerProfileDto>(
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  dashboardControllerDealerProfile<TData = DealerProfileDto>(
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  dashboardControllerDealerProfile<TData = DealerProfileDto>(
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/dashboard/profile/dealer`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/dashboard/profile/dealer`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+      });
+    }
+
+    return this.http.get<TData>(`/dashboard/profile/dealer`, {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
     });

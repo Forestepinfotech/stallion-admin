@@ -8,13 +8,21 @@ const projectRoot = path.resolve(__dirname, '..');
 const envPath = path.resolve(projectRoot, '.env');
 dotenv.config({ path: envPath });
 
+const must = (name) => {
+  const v = process.env[name];
+  if (!v) {
+    throw new Error(`Missing required env: ${name}`);
+  }
+  return v;
+};
+
 const config = {
-  apiBaseUrl: process.env.API_BASE_URL ?? 'http://localhost:3002',
+  apiBaseUrl: must('API_BASE_URL'),
+  openApiSchemaUrl: must('OPENAPI_SCHEMA_URL'),
   tokenRefreshLeewaySeconds: Number(process.env.TOKEN_REFRESH_LEEWAY_SECONDS ?? 20),
   authIssuer: process.env.AUTH_ISSUER ?? '',
   authAudience: process.env.AUTH_AUDIENCE ?? '',
   authClientId: process.env.AUTH_CLIENT_ID ?? '',
-  openApiSchemaUrl: process.env.OPENAPI_SCHEMA_URL ?? 'http://localhost:3002/docs-json',
 };
 
 const target = path.resolve(projectRoot, 'src/assets/runtime-config.json');

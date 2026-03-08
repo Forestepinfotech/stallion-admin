@@ -6,6 +6,7 @@ interface PersistedTokens {
   refreshToken: string;
   accessTokenExpiresAt: number;
   refreshTokenExpiresAt?: number;
+  role?: string;
 }
 
 const STORAGE_KEY = 'stallion.auth.tokens.v1';
@@ -34,6 +35,7 @@ export class TokenStorageService {
       refreshToken: tokens.refreshToken,
       accessTokenExpiresAt: tokens.accessTokenExpiresAt,
       refreshTokenExpiresAt: tokens.refreshTokenExpiresAt,
+      role: tokens.role,
     };
     this.storage.setItem(STORAGE_KEY, JSON.stringify(payload));
   }
