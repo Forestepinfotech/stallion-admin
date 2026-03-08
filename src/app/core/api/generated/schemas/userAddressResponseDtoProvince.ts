@@ -8,4 +8,4 @@
 /**
  * @nullable
  */
-export type ProfileAddressDtoProvinceName = { [key: string]: unknown } | null;
+export type UserAddressResponseDtoProvince = { [key: string]: unknown } | null;

@@ -307,7 +307,9 @@ export class AdminProfileComponent implements OnInit {
   private applyProfile(dto: ProfileDto) {
     const user = dto.user;
     const addr = dto.address;
-    const location = [addr?.line1, addr?.province_name, addr?.country_name].filter(Boolean).join(', ');
+    const location = [addr?.line1, this.addrPart(addr?.province), this.addrPart(addr?.country)]
+      .filter(Boolean)
+      .join(', ');
     const joined = user?.created_at ? new Date(user.created_at).toISOString().split('T')[0] : '';
 
     this.profile = {
@@ -327,6 +329,21 @@ export class AdminProfileComponent implements OnInit {
       location: this.profile.location,
       avatarUrl: this.profile.avatarUrl,
     });
+  }
+
+  private addrPart(part: unknown): string {
+    if (!part) return '';
+    if (typeof part === 'string') return part;
+    if (typeof part === 'object') {
+      // try common keys coming from backend even though OpenAPI typed as unknown
+      const anyPart = part as Record<string, unknown>;
+      const candidates = ['province_name', 'country_name', 'name', 'code', 'value'];
+      for (const key of candidates) {
+        const val = anyPart[key];
+        if (typeof val === 'string') return val;
+      }
+    }
+    return '';
   }
 
   private applyStats(stats?: ProfileStatsDto | null) {

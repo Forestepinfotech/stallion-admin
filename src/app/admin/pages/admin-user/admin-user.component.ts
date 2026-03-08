@@ -19,6 +19,9 @@ type User = {
   email: string;
   phone: string;
   address?: string;
+  postalCode?: string;
+  province?: string;
+  country?: string;
   status: Status;
   avatarUrl?: string;
   createdAt: string; // yyyy-mm-dd
@@ -92,6 +95,9 @@ export class AdminUserComponent {
       email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
       phone: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(7)]),
       address: this.fb.nonNullable.control(''),
+      postalCode: this.fb.nonNullable.control(''),
+      province: this.fb.nonNullable.control(''),
+      country: this.fb.nonNullable.control(''),
       status: this.fb.nonNullable.control<Status>('Active', Validators.required),
       avatarUrl: this.fb.control<string>(''),
     });
@@ -137,6 +143,9 @@ export class AdminUserComponent {
       email: '',
       phone: '',
       address: '',
+      postalCode: '',
+      province: '',
+      country: '',
       status: 'Active',
       avatarUrl: '',
     });
@@ -154,6 +163,9 @@ export class AdminUserComponent {
       email: u.email,
       phone: u.phone,
       address: u.address ?? '',
+      postalCode: u.postalCode ?? '',
+      province: u.province ?? '',
+      country: u.country ?? '',
       status: u.status,
       avatarUrl: u.avatarUrl ?? '',
     });
@@ -188,11 +200,14 @@ export class AdminUserComponent {
         name: v.name.trim(),
         role: v.role,
         email: emailLower,
-        phone: v.phone.trim(),
-        address: v.address?.trim(),
-        status: v.status,
-        avatarUrl: v.avatarUrl ?? '',
-        createdAt: this.isoDateOffset(0),
+      phone: v.phone.trim(),
+      address: v.address?.trim(),
+      postalCode: v.postalCode?.trim(),
+      province: v.province?.trim(),
+      country: v.country?.trim(),
+      status: v.status,
+      avatarUrl: v.avatarUrl ?? '',
+      createdAt: this.isoDateOffset(0),
       };
       this.users = [newUser, ...this.users];
     } else {
@@ -206,6 +221,9 @@ export class AdminUserComponent {
               email: emailLower,
               phone: v.phone.trim(),
               address: v.address?.trim(),
+              postalCode: v.postalCode?.trim(),
+              province: v.province?.trim(),
+              country: v.country?.trim(),
               status: v.status,
               avatarUrl: v.avatarUrl ?? '',
             }

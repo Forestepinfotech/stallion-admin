@@ -10,7 +10,8 @@ export interface UpdateUserAddressDto {
   line1?: string;
   line2?: string;
   postalcode?: string;
-  province_id?: number;
+  province?: string;
+  country?: string;
   is_default?: boolean;
   is_active?: boolean;
   is_deleted?: boolean;

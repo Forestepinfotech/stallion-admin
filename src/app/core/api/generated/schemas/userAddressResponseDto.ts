@@ -4,16 +4,25 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
+import type { UserAddressResponseDtoCountry } from "./userAddressResponseDtoCountry";
+import type { UserAddressResponseDtoCreatedBy } from "./userAddressResponseDtoCreatedBy";
+import type { UserAddressResponseDtoLine2 } from "./userAddressResponseDtoLine2";
+import type { UserAddressResponseDtoProvince } from "./userAddressResponseDtoProvince";
 
 export interface UserAddressResponseDto {
+  address_id: number;
   user_id: number;
   line1: string;
-  line2: string;
+  /** @nullable */
+  line2?: UserAddressResponseDtoLine2;
   postalcode: string;
-  province_id: number;
+  /** @nullable */
+  province?: UserAddressResponseDtoProvince;
+  /** @nullable */
+  country?: UserAddressResponseDtoCountry;
   is_default: boolean;
   is_active: boolean;
   is_deleted: boolean;
-  created_by: string;
-  address_id: number;
+  /** @nullable */
+  created_by?: UserAddressResponseDtoCreatedBy;
 }

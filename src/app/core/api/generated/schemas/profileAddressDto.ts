@@ -4,16 +4,16 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
-import type { ProfileAddressDtoCountryName } from "./profileAddressDtoCountryName";
+import type { ProfileAddressDtoCountry } from "./profileAddressDtoCountry";
 import type { ProfileAddressDtoLine2 } from "./profileAddressDtoLine2";
-import type { ProfileAddressDtoProvinceName } from "./profileAddressDtoProvinceName";
+import type { ProfileAddressDtoProvince } from "./profileAddressDtoProvince";
 
 export interface ProfileAddressDto {
   line1: string;
   /** @nullable */
   line2?: ProfileAddressDtoLine2;
   /** @nullable */
-  province_name?: ProfileAddressDtoProvinceName;
+  province?: ProfileAddressDtoProvince;
   /** @nullable */
-  country_name?: ProfileAddressDtoCountryName;
+  country?: ProfileAddressDtoCountry;
 }
