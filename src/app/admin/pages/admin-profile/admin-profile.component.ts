@@ -14,6 +14,7 @@ import { Store } from '@ngrx/store';
 import { AuthActions } from '../../../core/state/auth/auth.actions';
 import { selectProfile, selectProfileLoading } from '../../../core/state/auth/auth.selectors';
 import { SkeletonPanelComponent } from '../../../core/ui/skeleton-panel.component';
+import { ProfileApiService, UpdateProfilePayload } from '../../../core/api/profile-api.service';
 
 type Profile = {
   name: string;
@@ -45,6 +46,7 @@ export class AdminProfileComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly store = inject(Store);
   private readonly dashboard = inject(DashboardService);
+  private readonly profileApi = inject(ProfileApiService);
 
   profile: Profile = {
     name: 'Loading...',
@@ -64,6 +66,7 @@ export class AdminProfileComponent implements OnInit {
   editOpen = false;
   passwordOpen = false;
   loading = false;
+  saving = false;
 
   // ======== FORMS ========
   editForm;
@@ -162,8 +165,7 @@ export class AdminProfileComponent implements OnInit {
 
     const v = this.editForm.getRawValue();
 
-    this.profile = {
-      ...this.profile,
+    const payload: UpdateProfilePayload = {
       name: v.name,
       email: v.email,
       phone: v.phone,
@@ -171,9 +173,22 @@ export class AdminProfileComponent implements OnInit {
       avatarUrl: v.avatarUrl ?? '',
     };
 
-    this.closeEdit();
-    this.toast.success('Profile updated locally. Hook update endpoint to persist.');
-    // TODO: call backend update endpoint when available.
+    this.saving = true;
+    this.profileApi.updateAdminProfile(payload).subscribe({
+      next: (updated) => {
+        this.toast.success('Profile updated');
+        this.applyProfile(updated);
+        this.applyStats(updated.stats);
+        this.applyActivityStats(updated.activity);
+        this.store.dispatch(AuthActions.updateProfileSuccess({ profile: updated }));
+        this.closeEdit();
+      },
+      error: (err) => {
+        console.error(err);
+        this.toast.error('Profile update failed');
+      },
+      complete: () => (this.saving = false),
+    });
   }
 
   changePassword() {

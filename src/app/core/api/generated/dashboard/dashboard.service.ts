@@ -21,6 +21,10 @@ import type {
   DashboardOverviewDto,
   DealerProfileDto,
   ProfileDto,
+  UpdateAdminDashboardProfileDto,
+  UpdateCustomerDashboardProfileDto,
+  UpdateDashboardProfileDto,
+  UpdateDealerDashboardProfileDto,
 } from "../schemas";
 
 interface HttpClientOptions {
@@ -235,6 +239,53 @@ export class DashboardService {
       observe: "body",
     });
   }
+  dashboardControllerUpdateProfile<TData = ProfileDto>(
+    updateDashboardProfileDto: UpdateDashboardProfileDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  dashboardControllerUpdateProfile<TData = ProfileDto>(
+    updateDashboardProfileDto: UpdateDashboardProfileDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  dashboardControllerUpdateProfile<TData = ProfileDto>(
+    updateDashboardProfileDto: UpdateDashboardProfileDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  dashboardControllerUpdateProfile<TData = ProfileDto>(
+    updateDashboardProfileDto: UpdateDashboardProfileDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.patch<TData>(
+        `/dashboard/profile`,
+        updateDashboardProfileDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.patch<TData>(
+        `/dashboard/profile`,
+        updateDashboardProfileDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.patch<TData>(
+      `/dashboard/profile`,
+      updateDashboardProfileDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
   dashboardControllerAdminProfile<TData = ProfileDto>(
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
@@ -265,6 +316,53 @@ export class DashboardService {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
     });
+  }
+  dashboardControllerUpdateAdminProfile<TData = ProfileDto>(
+    updateAdminDashboardProfileDto: UpdateAdminDashboardProfileDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  dashboardControllerUpdateAdminProfile<TData = ProfileDto>(
+    updateAdminDashboardProfileDto: UpdateAdminDashboardProfileDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  dashboardControllerUpdateAdminProfile<TData = ProfileDto>(
+    updateAdminDashboardProfileDto: UpdateAdminDashboardProfileDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  dashboardControllerUpdateAdminProfile<TData = ProfileDto>(
+    updateAdminDashboardProfileDto: UpdateAdminDashboardProfileDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.patch<TData>(
+        `/dashboard/profile/admin`,
+        updateAdminDashboardProfileDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.patch<TData>(
+        `/dashboard/profile/admin`,
+        updateAdminDashboardProfileDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.patch<TData>(
+      `/dashboard/profile/admin`,
+      updateAdminDashboardProfileDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
   }
   dashboardControllerCustomerProfile<TData = CustomerProfileDto>(
     options?: HttpClientOptions & { observe?: "body" },
@@ -297,6 +395,53 @@ export class DashboardService {
       observe: "body",
     });
   }
+  dashboardControllerUpdateCustomerProfile<TData = CustomerProfileDto>(
+    updateCustomerDashboardProfileDto: UpdateCustomerDashboardProfileDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  dashboardControllerUpdateCustomerProfile<TData = CustomerProfileDto>(
+    updateCustomerDashboardProfileDto: UpdateCustomerDashboardProfileDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  dashboardControllerUpdateCustomerProfile<TData = CustomerProfileDto>(
+    updateCustomerDashboardProfileDto: UpdateCustomerDashboardProfileDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  dashboardControllerUpdateCustomerProfile<TData = CustomerProfileDto>(
+    updateCustomerDashboardProfileDto: UpdateCustomerDashboardProfileDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.patch<TData>(
+        `/dashboard/profile/customer`,
+        updateCustomerDashboardProfileDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.patch<TData>(
+        `/dashboard/profile/customer`,
+        updateCustomerDashboardProfileDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.patch<TData>(
+      `/dashboard/profile/customer`,
+      updateCustomerDashboardProfileDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
   dashboardControllerDealerProfile<TData = DealerProfileDto>(
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
@@ -327,6 +472,53 @@ export class DashboardService {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
     });
+  }
+  dashboardControllerUpdateDealerProfile<TData = DealerProfileDto>(
+    updateDealerDashboardProfileDto: UpdateDealerDashboardProfileDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  dashboardControllerUpdateDealerProfile<TData = DealerProfileDto>(
+    updateDealerDashboardProfileDto: UpdateDealerDashboardProfileDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  dashboardControllerUpdateDealerProfile<TData = DealerProfileDto>(
+    updateDealerDashboardProfileDto: UpdateDealerDashboardProfileDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  dashboardControllerUpdateDealerProfile<TData = DealerProfileDto>(
+    updateDealerDashboardProfileDto: UpdateDealerDashboardProfileDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.patch<TData>(
+        `/dashboard/profile/dealer`,
+        updateDealerDashboardProfileDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.patch<TData>(
+        `/dashboard/profile/dealer`,
+        updateDealerDashboardProfileDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.patch<TData>(
+      `/dashboard/profile/dealer`,
+      updateDealerDashboardProfileDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
   }
   dashboardControllerOverview<TData = DashboardOverviewDto>(
     options?: HttpClientOptions & { observe?: "body" },

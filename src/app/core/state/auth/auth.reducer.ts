@@ -23,6 +23,12 @@ export const authReducer = createReducer(
     loading: false,
     error: null,
   })),
+  on(AuthActions.updateProfileSuccess, (state, { profile }) => ({
+    ...state,
+    profile,
+    loading: false,
+    error: null,
+  })),
   on(AuthActions.loadProfileFailure, (state, { error }) => ({
     ...state,
     loading: false,

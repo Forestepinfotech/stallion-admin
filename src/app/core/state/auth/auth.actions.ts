@@ -7,6 +7,7 @@ export const AuthActions = createActionGroup({
     'Load Profile': emptyProps(),
     'Load Profile Success': props<{ profile: ProfileDto }>(),
     'Load Profile Failure': props<{ error: string }>(),
+    'Update Profile Success': props<{ profile: ProfileDto }>(),
     Logout: emptyProps(),
   },
 });

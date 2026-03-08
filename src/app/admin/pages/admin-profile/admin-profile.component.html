@@ -290,12 +290,12 @@
             </div>
           </div>
 
-          <div class="flex justify-end gap-3 pt-2">
-            <button type="button" (click)="closeEdit()" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50">
-              Cancel
-            </button>
-            <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900">
-              Save Changes
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" (click)="closeEdit()" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50">
+            Cancel
+          </button>
+            <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900 disabled:opacity-60" [disabled]="saving">
+              {{ saving ? 'Saving...' : 'Save Changes' }}
             </button>
           </div>
         </form>
