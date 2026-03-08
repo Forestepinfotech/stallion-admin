@@ -1,0 +1,46 @@
+<div class="min-h-screen bg-gray-100">
+
+  <!-- ================= HEADER (Fixed) ================= -->
+  <div class="fixed top-0 left-0 right-0 z-50">
+    <app-header (toggleSidebar)="toggleSidebar()"></app-header>
+  </div>
+
+  <!-- ================= MOBILE BACKDROP (only when sidebar open) ================= -->
+  <div
+    *ngIf="sidebarOpen"
+    class="fixed inset-0 top-20 bg-black/40 z-30 lg:hidden"
+    (click)="toggleSidebar()"
+  ></div>
+
+  <!-- ================= FIXED SIDEBAR ================= -->
+  <aside
+    class="fixed left-0 top-20 bottom-0 bg-white shadow-sm transition-all duration-300 ease-in-out z-40"
+  [class.w-72]="sidebarOpen" [class.w-0]="!sidebarOpen"
+  >
+    <div class="h-full overflow-hidden">
+      <app-admin-side-bar></app-admin-side-bar>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN AREA ================= -->
+  <div
+    class="pt-20 transition-all duration-300 ease-in-out"
+    [ngClass]="{
+      'ml-0 lg:ml-72': sidebarOpen,
+      'ml-0': !sidebarOpen
+    }"
+  >
+    <div class="h-[calc(100vh-5rem)] flex flex-col">
+
+      <!-- Scrollable content ONLY -->
+      <main class="flex-1 p-4 sm:p-6 overflow-y-auto">
+        <router-outlet></router-outlet>
+      </main>
+
+      <!-- Footer -->
+      <app-footer></app-footer>
+
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,213 @@
+<div class="mx-auto p-4 sm:p-6">
+  <!-- Header -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900">Buyers</h1>
+      <p class="text-sm text-slate-600">Customers and Dealers orders (grouped by order).</p>
+    </div>
+
+    <div class="rounded-xl bg-white px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
+      Total: <span class="font-semibold text-slate-900">{{ total() }}</span>
+    </div>
+  </div>
+
+  <!-- Tabs + Search -->
+  <div class="mt-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <!-- Tabs -->
+      <div class="inline-flex rounded-xl bg-slate-100 p-1">
+        <button
+          class="rounded-lg px-4 py-2 text-sm font-medium transition"
+          [class.bg-white]="tab() === 'customer'"
+          [class.text-slate-900]="tab() === 'customer'"
+          [class.text-slate-600]="tab() !== 'customer'"
+          [class.shadow-sm]="tab() === 'customer'"
+          (click)="setTab('customer')"
+        >
+          Customers
+        </button>
+        <button
+          class="rounded-lg px-4 py-2 text-sm font-medium transition"
+          [class.bg-white]="tab() === 'dealer'"
+          [class.text-slate-900]="tab() === 'dealer'"
+          [class.text-slate-600]="tab() !== 'dealer'"
+          [class.shadow-sm]="tab() === 'dealer'"
+          (click)="setTab('dealer')"
+        >
+          Dealers
+        </button>
+      </div>
+
+      <!-- Search -->
+      <div class="w-full md:max-w-md">
+        <label class="text-xs font-medium text-slate-600">Search</label>
+        <input
+          [ngModel]="q()"
+          (ngModelChange)="q.set($event); onFilterChange()"
+          placeholder="Search buyer, email, product, address..."
+          class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
+        />
+      </div>
+
+      <!-- Page size -->
+      <div class="w-full md:w-40">
+        <label class="text-xs font-medium text-slate-600">Page size</label>
+        <select
+          class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
+          [ngModel]="pageSize()"
+          (ngModelChange)="pageSize.set(+$event); onFilterChange()"
+        >
+          <option [ngValue]="6">6</option>
+          <option [ngValue]="12">12</option>
+          <option [ngValue]="24">24</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE: Cards -->
+  <div class="mt-6 grid grid-cols-1 gap-4 lg:hidden">
+    <div *ngFor="let o of paged()" class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div class="font-semibold text-slate-900">{{ o.buyer.name }}</div>
+          <div class="text-xs text-slate-600">{{ o.buyer.email }}</div>
+          <div class="text-xs text-slate-600" *ngIf="o.buyer.phone">{{ o.buyer.phone }}</div>
+        </div>
+
+        <div class="text-right">
+          <div class="text-xs text-slate-500">Order date</div>
+          <div class="text-sm font-medium text-slate-900">{{ o.order_date | date: "mediumDate" }}</div>
+        </div>
+      </div>
+
+      <div class="mt-3 text-sm text-slate-700">
+        <div class="text-xs font-medium text-slate-600">Address</div>
+        <div class="mt-1">{{ fullAddress(o) }}</div>
+      </div>
+
+      <div class="mt-4">
+        <div class="flex items-center justify-between">
+          <div class="text-xs font-medium text-slate-600">Items</div>
+          <div class="text-xs text-slate-600">Total qty: <span class="font-semibold text-slate-900">{{ totalQty(o) }}</span></div>
+        </div>
+
+        <div class="mt-2 space-y-2">
+          <div *ngFor="let it of o.items" class="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
+            <div class="text-sm font-medium text-slate-900">{{ it.product_title }}</div>
+            <div class="text-xs text-slate-600" *ngIf="it.sku">SKU: {{ it.sku }}</div>
+            <div class="mt-1 text-sm text-slate-700">Qty: <span class="font-semibold">{{ it.qty }}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3 text-xs text-slate-500">Order ID: {{ o.order_id }}</div>
+    </div>
+
+    <div *ngIf="paged().length === 0" class="rounded-2xl bg-white p-8 text-center text-sm text-slate-600 ring-1 ring-slate-200">
+      No orders found.
+    </div>
+  </div>
+
+  <!-- DESKTOP: Table -->
+  <div class="mt-6 hidden overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 lg:block">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600">Buyer</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600">Order</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600">Address</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600">Items</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-slate-200">
+          <tr *ngFor="let o of paged()">
+            <td class="px-4 py-4 align-top">
+              <div class="font-medium text-slate-900">{{ o.buyer.name }}</div>
+              <div class="text-xs text-slate-600">{{ o.buyer.email }}</div>
+              <div class="text-xs text-slate-600" *ngIf="o.buyer.phone">{{ o.buyer.phone }}</div>
+              <div class="mt-2">
+                <span class="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                  {{ tab() === 'customer' ? 'Customer' : 'Dealer' }}
+                </span>
+              </div>
+            </td>
+
+            <td class="px-4 py-4 align-top">
+              <div class="text-sm font-medium text-slate-900">{{ o.order_date | date: "mediumDate" }}</div>
+              <div class="text-xs text-slate-500">Order ID: {{ o.order_id }}</div>
+              <div class="mt-2 text-xs text-slate-600">
+                Total qty: <span class="font-semibold text-slate-900">{{ totalQty(o) }}</span>
+              </div>
+            </td>
+
+            <td class="px-4 py-4 align-top text-sm text-slate-700">
+              {{ fullAddress(o) }}
+            </td>
+
+            <td class="px-4 py-4 align-top">
+              <div class="space-y-2">
+                <div *ngFor="let it of o.items" class="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="text-sm font-medium text-slate-900">{{ it.product_title }}</div>
+                      <div class="text-xs text-slate-600" *ngIf="it.sku">SKU: {{ it.sku }}</div>
+                    </div>
+                    <div class="text-sm text-slate-700">
+                      Qty: <span class="font-semibold">{{ it.qty }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="paged().length === 0">
+            <td class="px-4 py-10 text-center text-sm text-slate-600" colspan="4">No orders found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="text-sm text-slate-600">
+      Page <span class="font-semibold text-slate-900">{{ page() }}</span> of
+      <span class="font-semibold text-slate-900">{{ totalPages() }}</span>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button
+        class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+        [disabled]="page() === 1"
+        (click)="setPage(1)"
+      >
+        First
+      </button>
+      <button
+        class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+        [disabled]="page() === 1"
+        (click)="setPage(page() - 1)"
+      >
+        Prev
+      </button>
+      <button
+        class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+        [disabled]="page() === totalPages()"
+        (click)="setPage(page() + 1)"
+      >
+        Next
+      </button>
+      <button
+        class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+        [disabled]="page() === totalPages()"
+        (click)="setPage(totalPages())"
+      >
+        Last
+      </button>
+    </div>
+  </div>
+</div>

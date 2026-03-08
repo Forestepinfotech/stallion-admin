@@ -1,0 +1,59 @@
+    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-gray-800">
+      <div class="w-full max-w-md px-6">
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+          <!-- Logo -->
+            <div class="flex flex-col items-center mb-6">
+            <div class="rounded-full flex items-center justify-center mb-3">
+                <img
+                        src="assets/images/logo.webp"
+                        alt="Logo"
+                        class="w-40 h-40 object-contain"
+                        />
+                </div>
+            <h2 class="text-2xl font-semibold text-gray-800">Stallion Login</h2>
+            <p class="text-sm text-gray-500">Please login to your account</p>
+            </div>
+
+          <!-- Form -->
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+              <input
+                type="text"
+                formControlName="username"
+                placeholder="Enter your username"
+                class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition"
+                [class.border-red-500]="isInvalid('username')"
+              />
+              <p *ngIf="isInvalid('username')" class="mt-1 text-xs text-red-600">
+                Username is required.
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input
+                type="password"
+                formControlName="password"
+                placeholder="Enter your password"
+                class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition"
+                [class.border-red-500]="isInvalid('password')"
+              />
+              <p *ngIf="isInvalid('password')" class="mt-1 text-xs text-red-600">
+                Password is required (min 6 chars).
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              class="w-full bg-red-700 text-white py-2.5 rounded-xl font-medium hover:bg-red-800 transition duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+              [disabled]="form.invalid || loading"
+            >
+              {{ loading ? 'Signing in...' : 'Sign In' }}
+            </button>
+
+            <p *ngIf="error" class="text-sm text-red-600 text-center">{{ error }}</p>
+          </form>
+        </div>
+      </div>
+    </div>
