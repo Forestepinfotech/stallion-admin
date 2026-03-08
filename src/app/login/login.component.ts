@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { AuthSessionService } from '../core/auth/auth-session.service';
 @Component({
   selector: 'app-login',
   imports: [CommonModule, ReactiveFormsModule],
@@ -13,6 +15,7 @@ export class LoginComponent {
   loading = false;
   error = '';
   private fb = inject(FormBuilder);
+  private auth = inject(AuthSessionService);
   form = this.fb.group({
     username: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(6)]],
@@ -35,9 +38,12 @@ export class LoginComponent {
     this.loading = true;
     try {
       const { username, password } = this.form.value;
-      // TODO: replace with your auth call
-      await new Promise((r) => setTimeout(r, 700));
-      console.log('login', { username, password });
+      await firstValueFrom(
+        this.auth.login({
+          username: username ?? '',
+          password: password ?? '',
+        }),
+      );
       this.router.navigateByUrl('/admin');
     } catch (e) {
       this.error = 'Login failed. Please try again.';

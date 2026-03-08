@@ -6,7 +6,10 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "api:gen": "orval --config orval.config.cjs",
+    "api:watch": "orval --config orval.config.cjs --watch",
+    "config:gen": "node tools/generate-runtime-config.mjs"
   },
   "private": true,
   "dependencies": {
@@ -29,14 +32,16 @@
     "@angular-devkit/build-angular": "^19.1.5",
     "@angular/cli": "^19.1.5",
     "@angular/compiler-cli": "^19.1.0",
-    "@tailwindcss/oxide-win32-x64-msvc": "^4.2.1",
     "@types/jasmine": "~5.1.0",
+    "dotenv": "^17.3.1",
     "jasmine-core": "~5.5.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "orval": "^8.5.3",
+    "prettier": "^3.8.1",
     "typescript": "~5.7.2"
   }
 }

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
-import { AuthService } from '../../../core/auth/auth.servies';
+import { AuthSessionService } from '../../../core/auth/auth-session.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
 export class HeaderComponent {
   @Input() sidebarOpen = true;
   @Output() toggleSidebar = new EventEmitter<void>();
-  private auth = inject(AuthService);
+  private auth = inject(AuthSessionService);
   private router = inject(Router);
 
   logout() {
