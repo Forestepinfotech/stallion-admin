@@ -22,7 +22,10 @@ type Profile = {
   role: string;
   email: string;
   phone: string;
-  location: string;
+  address: string;
+  postalCode: string;
+  province: string;
+  country: string;
   joined: string; // yyyy-mm-dd
   avatarUrl?: string;
 };
@@ -54,7 +57,10 @@ export class AdminProfileComponent implements OnInit {
     role: '',
     email: '',
     phone: '',
-    location: '',
+    address: '',
+    postalCode: '',
+    province: '',
+    country: '',
     joined: '',
     avatarUrl: '',
   };
@@ -88,10 +94,10 @@ export class AdminProfileComponent implements OnInit {
         Validators.required,
         Validators.minLength(7),
       ]),
-      location: this.fb.nonNullable.control(this.profile.location, [
-        Validators.required,
-        Validators.minLength(2),
-      ]),
+      address: this.fb.nonNullable.control(this.profile.address),
+      postalCode: this.fb.nonNullable.control(this.profile.postalCode),
+      province: this.fb.nonNullable.control(this.profile.province),
+      country: this.fb.nonNullable.control(this.profile.country),
       avatarUrl: this.fb.control<string>(this.profile.avatarUrl ?? ''),
     });
 
@@ -134,7 +140,10 @@ export class AdminProfileComponent implements OnInit {
       name: this.profile.name,
       email: this.profile.email,
       phone: this.profile.phone,
-      location: this.profile.location,
+      address: this.profile.address,
+      postalCode: this.profile.postalCode,
+      province: this.profile.province,
+      country: this.profile.country,
       avatarUrl: this.profile.avatarUrl ?? '',
     });
     this.editOpen = true;
@@ -170,7 +179,10 @@ export class AdminProfileComponent implements OnInit {
       name: v.name,
       email: v.email,
       phone: v.phone,
-      line1: v.location,
+      line1: v.address || undefined,
+      postalcode: v.postalCode || undefined,
+      province: v.province || undefined,
+      country: v.country || undefined,
       avatarUrl: v.avatarUrl ?? '',
     };
 
@@ -318,7 +330,10 @@ export class AdminProfileComponent implements OnInit {
       role: user?.usertypename ?? 'Administrator',
       email: user?.email ?? '',
       phone: this.safeString(user?.phone),
-      location,
+      address: this.safeString(addr?.line1),
+      postalCode: this.addrPart(addr?.postalcode),
+      province: this.addrPart(addr?.province),
+      country: this.addrPart(addr?.country),
       joined,
       avatarUrl: typeof user?.user_pic === 'string' ? (user.user_pic as string) : '',
     };
@@ -327,7 +342,10 @@ export class AdminProfileComponent implements OnInit {
       name: this.profile.name,
       email: this.profile.email,
       phone: this.profile.phone,
-      location: this.profile.location,
+      address: this.profile.address,
+      postalCode: this.profile.postalCode,
+      province: this.profile.province,
+      country: this.profile.country,
       avatarUrl: this.profile.avatarUrl,
     });
   }
@@ -389,5 +407,16 @@ export class AdminProfileComponent implements OnInit {
 
   private safeString(value: unknown): string {
     return typeof value === 'string' ? value : '';
+  }
+
+  profileLocation(): string {
+    return [this.profile.address, this.profile.province, this.profile.country]
+      .filter(Boolean)
+      .join(', ') || '-';
+  }
+
+  previewLocation(): string {
+    const v = this.editForm.getRawValue();
+    return [v.address, v.province, v.country].filter(Boolean).join(', ') || '-';
   }
 }
