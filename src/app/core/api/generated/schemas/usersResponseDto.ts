@@ -4,8 +4,15 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
+import type { UsersResponseDtoCountry } from "./usersResponseDtoCountry";
+import type { UsersResponseDtoLine1 } from "./usersResponseDtoLine1";
+import type { UsersResponseDtoLine2 } from "./usersResponseDtoLine2";
+import type { UsersResponseDtoPostalcode } from "./usersResponseDtoPostalcode";
+import type { UsersResponseDtoProvince } from "./usersResponseDtoProvince";
+import type { UsersResponseDtoUsertypename } from "./usersResponseDtoUsertypename";
 
 export interface UsersResponseDto {
+  name?: string;
   email: string;
   phone: string;
   usertypeid: string;
@@ -21,4 +28,16 @@ export interface UsersResponseDto {
   created_by: string;
   updated_by?: string;
   user_id: number;
+  /** @nullable */
+  usertypename?: UsersResponseDtoUsertypename;
+  /** @nullable */
+  line1?: UsersResponseDtoLine1;
+  /** @nullable */
+  line2?: UsersResponseDtoLine2;
+  /** @nullable */
+  postalcode?: UsersResponseDtoPostalcode;
+  /** @nullable */
+  province?: UsersResponseDtoProvince;
+  /** @nullable */
+  country?: UsersResponseDtoCountry;
 }

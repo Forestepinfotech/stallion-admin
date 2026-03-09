@@ -9,6 +9,14 @@ export interface UpdateCustomerDashboardProfileDto {
   name?: string;
   email?: string;
   phone?: string;
-  location?: string;
+  line1?: string;
+  /** @nullable */
+  line2?: string | null;
+  /** @nullable */
+  postalcode?: string | null;
+  /** @nullable */
+  province?: string | null;
+  /** @nullable */
+  country?: string | null;
   avatarUrl?: string;
 }

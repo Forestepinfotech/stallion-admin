@@ -4,8 +4,12 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
+import type { AuthTokensDtoName } from "./authTokensDtoName";
 
 export interface AuthTokensDto {
+  userId: number;
+  /** @nullable */
+  name?: AuthTokensDtoName;
   accessToken: string;
   refreshToken: string;
   role: string;

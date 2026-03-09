@@ -6,6 +6,7 @@
  */
 
 export interface UpdateUsersDto {
+  name?: string;
   email?: string;
   phone?: string;
   usertypeid?: string;
@@ -20,4 +21,13 @@ export interface UpdateUsersDto {
   last_login_at?: string;
   created_by?: string;
   updated_by?: string;
+  line1?: string;
+  /** @nullable */
+  line2?: string | null;
+  /** @nullable */
+  postalcode?: string | null;
+  /** @nullable */
+  province?: string | null;
+  /** @nullable */
+  country?: string | null;
 }

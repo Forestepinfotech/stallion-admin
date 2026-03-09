@@ -6,6 +6,7 @@
  */
 
 export interface CreateUsersDto {
+  name?: string;
   email: string;
   phone: string;
   usertypeid: string;

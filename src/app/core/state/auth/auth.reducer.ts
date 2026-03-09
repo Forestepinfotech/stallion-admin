@@ -1,5 +1,5 @@
 import { createReducer, on } from '@ngrx/store';
-import { ProfileDto } from '../../api/generated/schemas';
+import { ProfileDto } from '../../api/generated/schemas/index';
 import { AuthActions } from './auth.actions';
 
 export interface AuthState {

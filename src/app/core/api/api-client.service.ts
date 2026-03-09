@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import * as Api from './generated';
+import * as Api from './generated/index';
 
 /**
  * Thin wrapper around the Orval-generated functions so components/services

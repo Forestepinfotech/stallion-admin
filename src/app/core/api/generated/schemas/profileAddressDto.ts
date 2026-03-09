@@ -6,12 +6,15 @@
  */
 import type { ProfileAddressDtoCountry } from "./profileAddressDtoCountry";
 import type { ProfileAddressDtoLine2 } from "./profileAddressDtoLine2";
+import type { ProfileAddressDtoPostalcode } from "./profileAddressDtoPostalcode";
 import type { ProfileAddressDtoProvince } from "./profileAddressDtoProvince";
 
 export interface ProfileAddressDto {
   line1: string;
   /** @nullable */
   line2?: ProfileAddressDtoLine2;
+  /** @nullable */
+  postalcode?: ProfileAddressDtoPostalcode;
   /** @nullable */
   province?: ProfileAddressDtoProvince;
   /** @nullable */

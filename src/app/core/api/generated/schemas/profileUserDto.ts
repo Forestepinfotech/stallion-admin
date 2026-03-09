@@ -5,11 +5,14 @@
  * OpenAPI spec version: 1.0
  */
 import type { ProfileUserDtoLastLoginAt } from "./profileUserDtoLastLoginAt";
+import type { ProfileUserDtoName } from "./profileUserDtoName";
 import type { ProfileUserDtoPhone } from "./profileUserDtoPhone";
 import type { ProfileUserDtoUserPic } from "./profileUserDtoUserPic";
 
 export interface ProfileUserDto {
   user_id: number;
+  /** @nullable */
+  name?: ProfileUserDtoName;
   email: string;
   /** @nullable */
   phone?: ProfileUserDtoPhone;

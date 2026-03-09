@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Observable, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -8,14 +10,28 @@ import {
   AbstractControl,
   ValidationErrors,
 } from '@angular/forms';
+import { UsersService } from '../../../core/api/generated/users/users.service';
+import { UsertypeService } from '../../../core/api/generated/usertype/usertype.service';
+import {
+  CreateUsersDto,
+  PaginatedUsersResponseDto,
+  PaginatedUsertypeResponseDto,
+  UpdateUsersDto,
+  UsersResponseDto,
+  UsertypeResponseDto,
+} from '../../../core/api/generated/schemas/index';
+import { ToastService } from '../../../core/notification/toast.service';
+import { SkeletonPanelComponent } from '../../../core/ui/skeleton-panel.component';
 
-type Role = 'Manager' | 'Staff';
 type Status = 'Active' | 'Inactive';
+
+type RoleOption = Pick<UsertypeResponseDto, 'usertypeid' | 'usertypename' | 'is_active'>;
 
 type User = {
   id: string;
   name: string;
-  role: Role;
+  roleId: number | string;
+  roleName: string;
   email: string;
   phone: string;
   address?: string;
@@ -28,16 +44,16 @@ type User = {
 };
 @Component({
   selector: 'app-admin-user',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, SkeletonPanelComponent],
   templateUrl: './admin-user.component.html',
   styleUrl: './admin-user.component.css',
 })
-export class AdminUserComponent {
+export class AdminUserComponent implements OnInit {
 
 
   // ===== UI =====
   query = '';
-  roleFilter: 'All' | Role = 'All';
+  roleFilter: 'All' | string = 'All';
   statusFilter: 'All' | Status = 'All';
 
   editOpen = false;
@@ -47,51 +63,36 @@ export class AdminUserComponent {
   selected: User | null = null;
   editMode: 'create' | 'edit' = 'create';
 
-  // ===== Data (demo) =====
-  users: User[] = [
-    {
-      id: crypto.randomUUID(),
-      name: 'Ahmed Raza',
-      role: 'Manager',
-      email: 'ahmed.manager@example.com',
-      phone: '+1 780 000 1111',
-      address: 'Edmonton, AB',
-      status: 'Active',
-      avatarUrl: 'assets/images/profile.png',
-      createdAt: this.isoDateOffset(-40),
-    },
-    {
-      id: crypto.randomUUID(),
-      name: 'Sara Khan',
-      role: 'Staff',
-      email: 'sara.staff@example.com',
-      phone: '+1 587 222 3333',
-      address: 'Calgary, AB',
-      status: 'Active',
-      avatarUrl: 'assets/images/profile.png',
-      createdAt: this.isoDateOffset(-20),
-    },
-    {
-      id: crypto.randomUUID(),
-      name: 'John Smith',
-      role: 'Staff',
-      email: 'john.staff@example.com',
-      phone: '+1 403 444 5555',
-      address: 'Red Deer, AB',
-      status: 'Inactive',
-      avatarUrl: 'assets/images/profile.png',
-      createdAt: this.isoDateOffset(-12),
-    },
-  ];
+  // ===== Data =====
+  users: User[] = [];
+  roleOptions: RoleOption[] = [];
+  listLoading = true;
+  roleLoading = true;
+  savingUser = false;
+  deleting = false;
+  // pagination
+  page = 1;
+  pageSize = 50;
+  readonly pageSizeOptions = [20, 50, 100];
+  total = 0;
+  get totalPages(): number {
+    if (!this.total || !this.pageSize) return 1;
+    return Math.max(1, Math.ceil(this.total / this.pageSize));
+  }
 
   // ===== Forms =====
   userForm;
   passwordForm;
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private usersApi: UsersService,
+    private usertypeApi: UsertypeService,
+    private toast: ToastService,
+  ) {
     this.userForm = this.fb.nonNullable.group({
       name: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
-      role: this.fb.nonNullable.control<Role>('Staff', Validators.required),
+      role: this.fb.nonNullable.control<string>('', Validators.required),
       email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
       phone: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(7)]),
       address: this.fb.nonNullable.control(''),
@@ -111,25 +112,14 @@ export class AdminUserComponent {
     );
   }
 
-  // ===== Derived list =====
+  ngOnInit(): void {
+    this.loadRoles();
+    this.loadUsers();
+  }
+
+  // server-side filtered list already
   get filtered(): User[] {
-    const q = this.query.trim().toLowerCase();
-
-    return this.users
-      .filter((u) => {
-        const matchesQuery =
-          !q ||
-          u.name.toLowerCase().includes(q) ||
-          u.email.toLowerCase().includes(q) ||
-          u.phone.toLowerCase().includes(q) ||
-          u.role.toLowerCase().includes(q);
-
-        const matchesRole = this.roleFilter === 'All' ? true : u.role === this.roleFilter;
-        const matchesStatus = this.statusFilter === 'All' ? true : u.status === this.statusFilter;
-
-        return matchesQuery && matchesRole && matchesStatus;
-      })
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return this.users;
   }
 
   // ===== Actions =====
@@ -139,7 +129,7 @@ export class AdminUserComponent {
 
     this.userForm.reset({
       name: '',
-      role: 'Staff',
+      role: this.roleOptions[0]?.usertypeid?.toString() ?? '',
       email: '',
       phone: '',
       address: '',
@@ -159,7 +149,7 @@ export class AdminUserComponent {
 
     this.userForm.reset({
       name: u.name,
-      role: u.role,
+      role: String(u.roleId),
       email: u.email,
       phone: u.phone,
       address: u.address ?? '',
@@ -185,60 +175,79 @@ export class AdminUserComponent {
     }
 
     const v = this.userForm.getRawValue();
-
-    // Simple duplicate email check (demo)
     const emailLower = v.email.trim().toLowerCase();
-    const conflict = this.users.some((x) => x.email.toLowerCase() === emailLower && x.id !== this.selected?.id);
-    if (conflict) {
-      alert('Email already exists.');
-      return;
-    }
-
-    if (this.editMode === 'create') {
-      const newUser: User = {
-        id: crypto.randomUUID(),
-        name: v.name.trim(),
-        role: v.role,
-        email: emailLower,
+    const payloadCommon = {
+      name: v.name.trim(),
+      email: emailLower,
       phone: v.phone.trim(),
-      address: v.address?.trim(),
-      postalCode: v.postalCode?.trim(),
-      province: v.province?.trim(),
-      country: v.country?.trim(),
-      status: v.status,
-      avatarUrl: v.avatarUrl ?? '',
-      createdAt: this.isoDateOffset(0),
-      };
-      this.users = [newUser, ...this.users];
-    } else {
-      const id = this.selected!.id;
-      this.users = this.users.map((u) =>
-        u.id === id
-          ? {
-              ...u,
-              name: v.name.trim(),
-              role: v.role,
-              email: emailLower,
-              phone: v.phone.trim(),
-              address: v.address?.trim(),
-              postalCode: v.postalCode?.trim(),
-              province: v.province?.trim(),
-              country: v.country?.trim(),
-              status: v.status,
-              avatarUrl: v.avatarUrl ?? '',
-            }
-          : u
-      );
-    }
+      usertypeid: v.role,
+      user_pic: v.avatarUrl ?? '',
+      is_email_verified: true,
+      email_subscribed: true,
+      is_active: v.status === 'Active',
+      is_deleted: false,
+      failed_login_attempts: '0',
+      locked_until: '',
+      updated_by: 'admin',
+    } satisfies Partial<CreateUsersDto & UpdateUsersDto>;
 
-    this.closeEdit();
-    alert('Saved (demo). Connect backend API here.');
+    this.savingUser = true;
+
+    const request$ =
+      this.editMode === 'create'
+        ? this.usersApi.usersControllerCreate({
+            ...(payloadCommon as Partial<CreateUsersDto> & { name?: string }),
+            created_by: 'admin',
+            // optional fields managed by backend defaults
+          } as CreateUsersDto)
+        : this.usersApi.usersControllerUpdate(
+            this.selected!.id,
+            {
+              ...(payloadCommon as Partial<UpdateUsersDto> & { name?: string }),
+              line1: v.address.trim() || undefined,
+              postalcode: v.postalCode.trim() || undefined,
+              province: v.province.trim() || undefined,
+              country: v.country.trim() || undefined,
+            },
+          );
+
+    request$
+      .pipe(
+        switchMap((user) =>
+          this.editMode === 'create' ? this.persistCreateAddress(user, v) : of(user),
+        ),
+      )
+      .subscribe({
+      next: () => {
+        this.toast.success('User saved');
+        this.closeEdit();
+        this.loadUsers();
+      },
+      error: (err) => {
+        console.error(err);
+        this.toast.error('Failed to save user');
+      },
+      complete: () => (this.savingUser = false),
+    });
   }
 
   // Active/Inactive checkbox
   toggleActive(u: User, checked: boolean) {
+    const prevStatus = u.status;
     const newStatus: Status = checked ? 'Active' : 'Inactive';
     this.users = this.users.map((x) => (x.id === u.id ? { ...x, status: newStatus } : x));
+
+    this.usersApi
+      .usersControllerUpdate(u.id, { is_active: newStatus === 'Active' })
+      .subscribe({
+        next: () => this.toast.success('Status updated'),
+        error: (err) => {
+          console.error(err);
+          this.toast.error('Failed to update status');
+          // revert
+          this.users = this.users.map((x) => (x.id === u.id ? { ...x, status: prevStatus } : x));
+        },
+      });
   }
 
   // Password modal
@@ -281,8 +290,20 @@ export class AdminUserComponent {
 
   confirmDelete() {
     if (!this.selected) return;
-    this.users = this.users.filter((u) => u.id !== this.selected!.id);
-    this.closeDelete();
+    this.deleting = true;
+    const id = this.selected.id;
+    this.usersApi.usersControllerRemove(id).subscribe({
+      next: () => {
+        this.users = this.users.filter((u) => u.id !== id);
+        this.toast.success('User deleted');
+        this.closeDelete();
+      },
+      error: (err) => {
+        console.error(err);
+        this.toast.error('Failed to delete user');
+      },
+      complete: () => (this.deleting = false),
+    });
   }
 
   // Avatar upload (optional)
@@ -306,10 +327,12 @@ export class AdminUserComponent {
   }
 
   // UI helpers
-  badgeRole(role: Role) {
-    return role === 'Manager'
-      ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-      : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+  badgeRole(roleName: string) {
+    const normalized = roleName.toLowerCase();
+    if (normalized.includes('manager')) {
+      return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+    }
+    return 'bg-emerald-50 text-emerald-700 border-emerald-200';
   }
 
   statusBadge(status: Status) {
@@ -342,5 +365,143 @@ export class AdminUserComponent {
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
+  }
+
+  private loadUsers() {
+    this.listLoading = true;
+    this.usersApi
+      .usersControllerList<PaginatedUsersResponseDto>(
+        {
+          page: this.page,
+          limit: this.pageSize,
+          search: this.query.trim() || undefined,
+          role: this.roleFilter !== 'All' ? this.roleFilter : undefined,
+          status: this.statusFilter !== 'All' ? this.statusFilter : undefined,
+        },
+        { params: {} }, // ensure options slot occupied if needed
+      )
+      .subscribe({
+      next: (res) => {
+        this.users = (res.data ?? []).map((u) => this.mapUserDto(u));
+        this.total = this.extractTotal(res.meta, this.users.length);
+      },
+      error: (err) => {
+        console.error(err);
+        this.toast.error('Failed to load users');
+        this.listLoading = false;
+      },
+      complete: () => (this.listLoading = false),
+    });
+  }
+
+  private loadRoles() {
+    this.roleLoading = true;
+    this.usertypeApi.usertypeControllerList<PaginatedUsertypeResponseDto>().subscribe({
+      next: (res) => {
+        this.roleOptions = (res.data ?? []).filter((r) => r.is_active);
+        // set default role value for form if empty
+        if (!this.userForm.get('role')?.value && this.roleOptions.length) {
+          this.userForm.patchValue({ role: String(this.roleOptions[0].usertypeid) });
+        }
+        // refresh role labels on existing list
+        this.users = this.users.map((u) => ({
+          ...u,
+          roleName:
+            this.roleOptions.find((r) => String(r.usertypeid) === String(u.roleId))?.usertypename ?? u.roleName,
+        }));
+      },
+      error: (err) => {
+        console.error(err);
+        this.toast.error('Failed to load roles');
+        this.roleLoading = false;
+      },
+      complete: () => (this.roleLoading = false),
+    });
+  }
+
+  private mapUserDto(dto: UsersResponseDto): User {
+    const dtoRoleName = typeof dto.usertypename === 'string' ? dto.usertypename : undefined;
+    const roleName =
+      dtoRoleName ??
+      this.roleOptions.find((r) => String(r.usertypeid) === String(dto.usertypeid))?.usertypename ??
+      '—';
+    return {
+      id: String(dto.user_id ?? crypto.randomUUID()),
+      name: dto.name ?? dto.email?.split('@')[0] ?? 'User',
+      roleId: dto.usertypeid,
+      roleName,
+      email: dto.email,
+      phone: dto.phone,
+      address: this.readAddressField(dto.line1),
+      postalCode: this.readAddressField(dto.postalcode),
+      province: this.readAddressField(dto.province),
+      country: this.readAddressField(dto.country),
+      status: dto.is_active ? 'Active' : 'Inactive',
+      avatarUrl: dto.user_pic,
+      createdAt: dto.last_login_at ?? this.isoDateOffset(0),
+    };
+  }
+
+  private readAddressField(value: unknown): string {
+    return typeof value === 'string' ? value : '';
+  }
+
+  private persistCreateAddress(
+    user: UsersResponseDto,
+    formValue: ReturnType<typeof this.userForm.getRawValue>,
+  ): Observable<UsersResponseDto> {
+    const hasAddress =
+      formValue.address.trim().length > 0 ||
+      formValue.postalCode.trim().length > 0 ||
+      formValue.province.trim().length > 0 ||
+      formValue.country.trim().length > 0;
+
+    if (!hasAddress) {
+      return of(user);
+    }
+
+    return this.usersApi.usersControllerUpdate(String(user.user_id), {
+      line1: formValue.address.trim() || undefined,
+      postalcode: formValue.postalCode.trim() || undefined,
+      province: formValue.province.trim() || undefined,
+      country: formValue.country.trim() || undefined,
+      updated_by: 'admin',
+    });
+  }
+
+  private extractTotal(meta: unknown, fallback: number): number {
+    if (!meta || typeof meta !== 'object') return fallback;
+    const m = meta as Record<string, unknown>;
+    const keys = ['total', 'count', 'itemCount'];
+    for (const k of keys) {
+      const v = m[k];
+      if (typeof v === 'number') return v;
+      if (typeof v === 'string' && !isNaN(Number(v))) return Number(v);
+    }
+    return fallback;
+  }
+
+  changePageSize(size: number) {
+    if (this.pageSize === size) return;
+    this.pageSize = size;
+    this.page = 1;
+    this.loadUsers();
+  }
+
+  applyFilters() {
+    this.page = 1;
+    this.loadUsers();
+  }
+
+  nextPage() {
+    if (this.page * this.pageSize >= this.total) return;
+    this.page += 1;
+    this.loadUsers();
+  }
+
+  prevPage() {
+    if (this.page === 1) return;
+    this.page -= 1;
+    this.loadUsers();
   }
 }

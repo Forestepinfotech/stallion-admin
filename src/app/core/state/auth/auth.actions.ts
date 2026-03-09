@@ -1,5 +1,5 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { ProfileDto } from '../../api/generated/schemas';
+import { ProfileDto } from '../../api/generated/schemas/index';
 
 export const AuthActions = createActionGroup({
   source: 'Auth',

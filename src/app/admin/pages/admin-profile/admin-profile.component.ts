@@ -8,13 +8,14 @@ import {
   ProfileActivityDto,
   ProfileDto,
   ProfileStatsDto,
-} from '../../../core/api/generated/schemas';
+  UpdateAdminDashboardProfileDto,
+} from '../../../core/api/generated/schemas/index';
 import { ToastService } from '../../../core/notification/toast.service';
 import { Store } from '@ngrx/store';
 import { AuthActions } from '../../../core/state/auth/auth.actions';
 import { selectProfile, selectProfileLoading } from '../../../core/state/auth/auth.selectors';
 import { SkeletonPanelComponent } from '../../../core/ui/skeleton-panel.component';
-import { ProfileApiService, UpdateProfilePayload } from '../../../core/api/profile-api.service';
+import { ProfileApiService } from '../../../core/api/profile-api.service';
 
 type Profile = {
   name: string;
@@ -165,11 +166,11 @@ export class AdminProfileComponent implements OnInit {
 
     const v = this.editForm.getRawValue();
 
-    const payload: UpdateProfilePayload = {
+    const payload: UpdateAdminDashboardProfileDto = {
       name: v.name,
       email: v.email,
       phone: v.phone,
-      location: v.location,
+      line1: v.location,
       avatarUrl: v.avatarUrl ?? '',
     };
 
@@ -313,7 +314,7 @@ export class AdminProfileComponent implements OnInit {
     const joined = user?.created_at ? new Date(user.created_at).toISOString().split('T')[0] : '';
 
     this.profile = {
-      name: user?.email?.split('@')[0] ?? 'User',
+      name: this.safeString(user?.name) || user?.email?.split('@')[0] || 'User',
       role: user?.usertypename ?? 'Administrator',
       email: user?.email ?? '',
       phone: this.safeString(user?.phone),
