@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Observable, of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { finalize, switchMap } from 'rxjs/operators';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -14,6 +14,7 @@ import { UsersService } from '../../../core/api/generated/users/users.service';
 import { UsertypeService } from '../../../core/api/generated/usertype/usertype.service';
 import {
   CreateUsersDto,
+  ManageUserPasswordDto,
   PaginatedUsersResponseDto,
   PaginatedUsertypeResponseDto,
   UpdateUsersDto,
@@ -59,6 +60,8 @@ export class AdminUserComponent implements OnInit {
   editOpen = false;
   passwordOpen = false;
   deleteOpen = false;
+  newPasswordVisible = false;
+  confirmPasswordVisible = false;
 
   selected: User | null = null;
   editMode: 'create' | 'edit' = 'create';
@@ -69,6 +72,7 @@ export class AdminUserComponent implements OnInit {
   listLoading = true;
   roleLoading = true;
   savingUser = false;
+  savingPassword = false;
   deleting = false;
   // pagination
   page = 1;
@@ -216,19 +220,19 @@ export class AdminUserComponent implements OnInit {
         switchMap((user) =>
           this.editMode === 'create' ? this.persistCreateAddress(user, v) : of(user),
         ),
+        finalize(() => (this.savingUser = false)),
       )
       .subscribe({
-      next: () => {
-        this.toast.success('User saved');
-        this.closeEdit();
-        this.loadUsers();
-      },
-      error: (err) => {
-        console.error(err);
-        this.toast.error('Failed to save user');
-      },
-      complete: () => (this.savingUser = false),
-    });
+        next: () => {
+          this.toast.success('User saved');
+          this.closeEdit();
+          this.loadUsers();
+        },
+        error: (err) => {
+          console.error(err);
+          this.toast.error('Failed to save user');
+        },
+      });
   }
 
   // Active/Inactive checkbox
@@ -254,6 +258,8 @@ export class AdminUserComponent implements OnInit {
   openPassword(u: User) {
     this.selected = u;
     this.passwordForm.reset({ newPassword: '', confirmPassword: '' });
+    this.newPasswordVisible = false;
+    this.confirmPasswordVisible = false;
     this.passwordOpen = true;
   }
 
@@ -268,13 +274,27 @@ export class AdminUserComponent implements OnInit {
       return;
     }
 
+    if (!this.selected) return;
+
     const v = this.passwordForm.getRawValue();
+    const payload: ManageUserPasswordDto = {
+      newPassword: v.newPassword,
+    };
 
-    // Call backend API: POST /admin/users/:id/change-password
-    console.log('Change password for user:', this.selected?.id, 'newPass:', v.newPassword);
-
-    this.closePassword();
-    alert('Password updated (demo). Connect backend API here.');
+    this.savingPassword = true;
+    this.usersApi
+      .usersControllerManagePassword(this.selected.id, payload)
+      .pipe(finalize(() => (this.savingPassword = false)))
+      .subscribe({
+        next: () => {
+          this.toast.success('Password updated');
+          this.closePassword();
+        },
+        error: (err) => {
+          console.error(err);
+          this.toast.error(this.extractErrorMessage(err, 'Failed to update password'));
+        },
+      });
   }
 
   // Delete modal
@@ -292,18 +312,20 @@ export class AdminUserComponent implements OnInit {
     if (!this.selected) return;
     this.deleting = true;
     const id = this.selected.id;
-    this.usersApi.usersControllerRemove(id).subscribe({
-      next: () => {
-        this.users = this.users.filter((u) => u.id !== id);
-        this.toast.success('User deleted');
-        this.closeDelete();
-      },
-      error: (err) => {
-        console.error(err);
-        this.toast.error('Failed to delete user');
-      },
-      complete: () => (this.deleting = false),
-    });
+    this.usersApi
+      .usersControllerRemove(id)
+      .pipe(finalize(() => (this.deleting = false)))
+      .subscribe({
+        next: () => {
+          this.users = this.users.filter((u) => u.id !== id);
+          this.toast.success('User deleted');
+          this.closeDelete();
+        },
+        error: (err) => {
+          console.error(err);
+          this.toast.error('Failed to delete user');
+        },
+      });
   }
 
   // Avatar upload (optional)
@@ -380,43 +402,43 @@ export class AdminUserComponent implements OnInit {
         },
         { params: {} }, // ensure options slot occupied if needed
       )
+      .pipe(finalize(() => (this.listLoading = false)))
       .subscribe({
-      next: (res) => {
-        this.users = (res.data ?? []).map((u) => this.mapUserDto(u));
-        this.total = this.extractTotal(res.meta, this.users.length);
-      },
-      error: (err) => {
-        console.error(err);
-        this.toast.error('Failed to load users');
-        this.listLoading = false;
-      },
-      complete: () => (this.listLoading = false),
-    });
+        next: (res) => {
+          this.users = (res.data ?? []).map((u) => this.mapUserDto(u));
+          this.total = this.extractTotal(res.meta, this.users.length);
+        },
+        error: (err) => {
+          console.error(err);
+          this.toast.error('Failed to load users');
+        },
+      });
   }
 
   private loadRoles() {
     this.roleLoading = true;
-    this.usertypeApi.usertypeControllerList<PaginatedUsertypeResponseDto>().subscribe({
-      next: (res) => {
-        this.roleOptions = (res.data ?? []).filter((r) => r.is_active);
-        // set default role value for form if empty
-        if (!this.userForm.get('role')?.value && this.roleOptions.length) {
-          this.userForm.patchValue({ role: String(this.roleOptions[0].usertypeid) });
-        }
-        // refresh role labels on existing list
-        this.users = this.users.map((u) => ({
-          ...u,
-          roleName:
-            this.roleOptions.find((r) => String(r.usertypeid) === String(u.roleId))?.usertypename ?? u.roleName,
-        }));
-      },
-      error: (err) => {
-        console.error(err);
-        this.toast.error('Failed to load roles');
-        this.roleLoading = false;
-      },
-      complete: () => (this.roleLoading = false),
-    });
+    this.usertypeApi
+      .usertypeControllerList<PaginatedUsertypeResponseDto>()
+      .pipe(finalize(() => (this.roleLoading = false)))
+      .subscribe({
+        next: (res) => {
+          this.roleOptions = (res.data ?? []).filter((r) => r.is_active);
+          // set default role value for form if empty
+          if (!this.userForm.get('role')?.value && this.roleOptions.length) {
+            this.userForm.patchValue({ role: String(this.roleOptions[0].usertypeid) });
+          }
+          // refresh role labels on existing list
+          this.users = this.users.map((u) => ({
+            ...u,
+            roleName:
+              this.roleOptions.find((r) => String(r.usertypeid) === String(u.roleId))?.usertypename ?? u.roleName,
+          }));
+        },
+        error: (err) => {
+          console.error(err);
+          this.toast.error('Failed to load roles');
+        },
+      });
   }
 
   private mapUserDto(dto: UsersResponseDto): User {
@@ -444,6 +466,43 @@ export class AdminUserComponent implements OnInit {
 
   private readAddressField(value: unknown): string {
     return typeof value === 'string' ? value : '';
+  }
+
+  private extractErrorMessage(error: unknown, fallback: string): string {
+    if (!error || typeof error !== 'object') return fallback;
+    const err = error as Record<string, unknown>;
+    const nested = err['error'];
+    if (typeof nested === 'string' && nested.trim()) return nested;
+    if (nested && typeof nested === 'object') {
+      const nestedRecord = nested as Record<string, unknown>;
+      const nestedMessage = nestedRecord['message'];
+      if (typeof nestedMessage === 'string' && nestedMessage.trim()) return nestedMessage;
+      if (Array.isArray(nestedMessage)) {
+        const first = nestedMessage.find((item) => typeof item === 'string' && item.trim());
+        if (typeof first === 'string') return first;
+      }
+      const nestedError = nestedRecord['error'];
+      if (typeof nestedError === 'string' && nestedError.trim()) return nestedError;
+    }
+
+    const direct = err['message'];
+    if (typeof direct === 'string' && direct.trim()) return direct;
+
+    return fallback;
+  }
+
+  passwordInputType(field: 'new' | 'confirm'): 'text' | 'password' {
+    return field === 'new'
+      ? this.newPasswordVisible ? 'text' : 'password'
+      : this.confirmPasswordVisible ? 'text' : 'password';
+  }
+
+  togglePasswordVisibility(field: 'new' | 'confirm') {
+    if (field === 'new') {
+      this.newPasswordVisible = !this.newPasswordVisible;
+      return;
+    }
+    this.confirmPasswordVisible = !this.confirmPasswordVisible;
   }
 
   private persistCreateAddress(

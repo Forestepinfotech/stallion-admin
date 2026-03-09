@@ -17,8 +17,10 @@ import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
 
 import type {
+  ChangeUserPasswordDto,
   CreateUsersDto,
   EmailSubscriptionDto,
+  ManageUserPasswordDto,
   PaginatedUsersResponseDto,
   UpdateUsersDto,
   UsersControllerListParams,
@@ -323,6 +325,108 @@ export class UsersService {
     return this.http.patch<TData>(
       `/users/${userId}/subscription`,
       emailSubscriptionDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
+  usersControllerChangePassword<TData = void>(
+    userId: string,
+    changeUserPasswordDto: ChangeUserPasswordDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  usersControllerChangePassword<TData = void>(
+    userId: string,
+    changeUserPasswordDto: ChangeUserPasswordDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  usersControllerChangePassword<TData = void>(
+    userId: string,
+    changeUserPasswordDto: ChangeUserPasswordDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  usersControllerChangePassword<TData = void>(
+    userId: string,
+    changeUserPasswordDto: ChangeUserPasswordDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.patch<TData>(
+        `/users/${userId}/password`,
+        changeUserPasswordDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.patch<TData>(
+        `/users/${userId}/password`,
+        changeUserPasswordDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.patch<TData>(
+      `/users/${userId}/password`,
+      changeUserPasswordDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
+  usersControllerManagePassword<TData = void>(
+    userId: string,
+    manageUserPasswordDto: ManageUserPasswordDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  usersControllerManagePassword<TData = void>(
+    userId: string,
+    manageUserPasswordDto: ManageUserPasswordDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  usersControllerManagePassword<TData = void>(
+    userId: string,
+    manageUserPasswordDto: ManageUserPasswordDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  usersControllerManagePassword<TData = void>(
+    userId: string,
+    manageUserPasswordDto: ManageUserPasswordDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.patch<TData>(
+        `/users/${userId}/password/manage`,
+        manageUserPasswordDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.patch<TData>(
+        `/users/${userId}/password/manage`,
+        manageUserPasswordDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.patch<TData>(
+      `/users/${userId}/password/manage`,
+      manageUserPasswordDto,
       {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "body",

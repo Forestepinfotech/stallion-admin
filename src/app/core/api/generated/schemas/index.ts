@@ -6,6 +6,7 @@
  */
 
 export * from "./activityItemDto";
+export * from "./activityItemDtoDetails";
 export * from "./activityItemDtoUserEmail";
 export * from "./answerProductQuestionDto";
 export * from "./authTokensDto";
@@ -13,6 +14,7 @@ export * from "./authTokensDtoName";
 export * from "./carBrandModelResponseDto";
 export * from "./carBrandResponseDto";
 export * from "./cartsResponseDto";
+export * from "./changeUserPasswordDto";
 export * from "./colorDetailResponseDto";
 export * from "./countryProvinceResponseDto";
 export * from "./countryResponseDto";
@@ -76,6 +78,7 @@ export * from "./documentTypeResponseDto";
 export * from "./emailSubscriptionDto";
 export * from "./forgotPasswordDto";
 export * from "./loginDto";
+export * from "./manageUserPasswordDto";
 export * from "./orderShipmentResponseDto";
 export * from "./ordersResponseDto";
 export * from "./orderStatusResponseDto";

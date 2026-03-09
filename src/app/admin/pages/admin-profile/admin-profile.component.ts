@@ -2,9 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DashboardService } from '../../../core/api/generated/dashboard/dashboard.service';
+import { UsersService } from '../../../core/api/generated/users/users.service';
 import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
 import {
   ActivityItemDto,
+  ChangeUserPasswordDto,
   ProfileActivityDto,
   ProfileDto,
   ProfileStatsDto,
@@ -50,6 +53,7 @@ export class AdminProfileComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly store = inject(Store);
   private readonly dashboard = inject(DashboardService);
+  private readonly usersApi = inject(UsersService);
   private readonly profileApi = inject(ProfileApiService);
 
   profile: Profile = {
@@ -74,6 +78,11 @@ export class AdminProfileComponent implements OnInit {
   passwordOpen = false;
   loading = false;
   saving = false;
+  savingPassword = false;
+  currentPasswordVisible = false;
+  newPasswordVisible = false;
+  confirmPasswordVisible = false;
+  currentUserId: string | null = null;
 
   // ======== FORMS ========
   editForm;
@@ -159,6 +168,9 @@ export class AdminProfileComponent implements OnInit {
       newPassword: '',
       confirmPassword: '',
     });
+    this.currentPasswordVisible = false;
+    this.newPasswordVisible = false;
+    this.confirmPasswordVisible = false;
     this.passwordOpen = true;
   }
 
@@ -187,21 +199,23 @@ export class AdminProfileComponent implements OnInit {
     };
 
     this.saving = true;
-    this.profileApi.updateAdminProfile(payload).subscribe({
-      next: (updated) => {
-        this.toast.success('Profile updated');
-        this.applyProfile(updated);
-        this.applyStats(updated.stats);
-        this.applyActivityStats(updated.activity);
-        this.store.dispatch(AuthActions.updateProfileSuccess({ profile: updated }));
-        this.closeEdit();
-      },
-      error: (err) => {
-        console.error(err);
-        this.toast.error('Profile update failed');
-      },
-      complete: () => (this.saving = false),
-    });
+    this.profileApi
+      .updateAdminProfile(payload)
+      .pipe(finalize(() => (this.saving = false)))
+      .subscribe({
+        next: (updated) => {
+          this.toast.success('Profile updated');
+          this.applyProfile(updated);
+          this.applyStats(updated.stats);
+          this.applyActivityStats(updated.activity);
+          this.store.dispatch(AuthActions.updateProfileSuccess({ profile: updated }));
+          this.closeEdit();
+        },
+        error: (err) => {
+          console.error(err);
+          this.toast.error('Profile update failed');
+        },
+      });
   }
 
   changePassword() {
@@ -210,11 +224,31 @@ export class AdminProfileComponent implements OnInit {
       return;
     }
 
-    const v = this.passwordForm.getRawValue();
+    if (!this.currentUserId) {
+      this.toast.error('Profile is not loaded yet.');
+      return;
+    }
 
-    // TODO: replace with backend change-password endpoint.
-    this.toast.success('Password change submitted (demo). Wire API when available.');
-    this.closePassword();
+    const v = this.passwordForm.getRawValue();
+    const payload: ChangeUserPasswordDto = {
+      currentPassword: v.currentPassword,
+      newPassword: v.newPassword,
+    };
+
+    this.savingPassword = true;
+    this.usersApi
+      .usersControllerChangePassword(this.currentUserId, payload)
+      .pipe(finalize(() => (this.savingPassword = false)))
+      .subscribe({
+        next: () => {
+          this.toast.success('Password updated');
+          this.closePassword();
+        },
+        error: (err) => {
+          console.error(err);
+          this.toast.error(this.extractErrorMessage(err, 'Failed to update password'));
+        },
+      });
   }
 
   // ======== AVATAR UPLOAD ========
@@ -320,9 +354,7 @@ export class AdminProfileComponent implements OnInit {
   private applyProfile(dto: ProfileDto) {
     const user = dto.user;
     const addr = dto.address;
-    const location = [addr?.line1, this.addrPart(addr?.province), this.addrPart(addr?.country)]
-      .filter(Boolean)
-      .join(', ');
+    this.currentUserId = user?.user_id != null ? String(user.user_id) : null;
     const joined = user?.created_at ? new Date(user.created_at).toISOString().split('T')[0] : '';
 
     this.profile = {
@@ -409,6 +441,29 @@ export class AdminProfileComponent implements OnInit {
     return typeof value === 'string' ? value : '';
   }
 
+  private extractErrorMessage(error: unknown, fallback: string): string {
+    if (!error || typeof error !== 'object') return fallback;
+    const err = error as Record<string, unknown>;
+    const nested = err['error'];
+    if (typeof nested === 'string' && nested.trim()) return nested;
+    if (nested && typeof nested === 'object') {
+      const nestedRecord = nested as Record<string, unknown>;
+      const nestedMessage = nestedRecord['message'];
+      if (typeof nestedMessage === 'string' && nestedMessage.trim()) return nestedMessage;
+      if (Array.isArray(nestedMessage)) {
+        const first = nestedMessage.find((item) => typeof item === 'string' && item.trim());
+        if (typeof first === 'string') return first;
+      }
+      const nestedError = nestedRecord['error'];
+      if (typeof nestedError === 'string' && nestedError.trim()) return nestedError;
+    }
+
+    const direct = err['message'];
+    if (typeof direct === 'string' && direct.trim()) return direct;
+
+    return fallback;
+  }
+
   profileLocation(): string {
     return [this.profile.address, this.profile.province, this.profile.country]
       .filter(Boolean)
@@ -418,5 +473,23 @@ export class AdminProfileComponent implements OnInit {
   previewLocation(): string {
     const v = this.editForm.getRawValue();
     return [v.address, v.province, v.country].filter(Boolean).join(', ') || '-';
+  }
+
+  passwordInputType(field: 'current' | 'new' | 'confirm'): 'text' | 'password' {
+    if (field === 'current') return this.currentPasswordVisible ? 'text' : 'password';
+    if (field === 'new') return this.newPasswordVisible ? 'text' : 'password';
+    return this.confirmPasswordVisible ? 'text' : 'password';
+  }
+
+  togglePasswordVisibility(field: 'current' | 'new' | 'confirm') {
+    if (field === 'current') {
+      this.currentPasswordVisible = !this.currentPasswordVisible;
+      return;
+    }
+    if (field === 'new') {
+      this.newPasswordVisible = !this.newPasswordVisible;
+      return;
+    }
+    this.confirmPasswordVisible = !this.confirmPasswordVisible;
   }
 }

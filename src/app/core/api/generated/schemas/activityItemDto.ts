@@ -4,6 +4,7 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
+import type { ActivityItemDtoDetails } from "./activityItemDtoDetails";
 import type { ActivityItemDtoUserEmail } from "./activityItemDtoUserEmail";
 
 export interface ActivityItemDto {
@@ -14,4 +15,6 @@ export interface ActivityItemDto {
   created_at: string;
   /** @nullable */
   user_email?: ActivityItemDtoUserEmail;
+  /** @nullable */
+  details?: ActivityItemDtoDetails;
 }
