@@ -18,8 +18,10 @@ import { Observable } from "rxjs";
 
 import type {
   CustomerProfileDto,
+  DashboardControllerRecentActivityParams,
   DashboardOverviewDto,
   DealerProfileDto,
+  PaginatedRecentActivityDto,
   ProfileDto,
   UpdateAdminDashboardProfileDto,
   UpdateCustomerDashboardProfileDto,
@@ -48,6 +50,46 @@ interface HttpClientOptions {
   readonly integrity?: string;
   readonly referrerPolicy?: ReferrerPolicy;
   readonly transferCache?: { includeHeaders?: string[] } | boolean;
+}
+
+function filterParams(
+  params: Record<string, unknown>,
+  requiredNullableKeys: Set<string> = new Set(),
+): Record<
+  string,
+  string | number | boolean | Array<string | number | boolean>
+> {
+  const filteredParams: Record<
+    string,
+    string | number | boolean | null | Array<string | number | boolean>
+  > = {};
+  for (const [key, value] of Object.entries(params)) {
+    if (Array.isArray(value)) {
+      const filtered = value.filter(
+        (item) =>
+          item != null &&
+          (typeof item === "string" ||
+            typeof item === "number" ||
+            typeof item === "boolean"),
+      ) as Array<string | number | boolean>;
+      if (filtered.length) {
+        filteredParams[key] = filtered;
+      }
+    } else if (value === null && requiredNullableKeys.has(key)) {
+      filteredParams[key] = value;
+    } else if (
+      value != null &&
+      (typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean")
+    ) {
+      filteredParams[key] = value as string | number | boolean;
+    }
+  }
+  return filteredParams as Record<
+    string,
+    string | number | boolean | Array<string | number | boolean>
+  >;
 }
 
 @Injectable({ providedIn: "root" })
@@ -177,22 +219,32 @@ export class DashboardService {
       observe: "body",
     });
   }
-  dashboardControllerRecentActivity<TData = void>(
+  dashboardControllerRecentActivity<TData = PaginatedRecentActivityDto>(
+    params: DashboardControllerRecentActivityParams,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  dashboardControllerRecentActivity<TData = void>(
+  dashboardControllerRecentActivity<TData = PaginatedRecentActivityDto>(
+    params: DashboardControllerRecentActivityParams,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  dashboardControllerRecentActivity<TData = void>(
+  dashboardControllerRecentActivity<TData = PaginatedRecentActivityDto>(
+    params: DashboardControllerRecentActivityParams,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  dashboardControllerRecentActivity<TData = void>(
+  dashboardControllerRecentActivity<TData = PaginatedRecentActivityDto>(
+    params: DashboardControllerRecentActivityParams,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
     if (options?.observe === "events") {
       return this.http.get<TData>(`/dashboard/recent-activity`, {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "events",
+        params: filteredParams,
       });
     }
 
@@ -200,12 +252,14 @@ export class DashboardService {
       return this.http.get<TData>(`/dashboard/recent-activity`, {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "response",
+        params: filteredParams,
       });
     }
 
     return this.http.get<TData>(`/dashboard/recent-activity`, {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
+      params: filteredParams,
     });
   }
   dashboardControllerProfile<TData = ProfileDto>(

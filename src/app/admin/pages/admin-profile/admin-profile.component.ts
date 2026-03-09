@@ -8,6 +8,8 @@ import { finalize } from 'rxjs/operators';
 import {
   ActivityItemDto,
   ChangeUserPasswordDto,
+  DashboardControllerRecentActivityParams,
+  PaginatedRecentActivityDto,
   ProfileActivityDto,
   ProfileDto,
   ProfileStatsDto,
@@ -72,6 +74,10 @@ export class AdminProfileComponent implements OnInit {
   stats: { label: string; value: number | string }[] = [];
   activityStats: { label: string; value: number }[] = [];
   recentActivity: Activity[] = [];
+  recentActivityPage = 1;
+  recentActivityPageSize = 50;
+  readonly recentActivityPageSizeOptions = [20, 50, 100];
+  recentActivityTotal = 0;
 
   // ======== UI STATE ========
   editOpen = false;
@@ -329,7 +335,8 @@ export class AdminProfileComponent implements OnInit {
 
   // Demo button handlers
   viewAllActivity() {
-    this.toast.info('Pagination/route not wired yet.');
+    this.recentActivityPage = 1;
+    this.loadRecentActivity();
   }
 
   openActivity(a: Activity) {
@@ -342,8 +349,22 @@ export class AdminProfileComponent implements OnInit {
 
   // ======== DATA LOADING ========
   private loadRecentActivity() {
-    this.dashboard.dashboardControllerRecentActivity<ActivityItemDto[]>().subscribe({
-      next: (items) => (this.recentActivity = items.map((x) => this.mapActivity(x))),
+    this.dashboard
+      .dashboardControllerRecentActivity<PaginatedRecentActivityDto>({} as DashboardControllerRecentActivityParams, {
+        params: {
+          page: this.recentActivityPage,
+          limit: this.recentActivityPageSize,
+        },
+      })
+      .subscribe({
+      next: (res) => {
+        this.recentActivity = (res.data ?? []).map((x) => this.mapActivity(x));
+        this.recentActivityTotal = this.extractMetaNumber(
+          res.meta,
+          ['total', 'itemCount', 'count'],
+          this.recentActivity.length,
+        );
+      },
       error: (err) => {
         console.error(err);
         this.toast.error('Failed to load activity');
@@ -473,6 +494,50 @@ export class AdminProfileComponent implements OnInit {
   previewLocation(): string {
     const v = this.editForm.getRawValue();
     return [v.address, v.province, v.country].filter(Boolean).join(', ') || '-';
+  }
+
+  get recentActivityTotalPages(): number {
+    return Math.max(1, Math.ceil(this.recentActivityTotal / this.recentActivityPageSize));
+  }
+
+  get recentActivityRangeStart(): number {
+    if (this.recentActivityTotal === 0) return 0;
+    return (this.recentActivityPage - 1) * this.recentActivityPageSize + 1;
+  }
+
+  get recentActivityRangeEnd(): number {
+    if (this.recentActivityTotal === 0) return 0;
+    return Math.min(this.recentActivityPage * this.recentActivityPageSize, this.recentActivityTotal);
+  }
+
+  changeRecentActivityPageSize(size: number) {
+    if (this.recentActivityPageSize === size) return;
+    this.recentActivityPageSize = size;
+    this.recentActivityPage = 1;
+    this.loadRecentActivity();
+  }
+
+  nextRecentActivityPage() {
+    if (this.recentActivityPage >= this.recentActivityTotalPages) return;
+    this.recentActivityPage += 1;
+    this.loadRecentActivity();
+  }
+
+  prevRecentActivityPage() {
+    if (this.recentActivityPage <= 1) return;
+    this.recentActivityPage -= 1;
+    this.loadRecentActivity();
+  }
+
+  private extractMetaNumber(meta: unknown, keys: string[], fallback: number): number {
+    if (!meta || typeof meta !== 'object') return fallback;
+    const record = meta as Record<string, unknown>;
+    for (const key of keys) {
+      const value = record[key];
+      if (typeof value === 'number') return value;
+      if (typeof value === 'string' && !Number.isNaN(Number(value))) return Number(value);
+    }
+    return fallback;
   }
 
   passwordInputType(field: 'current' | 'new' | 'confirm'): 'text' | 'password' {

@@ -1,213 +1,455 @@
 <div class="space-y-6">
   <ng-container *ngIf="!loading; else profileSkeleton">
-  <!-- ===== HERO ===== -->
-  <div class="rounded-3xl p-6 md:p-8 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-      <div class="flex items-center gap-4">
-        <div class="w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-white/10 border border-white/10 overflow-hidden flex items-center justify-center">
-          <img *ngIf="profile.avatarUrl" [src]="profile.avatarUrl" alt="Avatar" class="w-full h-full object-cover" />
-          <svg *ngIf="!profile.avatarUrl" class="w-10 h-10 text-white/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <circle cx="12" cy="12" r="10"></circle>
-            <circle cx="12" cy="9" r="3"></circle>
-            <path d="M6 18c1.5-3 10.5-3 12 0"></path>
-          </svg>
-        </div>
-
-        <div>
-          <div class="text-2xl md:text-3xl font-semibold">{{ profile.name }}</div>
-          <div class="text-sm text-white/70 mt-1">{{ profile.role }}</div>
-
-          <div class="mt-3 flex flex-wrap gap-2">
-            <span class="text-xs px-3 py-1 rounded-full bg-white/10 border border-white/10">
-              {{ profileLocation() }}
-            </span>
-            <span class="text-xs px-3 py-1 rounded-full bg-white/10 border border-white/10">
-              Joined: {{ profile.joined }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex gap-3">
-        <button (click)="openEdit()"
-          class="px-4 py-2.5 rounded-2xl bg-white text-black font-medium hover:bg-gray-100 transition">
-          Edit Profile
-        </button>
-
-        <button (click)="openPassword()"
-          class="px-4 py-2.5 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/15 transition">
-          Change Password
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== STATS (GRADIENT CARDS) ===== -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div *ngFor="let s of stats; let i = index"
-      class="rounded-3xl p-5 text-white shadow-lg overflow-hidden relative bg-gradient-to-br from-sky-600 via-sky-700 to-slate-900"
+    <!-- ===== HERO ===== -->
+    <div
+      class="rounded-3xl p-6 md:p-8 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl"
+    >
+      <div
+        class="flex flex-col md:flex-row md:items-center md:justify-between gap-6"
       >
-      <div class="text-xs text-white/80">{{ s.label }}</div>
-      <div class="text-2xl font-semibold mt-2">{{ s.value }}</div>
-      <div class="absolute -right-12 -bottom-12 w-40 h-40 rounded-full bg-white/10 blur-2xl"></div>
-    </div>
-  </div>
+        <div class="flex items-center gap-4">
+          <div
+            class="w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-white/10 border border-white/10 overflow-hidden flex items-center justify-center"
+          >
+            <img
+              *ngIf="profile.avatarUrl"
+              [src]="profile.avatarUrl"
+              alt="Avatar"
+              class="w-full h-full object-cover"
+            />
+            <svg
+              *ngIf="!profile.avatarUrl"
+              class="w-10 h-10 text-white/80"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="9" r="3"></circle>
+              <path d="M6 18c1.5-3 10.5-3 12 0"></path>
+            </svg>
+          </div>
 
-  <!-- ===== MAIN GRID ===== -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Profile Details -->
-    <div class="lg:col-span-1 rounded-3xl border bg-white shadow-sm overflow-hidden">
-      <div class="px-6 py-5 border-b">
-        <div class="text-lg font-semibold text-gray-900">Profile Details</div>
-        <div class="text-sm text-gray-500">Account information</div>
-      </div>
-
-      <div class="p-6 space-y-4">
-        <div class="rounded-2xl bg-gradient-to-br from-gray-50 to-white border p-4">
-          <div class="text-xs text-gray-500">Email</div>
-          <div class="mt-1 font-semibold text-gray-900">{{ profile.email }}</div>
-        </div>
-
-        <div class="rounded-2xl bg-gradient-to-br from-gray-50 to-white border p-4">
-          <div class="text-xs text-gray-500">Phone</div>
-          <div class="mt-1 font-semibold text-gray-900">{{ profile.phone }}</div>
-        </div>
-
-          <div class="rounded-2xl bg-gradient-to-br from-gray-50 to-white border p-4">
-            <div class="text-xs text-gray-500">Location</div>
-          <div class="mt-1 font-semibold text-gray-900">{{ profileLocation() }}</div>
-        </div>
-
-        <div class="rounded-3xl p-5 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <div class="text-sm font-semibold">Security</div>
-              <div class="text-xs text-white/70 mt-1">Enable strong password & 2FA.</div>
+          <div>
+            <div class="text-2xl md:text-3xl font-semibold">
+              {{ profile.name }}
             </div>
-            <span class="text-xs px-3 py-1 rounded-full bg-white/10 border border-white/10">Recommended</span>
-          </div>
+            <div class="text-sm text-white/70 mt-1">{{ profile.role }}</div>
 
-          <div class="mt-4 grid grid-cols-1 gap-3">
-            <button class="px-4 py-2.5 rounded-2xl bg-white text-black font-medium hover:bg-gray-100 transition">
-              Enable 2FA (UI)
-            </button>
-            <button (click)="openPassword()" class="px-4 py-2.5 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/15 transition">
-              Update Password
-            </button>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <span
+                class="text-xs px-3 py-1 rounded-full bg-white/10 border border-white/10"
+              >
+                {{ profileLocation() }}
+              </span>
+              <span
+                class="text-xs px-3 py-1 rounded-full bg-white/10 border border-white/10"
+              >
+                Joined: {{ profile.joined }}
+              </span>
+            </div>
           </div>
+        </div>
+
+        <div class="flex gap-3">
+          <button
+            (click)="openEdit()"
+            class="px-4 py-2.5 rounded-2xl bg-white text-black font-medium hover:bg-gray-100 transition"
+          >
+            Edit Profile
+          </button>
+
+          <button
+            (click)="openPassword()"
+            class="px-4 py-2.5 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/15 transition"
+          >
+            Change Password
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Recent Activity (Modern Timeline) -->
-    <div class="lg:col-span-2 rounded-3xl border bg-white shadow-sm overflow-hidden">
-      <div class="px-6 py-5 border-b flex items-start justify-between gap-4">
-        <div>
-          <div class="text-lg font-semibold text-gray-900">Recent Activity</div>
-          <div class="text-sm text-gray-500">Latest actions performed in the admin panel</div>
+    <!-- ===== STATS (GRADIENT CARDS) ===== -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div
+        *ngFor="let s of stats; let i = index"
+        class="rounded-3xl p-5 text-white shadow-lg overflow-hidden relative bg-gradient-to-br from-sky-600 via-sky-700 to-slate-900"
+      >
+        <div class="text-xs text-white/80">{{ s.label }}</div>
+        <div class="text-2xl font-semibold mt-2">{{ s.value }}</div>
+        <div
+          class="absolute -right-12 -bottom-12 w-40 h-40 rounded-full bg-white/10 blur-2xl"
+        ></div>
+      </div>
+    </div>
+
+    <!-- ===== MAIN GRID ===== -->
+    <div class="grid grid-cols-1 items-start lg:grid-cols-3 gap-6">
+      <!-- Profile Details -->
+      <div
+        class="lg:col-span-1 self-start rounded-3xl border bg-white shadow-sm overflow-hidden"
+      >
+        <div class="px-6 py-5 border-b">
+          <div class="text-lg font-semibold text-gray-900">Profile Details</div>
+          <div class="text-sm text-gray-500">Account information</div>
         </div>
 
-        <button type="button" (click)="viewAllActivity()"
-          class="text-sm px-3 py-2 rounded-xl border hover:bg-gray-50 transition">
-          View all
-        </button>
-      </div>
-
-      <!-- mini stats -->
-      <div class="px-6 py-4 border-b bg-gradient-to-br from-gray-50 to-white">
-        <div class="grid grid-cols-3 gap-3">
-          <div *ngFor="let s of activityStats" class="rounded-2xl border bg-white p-3">
-            <div class="text-xs text-gray-500">{{ s.label }}</div>
-            <div class="text-lg font-semibold text-gray-900 mt-1">{{ s.value }}</div>
+        <div class="p-6 space-y-4">
+          <div
+            class="rounded-2xl bg-gradient-to-br from-gray-50 to-white border p-4"
+          >
+            <div class="text-xs text-gray-500">Email</div>
+            <div class="mt-1 font-semibold text-gray-900">
+              {{ profile.email }}
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div class="p-6">
-        <div class="relative">
-          <div class="absolute left-4 top-2 bottom-2 w-px bg-gray-200"></div>
+          <div
+            class="rounded-2xl bg-gradient-to-br from-gray-50 to-white border p-4"
+          >
+            <div class="text-xs text-gray-500">Phone</div>
+            <div class="mt-1 font-semibold text-gray-900">
+              {{ profile.phone }}
+            </div>
+          </div>
 
-          <div class="space-y-4">
-            <div *ngFor="let a of recentActivity" class="relative pl-12">
-              <!-- icon bubble -->
-              <div class="absolute left-0 top-1">
-                <div class="w-9 h-9 rounded-2xl flex items-center justify-center border shadow-sm"
-                  [ngClass]="activityIconClass(a.type)">
-                  <!-- coupon -->
-                  <svg *ngIf="a.type === 'coupon'" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                    <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4V9Z"
-                          stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M12 7v10" stroke="currentColor" stroke-width="2" stroke-dasharray="2 2" stroke-linecap="round"/>
-                  </svg>
+          <div
+            class="rounded-2xl bg-gradient-to-br from-gray-50 to-white border p-4"
+          >
+            <div class="text-xs text-gray-500">Location</div>
+            <div class="mt-1 font-semibold text-gray-900">
+              {{ profileLocation() }}
+            </div>
+          </div>
 
-                  <!-- product -->
-                  <svg *ngIf="a.type === 'product'" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                    <path d="M7 7h10v14H7V7Z" stroke="currentColor" stroke-width="2"/>
-                    <path d="M9 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  </svg>
-
-                  <!-- order -->
-                  <svg *ngIf="a.type === 'order'" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                    <path d="M3 7h18v10H3V7Z" stroke="currentColor" stroke-width="2"/>
-                    <path d="M7 17v2h10v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M7 11h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  </svg>
-
-                  <!-- profile -->
-                  <svg *ngIf="a.type === 'profile'" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" stroke="currentColor" stroke-width="2"/>
-                    <path d="M4 20c2-4 14-4 16 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  </svg>
+          <div
+            class="rounded-3xl p-5 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white"
+          >
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="text-sm font-semibold">Security</div>
+                <div class="text-xs text-white/70 mt-1">
+                  Enable strong password & 2FA.
                 </div>
               </div>
+              <span
+                class="text-xs px-3 py-1 rounded-full bg-white/10 border border-white/10"
+                >Recommended</span
+              >
+            </div>
 
-              <!-- activity card -->
-              <div class="rounded-3xl border bg-white p-4 hover:shadow-md transition">
-                <div class="flex items-start justify-between gap-3">
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-2">
-                      <div class="font-semibold text-gray-900 truncate">{{ a.title }}</div>
-                      <span class="text-[11px] px-2 py-0.5 rounded-full border" [ngClass]="activityPillClass(a.type)">
-                        {{ a.type }}
-                      </span>
+            <div class="mt-4 grid grid-cols-1 gap-3">
+              <button
+                class="px-4 py-2.5 rounded-2xl bg-white text-black font-medium hover:bg-gray-100 transition"
+              >
+                Enable 2FA (UI)
+              </button>
+              <button
+                (click)="openPassword()"
+                class="px-4 py-2.5 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/15 transition"
+              >
+                Update Password
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity (Modern Timeline) -->
+      <div
+        class="lg:col-span-2 self-start rounded-3xl border bg-white shadow-sm overflow-hidden"
+      >
+        <div class="px-6 py-5 border-b flex items-start justify-between gap-4">
+          <div>
+            <div class="text-lg font-semibold text-gray-900">
+              Recent Activity
+            </div>
+            <div class="text-sm text-gray-500">
+              Latest actions performed in the admin panel
+            </div>
+          </div>
+
+          <div
+            class="inline-flex items-center gap-3 rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 px-3 py-2"
+          >
+            <span
+              class="text-xs font-medium uppercase tracking-[0.18em] text-gray-400"
+              >Rows</span
+            >
+            <select
+              [value]="'' + recentActivityPageSize"
+              (change)="
+                changeRecentActivityPageSize(+$any($event.target).value)
+              "
+              class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 outline-none transition hover:border-gray-300"
+            >
+              <option
+                *ngFor="let size of recentActivityPageSizeOptions"
+                [value]="'' + size"
+                [selected]="size === recentActivityPageSize"
+              >
+                {{ size }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- mini stats -->
+        <div class="px-6 py-4 border-b bg-gradient-to-br from-gray-50 to-white">
+          <div class="grid grid-cols-3 gap-3">
+            <div
+              *ngFor="let s of activityStats"
+              class="rounded-2xl border bg-white p-3"
+            >
+              <div class="text-xs text-gray-500">{{ s.label }}</div>
+              <div class="text-lg font-semibold text-gray-900 mt-1">
+                {{ s.value }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6">
+          <div
+            class="relative max-h-[460px] min-h-[240px] overflow-y-auto pr-2"
+          >
+            <div class="absolute left-4 top-2 bottom-2 w-px bg-gray-200"></div>
+
+            <div class="space-y-4">
+              <div *ngFor="let a of recentActivity" class="relative pl-12">
+                <!-- icon bubble -->
+                <div class="absolute left-0 top-1">
+                  <div
+                    class="w-9 h-9 rounded-2xl flex items-center justify-center border shadow-sm"
+                    [ngClass]="activityIconClass(a.type)"
+                  >
+                    <!-- coupon -->
+                    <svg
+                      *ngIf="a.type === 'coupon'"
+                      class="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <path
+                        d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4V9Z"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M12 7v10"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-dasharray="2 2"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+
+                    <!-- product -->
+                    <svg
+                      *ngIf="a.type === 'product'"
+                      class="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <path
+                        d="M7 7h10v14H7V7Z"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      />
+                      <path
+                        d="M9 7V5a3 3 0 0 1 6 0v2"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+
+                    <!-- order -->
+                    <svg
+                      *ngIf="a.type === 'order'"
+                      class="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <path
+                        d="M3 7h18v10H3V7Z"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      />
+                      <path
+                        d="M7 17v2h10v-2"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                      <path
+                        d="M7 11h10"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+
+                    <!-- profile -->
+                    <svg
+                      *ngIf="a.type === 'profile'"
+                      class="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <path
+                        d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      />
+                      <path
+                        d="M4 20c2-4 14-4 16 0"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- activity card -->
+                <div
+                  class="rounded-3xl border bg-white p-4 hover:shadow-md transition"
+                >
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2">
+                        <div class="font-semibold text-gray-900 truncate">
+                          {{ a.title }}
+                        </div>
+                        <span
+                          class="text-[11px] px-2 py-0.5 rounded-full border"
+                          [ngClass]="activityPillClass(a.type)"
+                        >
+                          {{ a.type }}
+                        </span>
+                      </div>
+                      <div class="text-sm text-gray-500 mt-1">{{ a.desc }}</div>
                     </div>
-                    <div class="text-sm text-gray-500 mt-1">{{ a.desc }}</div>
+
+                    <div class="text-xs text-gray-500 whitespace-nowrap">
+                      {{ a.time }}
+                    </div>
                   </div>
 
-                  <div class="text-xs text-gray-500 whitespace-nowrap">{{ a.time }}</div>
+                  <div class="mt-3 flex items-center justify-end gap-2 text-xs">
+                    <button
+                      type="button"
+                      (click)="activityDetails(a)"
+                      class="px-3 py-1.5 rounded-xl border hover:bg-gray-50 transition"
+                    >
+                      Details
+                    </button>
+                    <button
+                      type="button"
+                      (click)="openActivity(a)"
+                      class="px-3 py-1.5 rounded-xl bg-black text-white hover:bg-gray-900 transition"
+                    >
+                      Open
+                    </button>
+                  </div>
                 </div>
+              </div>
 
-                <div class="mt-3 flex items-center justify-end gap-2 text-xs">
-                  <button type="button" (click)="activityDetails(a)"
-                    class="px-3 py-1.5 rounded-xl border hover:bg-gray-50 transition">
-                    Details
-                  </button>
-                  <button type="button" (click)="openActivity(a)"
-                    class="px-3 py-1.5 rounded-xl bg-black text-white hover:bg-gray-900 transition">
-                    Open
-                  </button>
-                </div>
+              <div
+                *ngIf="recentActivity.length === 0"
+                class="flex min-h-[180px] items-center justify-center text-center text-sm text-gray-500"
+              >
+                No recent activity.
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="mt-6 flex flex-col gap-4 border-t border-gray-100 pt-5 md:flex-row md:items-center md:justify-between"
+          >
+            <div class="flex flex-wrap items-center gap-3 text-sm">
+              <div class="rounded-2xl bg-gray-50 px-4 py-2 text-gray-600">
+                Showing
+                <span class="font-semibold text-gray-900">{{
+                  recentActivityRangeStart
+                }}</span>
+                -
+                <span class="font-semibold text-gray-900">{{
+                  recentActivityRangeEnd
+                }}</span>
+                of
+                <span class="font-semibold text-gray-900">{{
+                  recentActivityTotal
+                }}</span>
+              </div>
+              <div
+                class="rounded-2xl border border-sky-100 bg-sky-50 px-4 py-2 text-sky-700"
+              >
+                Page
+                <span class="font-semibold">{{ recentActivityPage }}</span> /
+                {{ recentActivityTotalPages }}
               </div>
             </div>
 
-            <div *ngIf="recentActivity.length === 0" class="text-center text-sm text-gray-500 py-10">
-              No recent activity.
+            <div class="flex items-center gap-2 self-end md:self-auto">
+              <button
+                type="button"
+                (click)="prevRecentActivityPage()"
+                class="inline-flex h-11 min-w-11 items-center justify-center rounded-2xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-50 disabled:transform-none disabled:cursor-not-allowed disabled:opacity-45"
+                [disabled]="recentActivityPage === 1"
+              >
+                <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M15 6l-6 6 6 6"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                Prev
+              </button>
+              <button
+                type="button"
+                (click)="nextRecentActivityPage()"
+                class="inline-flex h-11 min-w-11 items-center justify-center rounded-2xl bg-black px-4 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-900 disabled:transform-none disabled:cursor-not-allowed disabled:bg-gray-300"
+                [disabled]="recentActivityPage >= recentActivityTotalPages"
+              >
+                Next
+                <svg class="ml-2 h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M9 6l6 6-6 6"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- ================= EDIT PROFILE MODAL ================= -->
+    <!-- ================= EDIT PROFILE MODAL ================= -->
   </ng-container>
   <ng-template #profileSkeleton>
-    <app-skeleton-panel [minHeight]="200" extraClasses="bg-gradient-to-br from-gray-900 to-black text-white shadow-2xl">
+    <app-skeleton-panel
+      [minHeight]="200"
+      extraClasses="bg-gradient-to-br from-gray-900 to-black text-white shadow-2xl"
+    >
       <div class="h-6 w-40 bg-white/20 rounded"></div>
       <div class="h-4 w-24 bg-white/10 rounded"></div>
     </app-skeleton-panel>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <app-skeleton-panel *ngFor="let _ of [1,2,3,4]" [minHeight]="112"></app-skeleton-panel>
+      <app-skeleton-panel
+        *ngFor="let _ of [1, 2, 3, 4]"
+        [minHeight]="112"
+      ></app-skeleton-panel>
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <app-skeleton-panel>
@@ -217,7 +459,10 @@
       </app-skeleton-panel>
       <app-skeleton-panel class="lg:col-span-2">
         <div class="space-y-3">
-          <div *ngFor="let _ of [1,2,3]" class="h-20 bg-gray-100 rounded"></div>
+          <div
+            *ngFor="let _ of [1, 2, 3]"
+            class="h-20 bg-gray-100 rounded"
+          ></div>
         </div>
       </app-skeleton-panel>
     </div>
@@ -228,88 +473,168 @@
     <div class="absolute inset-0 bg-black/50" (click)="closeEdit()"></div>
 
     <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="w-full max-w-2xl rounded-3xl bg-white shadow-2xl overflow-hidden">
+      <div
+        class="w-full max-w-2xl rounded-3xl bg-white shadow-2xl overflow-hidden"
+      >
         <div class="px-6 py-5 border-b flex items-center justify-between">
           <div>
             <div class="text-lg font-semibold text-gray-900">Edit Profile</div>
             <div class="text-sm text-gray-500">Update personal information</div>
           </div>
 
-          <button type="button" class="p-2 rounded-xl hover:bg-gray-100" (click)="closeEdit()">
+          <button
+            type="button"
+            class="p-2 rounded-xl hover:bg-gray-100"
+            (click)="closeEdit()"
+          >
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path
+                d="M6 6l12 12M18 6L6 18"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
             </svg>
           </button>
         </div>
 
-        <form class="p-6 space-y-5" [formGroup]="editForm" (ngSubmit)="saveProfile()">
+        <form
+          class="p-6 space-y-5"
+          [formGroup]="editForm"
+          (ngSubmit)="saveProfile()"
+        >
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="text-sm font-medium text-gray-700">Name</label>
-              <input formControlName="name" class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
-              <p *ngIf="invalid(editForm,'name')" class="text-xs text-red-600 mt-1">Name is required.</p>
+              <input
+                formControlName="name"
+                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+              />
+              <p
+                *ngIf="invalid(editForm, 'name')"
+                class="text-xs text-red-600 mt-1"
+              >
+                Name is required.
+              </p>
             </div>
 
             <div>
               <label class="text-sm font-medium text-gray-700">Email</label>
-              <input formControlName="email" class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
-              <p *ngIf="invalid(editForm,'email')" class="text-xs text-red-600 mt-1">Enter valid email.</p>
+              <input
+                formControlName="email"
+                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+              />
+              <p
+                *ngIf="invalid(editForm, 'email')"
+                class="text-xs text-red-600 mt-1"
+              >
+                Enter valid email.
+              </p>
             </div>
 
             <div>
               <label class="text-sm font-medium text-gray-700">Phone</label>
-              <input formControlName="phone" class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
-              <p *ngIf="invalid(editForm,'phone')" class="text-xs text-red-600 mt-1">Phone required.</p>
+              <input
+                formControlName="phone"
+                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+              />
+              <p
+                *ngIf="invalid(editForm, 'phone')"
+                class="text-xs text-red-600 mt-1"
+              >
+                Phone required.
+              </p>
             </div>
 
             <div>
               <label class="text-sm font-medium text-gray-700">Address</label>
-              <input formControlName="address" class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
+              <input
+                formControlName="address"
+                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+              />
             </div>
 
             <div>
-              <label class="text-sm font-medium text-gray-700">Postal Code</label>
-              <input formControlName="postalCode" class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
+              <label class="text-sm font-medium text-gray-700"
+                >Postal Code</label
+              >
+              <input
+                formControlName="postalCode"
+                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+              />
             </div>
 
             <div>
               <label class="text-sm font-medium text-gray-700">Province</label>
-              <input formControlName="province" class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
+              <input
+                formControlName="province"
+                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+              />
             </div>
 
             <div>
               <label class="text-sm font-medium text-gray-700">Country</label>
-              <input formControlName="country" class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
+              <input
+                formControlName="country"
+                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+              />
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             <div>
               <label class="text-sm font-medium text-gray-700">Avatar</label>
-              <input type="file" accept="image/*" (change)="onAvatarChange($event)"
-                class="mt-1 w-full rounded-2xl border px-4 py-2.5" />
+              <input
+                type="file"
+                accept="image/*"
+                (change)="onAvatarChange($event)"
+                class="mt-1 w-full rounded-2xl border px-4 py-2.5"
+              />
               <p class="text-xs text-gray-500 mt-1">Max 2MB • JPG/PNG/WebP</p>
             </div>
 
-            <div class="rounded-2xl border bg-gray-50 p-4 flex items-center gap-4">
-              <div class="w-20 h-20 rounded-2xl bg-white overflow-hidden border flex items-center justify-center">
-                <img *ngIf="editForm.value.avatarUrl" [src]="editForm.value.avatarUrl!" class="w-full h-full object-cover" alt="preview"/>
-                <span *ngIf="!editForm.value.avatarUrl" class="text-xs text-gray-400">No Image</span>
+            <div
+              class="rounded-2xl border bg-gray-50 p-4 flex items-center gap-4"
+            >
+              <div
+                class="w-20 h-20 rounded-2xl bg-white overflow-hidden border flex items-center justify-center"
+              >
+                <img
+                  *ngIf="editForm.value.avatarUrl"
+                  [src]="editForm.value.avatarUrl!"
+                  class="w-full h-full object-cover"
+                  alt="preview"
+                />
+                <span
+                  *ngIf="!editForm.value.avatarUrl"
+                  class="text-xs text-gray-400"
+                  >No Image</span
+                >
               </div>
 
               <div class="text-sm text-gray-600">
-                <div class="font-semibold text-gray-900">{{ editForm.value.name || 'Preview' }}</div>
+                <div class="font-semibold text-gray-900">
+                  {{ editForm.value.name || "Preview" }}
+                </div>
                 <div class="text-gray-500">{{ previewLocation() }}</div>
               </div>
             </div>
           </div>
 
-        <div class="flex justify-end gap-3 pt-2">
-          <button type="button" (click)="closeEdit()" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50">
-            Cancel
-          </button>
-            <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900 disabled:opacity-60" [disabled]="saving">
-              {{ saving ? 'Saving...' : 'Save Changes' }}
+          <div class="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              (click)="closeEdit()"
+              class="px-4 py-2.5 rounded-xl border hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900 disabled:opacity-60"
+              [disabled]="saving"
+            >
+              {{ saving ? "Saving..." : "Save Changes" }}
             </button>
           </div>
         </form>
@@ -322,94 +647,280 @@
     <div class="absolute inset-0 bg-black/50" (click)="closePassword()"></div>
 
     <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden">
+      <div
+        class="w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden"
+      >
         <div class="px-6 py-5 border-b flex items-center justify-between">
           <div>
-            <div class="text-lg font-semibold text-gray-900">Change Password</div>
+            <div class="text-lg font-semibold text-gray-900">
+              Change Password
+            </div>
             <div class="text-sm text-gray-500">Minimum 8 characters</div>
           </div>
 
-          <button type="button" class="p-2 rounded-xl hover:bg-gray-100" (click)="closePassword()">
+          <button
+            type="button"
+            class="p-2 rounded-xl hover:bg-gray-100"
+            (click)="closePassword()"
+          >
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path
+                d="M6 6l12 12M18 6L6 18"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
             </svg>
           </button>
         </div>
 
-        <form class="p-6 space-y-4" [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+        <form
+          class="p-6 space-y-4"
+          [formGroup]="passwordForm"
+          (ngSubmit)="changePassword()"
+        >
           <div>
-            <label class="text-sm font-medium text-gray-700">Current Password</label>
+            <label class="text-sm font-medium text-gray-700"
+              >Current Password</label
+            >
             <div class="relative mt-1">
-              <input [type]="passwordInputType('current')" formControlName="currentPassword"
-                class="w-full rounded-2xl border px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-black" />
-              <button type="button" (click)="togglePasswordVisibility('current')"
-                class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700">
-                <svg *ngIf="!currentPasswordVisible" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                  <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" stroke="currentColor" stroke-width="2"/>
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+              <input
+                [type]="passwordInputType('current')"
+                formControlName="currentPassword"
+                class="w-full rounded-2xl border px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-black"
+              />
+              <button
+                type="button"
+                (click)="togglePasswordVisibility('current')"
+                class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+              >
+                <svg
+                  *ngIf="!currentPasswordVisible"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
                 </svg>
-                <svg *ngIf="currentPasswordVisible" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M10.6 10.7A3 3 0 0 0 13.3 13.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M9.9 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17.3 17.3 0 0 1-4 4.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M6.2 6.3A17.7 17.7 0 0 0 2 12s3.5 7 10 7a10.7 10.7 0 0 0 4-.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <svg
+                  *ngIf="currentPasswordVisible"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M3 3l18 18"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M10.6 10.7A3 3 0 0 0 13.3 13.4"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M9.9 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17.3 17.3 0 0 1-4 4.8"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M6.2 6.3A17.7 17.7 0 0 0 2 12s3.5 7 10 7a10.7 10.7 0 0 0 4-.7"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
                 </svg>
               </button>
             </div>
-            <p *ngIf="invalid(passwordForm,'currentPassword')" class="text-xs text-red-600 mt-1">Required.</p>
+            <p
+              *ngIf="invalid(passwordForm, 'currentPassword')"
+              class="text-xs text-red-600 mt-1"
+            >
+              Required.
+            </p>
           </div>
 
           <div>
-            <label class="text-sm font-medium text-gray-700">New Password</label>
+            <label class="text-sm font-medium text-gray-700"
+              >New Password</label
+            >
             <div class="relative mt-1">
-              <input [type]="passwordInputType('new')" formControlName="newPassword"
-                class="w-full rounded-2xl border px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-black" />
-              <button type="button" (click)="togglePasswordVisibility('new')"
-                class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700">
-                <svg *ngIf="!newPasswordVisible" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                  <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" stroke="currentColor" stroke-width="2"/>
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+              <input
+                [type]="passwordInputType('new')"
+                formControlName="newPassword"
+                class="w-full rounded-2xl border px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-black"
+              />
+              <button
+                type="button"
+                (click)="togglePasswordVisibility('new')"
+                class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+              >
+                <svg
+                  *ngIf="!newPasswordVisible"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
                 </svg>
-                <svg *ngIf="newPasswordVisible" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M10.6 10.7A3 3 0 0 0 13.3 13.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M9.9 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17.3 17.3 0 0 1-4 4.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M6.2 6.3A17.7 17.7 0 0 0 2 12s3.5 7 10 7a10.7 10.7 0 0 0 4-.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <svg
+                  *ngIf="newPasswordVisible"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M3 3l18 18"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M10.6 10.7A3 3 0 0 0 13.3 13.4"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M9.9 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17.3 17.3 0 0 1-4 4.8"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M6.2 6.3A17.7 17.7 0 0 0 2 12s3.5 7 10 7a10.7 10.7 0 0 0 4-.7"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
                 </svg>
               </button>
             </div>
-            <p *ngIf="invalid(passwordForm,'newPassword')" class="text-xs text-red-600 mt-1">Min 8 characters.</p>
+            <p
+              *ngIf="invalid(passwordForm, 'newPassword')"
+              class="text-xs text-red-600 mt-1"
+            >
+              Min 8 characters.
+            </p>
           </div>
 
           <div>
-            <label class="text-sm font-medium text-gray-700">Confirm New Password</label>
+            <label class="text-sm font-medium text-gray-700"
+              >Confirm New Password</label
+            >
             <div class="relative mt-1">
-              <input [type]="passwordInputType('confirm')" formControlName="confirmPassword"
-                class="w-full rounded-2xl border px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-black" />
-              <button type="button" (click)="togglePasswordVisibility('confirm')"
-                class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700">
-                <svg *ngIf="!confirmPasswordVisible" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                  <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" stroke="currentColor" stroke-width="2"/>
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+              <input
+                [type]="passwordInputType('confirm')"
+                formControlName="confirmPassword"
+                class="w-full rounded-2xl border px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-black"
+              />
+              <button
+                type="button"
+                (click)="togglePasswordVisibility('confirm')"
+                class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+              >
+                <svg
+                  *ngIf="!confirmPasswordVisible"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
                 </svg>
-                <svg *ngIf="confirmPasswordVisible" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M10.6 10.7A3 3 0 0 0 13.3 13.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M9.9 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17.3 17.3 0 0 1-4 4.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M6.2 6.3A17.7 17.7 0 0 0 2 12s3.5 7 10 7a10.7 10.7 0 0 0 4-.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <svg
+                  *ngIf="confirmPasswordVisible"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M3 3l18 18"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M10.6 10.7A3 3 0 0 0 13.3 13.4"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M9.9 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17.3 17.3 0 0 1-4 4.8"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M6.2 6.3A17.7 17.7 0 0 0 2 12s3.5 7 10 7a10.7 10.7 0 0 0 4-.7"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
                 </svg>
               </button>
             </div>
-            <p *ngIf="invalid(passwordForm,'confirmPassword')" class="text-xs text-red-600 mt-1">Min 8 characters.</p>
-            <p *ngIf="passwordMismatch" class="text-xs text-red-600 mt-1">Passwords do not match.</p>
+            <p
+              *ngIf="invalid(passwordForm, 'confirmPassword')"
+              class="text-xs text-red-600 mt-1"
+            >
+              Min 8 characters.
+            </p>
+            <p *ngIf="passwordMismatch" class="text-xs text-red-600 mt-1">
+              Passwords do not match.
+            </p>
           </div>
 
           <div class="flex justify-end gap-3 pt-2">
-            <button type="button" (click)="closePassword()" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50">
+            <button
+              type="button"
+              (click)="closePassword()"
+              class="px-4 py-2.5 rounded-xl border hover:bg-gray-50"
+            >
               Cancel
             </button>
-            <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900 disabled:opacity-60" [disabled]="savingPassword">
-              {{ savingPassword ? 'Updating...' : 'Update Password' }}
+            <button
+              type="submit"
+              class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900 disabled:opacity-60"
+              [disabled]="savingPassword"
+            >
+              {{ savingPassword ? "Updating..." : "Update Password" }}
             </button>
           </div>
         </form>
