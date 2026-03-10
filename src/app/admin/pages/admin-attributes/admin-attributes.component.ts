@@ -11,6 +11,7 @@ import { finalize } from 'rxjs';
 import { CarBrandService } from '../../../core/api/generated/car-brand/car-brand.service';
 import { CarBrandModelService } from '../../../core/api/generated/car-brand-model/car-brand-model.service';
 import { ProductAttributeService } from '../../../core/api/generated/product-attribute/product-attribute.service';
+import { ProductAttributeValuesService } from '../../../core/api/generated/product-attribute-values/product-attribute-values.service';
 import { ProductCategoryAttributeService } from '../../../core/api/generated/product-category-attribute/product-category-attribute.service';
 import { ProductCategoryService } from '../../../core/api/generated/product-category/product-category.service';
 import { ProductsService } from '../../../core/api/generated/products/products.service';
@@ -19,7 +20,9 @@ import type {
   CarBrandModelResponseDto,
   CreateProductAttributeDto,
   ProductAttributeResponseDto,
+  ProductAttributeValuesResponseDto,
   ProductCategoryAttributeControllerWorkspaceParams,
+  ProductCategoryAttributeResponseDto,
   ProductCategoryResponseDto,
   ProductSummaryDto,
   SaveProductCategoryAttributeAssignmentDto,
@@ -29,6 +32,12 @@ import { ToastService } from '../../../core/notification/toast.service';
 
 type AttributeStatusFilter = 'All' | 'Active' | 'Inactive';
 type AttributeDropdownKey = 'category' | 'brand' | 'model' | 'product';
+
+interface DummyAttributeValueItem {
+  id: number;
+  label: string;
+  selected: boolean;
+}
 
 @Component({
   selector: 'app-admin-attributes',
@@ -62,12 +71,26 @@ export class AdminAttributesComponent implements OnInit {
 
   attrModalOpen = false;
   confirmOpen = false;
+  valuesModalOpen = false;
   attrMode: 'create' | 'edit' = 'create';
   selectedAttr: ProductAttributeResponseDto | null = null;
+  selectedValueAttribute: ProductAttributeResponseDto | null = null;
   selectedModelOption: CarBrandModelResponseDto | null = null;
+  valueSearch = '';
+  newValueLabel = '';
+  editingValueId: number | null = null;
+  editingValueLabel = '';
+  nextDummyValueId = 1000;
+  valueDraftItems: DummyAttributeValueItem[] = [];
 
   attributes: ProductAttributeResponseDto[] = [];
   filteredAttributes: ProductAttributeResponseDto[] = [];
+  attributeValuesByAttributeId = new Map<
+    number,
+    ProductAttributeValuesResponseDto[]
+  >();
+  categoryIdsByAttributeId = new Map<number, number[]>();
+  dummyValuesByAttributeId = new Map<number, DummyAttributeValueItem[]>();
 
   categories: ProductCategoryResponseDto[] = [];
   brands: CarBrandResponseDto[] = [];
@@ -86,6 +109,7 @@ export class AdminAttributesComponent implements OnInit {
     private readonly fb: FormBuilder,
     private readonly router: Router,
     private readonly productAttributeService: ProductAttributeService,
+    private readonly productAttributeValuesService: ProductAttributeValuesService,
     private readonly productCategoryAttributeService: ProductCategoryAttributeService,
     private readonly productCategoryService: ProductCategoryService,
     private readonly carBrandService: CarBrandService,
@@ -100,59 +124,28 @@ export class AdminAttributesComponent implements OnInit {
 
     this.assignForm = this.fb.nonNullable.group({
       categoryId: this.fb.nonNullable.control('', Validators.required),
-      brandId: this.fb.nonNullable.control('', Validators.required),
-      modelId: this.fb.nonNullable.control('', Validators.required),
-      productId: this.fb.nonNullable.control('', Validators.required),
+      brandId: this.fb.nonNullable.control(''),
+      modelId: this.fb.nonNullable.control(''),
+      productId: this.fb.nonNullable.control(''),
       attributeIds: this.fb.nonNullable.control<number[]>([]),
     });
 
     this.assignForm.get('categoryId')!.valueChanges.subscribe(() => {
-      this.brandSearch = '';
-      this.modelSearch = '';
-      this.productSearch = '';
-      this.brands = [];
-      this.models = [];
-      this.selectedModelOption = null;
       this.assignForm.patchValue(
         { brandId: '', modelId: '', productId: '', attributeIds: [] },
         { emitEvent: false },
       );
-      this.products = [];
       if (this.assignForm.get('categoryId')!.value) {
-        this.loadBrands();
+        this.loadAssignmentSelection();
       }
-    });
-
-    this.assignForm.get('brandId')!.valueChanges.subscribe(() => {
-      this.modelSearch = '';
-      this.productSearch = '';
-      this.models = [];
-      this.selectedModelOption = null;
-      this.assignForm.patchValue(
-        { modelId: '', productId: '', attributeIds: [] },
-        { emitEvent: false },
-      );
-      this.products = [];
-    });
-
-    this.assignForm.get('modelId')!.valueChanges.subscribe(() => {
-      this.productSearch = '';
-      this.assignForm.patchValue(
-        { productId: '', attributeIds: [] },
-        { emitEvent: false },
-      );
-      this.products = [];
-      this.loadProductsForSelection();
-    });
-
-    this.assignForm.get('productId')!.valueChanges.subscribe(() => {
-      this.loadAssignmentSelection();
     });
   }
 
   ngOnInit(): void {
     this.loadAttributes();
     this.loadCategories();
+    this.loadAttributeValues();
+    this.loadCategoryAssignments();
   }
 
   get totalCount(): number {
@@ -262,15 +255,46 @@ export class AdminAttributesComponent implements OnInit {
     return product ? this.formatProductLabel(product) : '';
   }
 
+  get selectedAttributeCount(): number {
+    return this.selectedAttributeIds.length;
+  }
+
+  get selectedValueCount(): number {
+    return this.valueDraftItems.filter((item) => item.selected).length;
+  }
+
+  get visibleAttributeValues(): DummyAttributeValueItem[] {
+    const values = this.getAttributeValueItems(
+      this.selectedValueAttribute?.attribute_id,
+    );
+    const normalized = this.valueSearch.trim().toLowerCase();
+
+    return values
+      .filter((item) =>
+        !normalized ? true : item.label.toLowerCase().includes(normalized),
+      )
+      .sort((left, right) => {
+        if (left.selected !== right.selected) {
+          return left.selected ? -1 : 1;
+        }
+        if (left.id !== right.id) {
+          return right.id - left.id;
+        }
+        return left.label.localeCompare(right.label);
+      });
+  }
+
   applyFilters(): void {
     this.appliedQuery = this.query.trim().toLowerCase();
     this.appliedStatusFilter = this.statusFilter;
 
     this.filteredAttributes = this.attributes.filter((item) => {
+      const attributeName = item.attribute_name.toLowerCase();
+      const createdBy = String(item.created_by ?? '').toLowerCase();
       const matchesQuery =
         !this.appliedQuery ||
-        item.attribute_name.toLowerCase().includes(this.appliedQuery) ||
-        item.created_by.toLowerCase().includes(this.appliedQuery);
+        attributeName.includes(this.appliedQuery) ||
+        createdBy.includes(this.appliedQuery);
 
       const matchesStatus =
         this.appliedStatusFilter === 'All'
@@ -523,6 +547,146 @@ export class AdminAttributesComponent implements OnInit {
     this.assignForm.patchValue({ attributeIds: next });
   }
 
+  getAttributeValueCount(attributeId: number): number {
+    return this.getAttributeValueItems(attributeId).length;
+  }
+
+  getAttributeValuePreview(attributeId: number, limit = 3): string {
+    const values = this.getAttributeValueItems(attributeId);
+    return (
+      values
+        .slice(0, limit)
+        .map((item) => item.label)
+        .filter(Boolean)
+        .join(', ') || 'No values added'
+    );
+  }
+
+  getAssignedCategoryNames(attributeId: number, limit = 2): string {
+    const categoryIds = this.categoryIdsByAttributeId.get(attributeId) ?? [];
+    const names = categoryIds
+      .map(
+        (categoryId) =>
+          this.categories.find((item) => item.category_id === categoryId)
+            ?.category_name,
+      )
+      .filter((name): name is string => !!name);
+
+    if (names.length === 0) {
+      return 'Not assigned';
+    }
+
+    if (names.length <= limit) {
+      return names.join(', ');
+    }
+
+    return `${names.slice(0, limit).join(', ')} +${names.length - limit}`;
+  }
+
+  openAttributeValues(attribute: ProductAttributeResponseDto): void {
+    this.selectedValueAttribute = attribute;
+    this.ensureDummyValues(attribute);
+    this.valueDraftItems = this.getAttributeValueItems(attribute.attribute_id).map(
+      (item) => ({ ...item }),
+    );
+    this.valueSearch = '';
+    this.newValueLabel = '';
+    this.editingValueId = null;
+    this.editingValueLabel = '';
+    this.valuesModalOpen = true;
+  }
+
+  closeValuesModal(): void {
+    this.valuesModalOpen = false;
+    this.selectedValueAttribute = null;
+    this.valueDraftItems = [];
+    this.valueSearch = '';
+    this.newValueLabel = '';
+    this.editingValueId = null;
+    this.editingValueLabel = '';
+  }
+
+  saveValueSelections(): void {
+    const attributeId = this.selectedValueAttribute?.attribute_id;
+    if (!attributeId) {
+      return;
+    }
+
+    this.dummyValuesByAttributeId.set(
+      attributeId,
+      this.valueDraftItems.map((item) => ({ ...item })),
+    );
+    this.closeValuesModal();
+  }
+
+  addDummyValue(): void {
+    const label = this.newValueLabel.trim();
+    const attributeId = this.selectedValueAttribute?.attribute_id;
+
+    if (!attributeId || !label) {
+      return;
+    }
+
+    const values = [...this.getAttributeValueItems(attributeId)];
+    this.valueDraftItems = [
+      {
+      id: this.nextDummyValueId++,
+      label,
+      selected: true,
+      },
+      ...values,
+    ];
+    this.newValueLabel = '';
+  }
+
+  toggleDummyValue(valueId: number): void {
+    const attributeId = this.selectedValueAttribute?.attribute_id;
+    if (!attributeId) {
+      return;
+    }
+
+    this.valueDraftItems = this.getAttributeValueItems(attributeId).map((item) =>
+      item.id === valueId ? { ...item, selected: !item.selected } : item,
+    );
+  }
+
+  startEditingValue(value: DummyAttributeValueItem): void {
+    this.editingValueId = value.id;
+    this.editingValueLabel = value.label;
+  }
+
+  cancelEditingValue(): void {
+    this.editingValueId = null;
+    this.editingValueLabel = '';
+  }
+
+  saveEditedValue(valueId: number): void {
+    const attributeId = this.selectedValueAttribute?.attribute_id;
+    const label = this.editingValueLabel.trim();
+    if (!attributeId || !label) {
+      return;
+    }
+
+    this.valueDraftItems = this.getAttributeValueItems(attributeId).map((item) =>
+      item.id === valueId ? { ...item, label } : item,
+    );
+    this.cancelEditingValue();
+  }
+
+  deleteDummyValue(valueId: number): void {
+    const attributeId = this.selectedValueAttribute?.attribute_id;
+    if (!attributeId) {
+      return;
+    }
+
+    this.valueDraftItems = this.getAttributeValueItems(attributeId).filter(
+      (item) => item.id !== valueId,
+    );
+    if (this.editingValueId === valueId) {
+      this.cancelEditingValue();
+    }
+  }
+
   saveAssignment(): void {
     if (this.assignForm.invalid || this.savingAssignment) {
       this.assignForm.markAllAsTouched();
@@ -537,9 +701,6 @@ export class AdminAttributesComponent implements OnInit {
     const value = this.assignForm.getRawValue();
     const payload: SaveProductCategoryAttributeAssignmentDto = {
       category_id: Number(value.categoryId),
-      car_brand_id: Number(value.brandId),
-      model_id: Number(value.modelId),
-      product_id: Number(value.productId),
       attribute_ids: value.attributeIds,
       is_active: true,
     };
@@ -582,6 +743,7 @@ export class AdminAttributesComponent implements OnInit {
       .subscribe({
         next: (response) => {
           this.attributes = response.data ?? [];
+          this.seedDummyValues();
           this.applyFilters();
         },
         error: (error) => {
@@ -601,6 +763,40 @@ export class AdminAttributesComponent implements OnInit {
         this.toastService.error('Failed to load categories.');
       },
     });
+  }
+
+  private loadAttributeValues(): void {
+    this.productAttributeValuesService
+      .productAttributeValuesControllerList({
+        params: { page: 1, limit: 1000 },
+      })
+      .subscribe({
+        next: (response) => {
+          this.attributeValuesByAttributeId = this.groupAttributeValues(
+            response.data ?? [],
+          );
+        },
+        error: () => {
+          this.toastService.error('Failed to load attribute values.');
+        },
+      });
+  }
+
+  private loadCategoryAssignments(): void {
+    this.productCategoryAttributeService
+      .productCategoryAttributeControllerList({
+        params: { page: 1, limit: 1000 },
+      })
+      .subscribe({
+        next: (response) => {
+          this.categoryIdsByAttributeId = this.groupCategoryAssignments(
+            response.data ?? [],
+          );
+        },
+        error: () => {
+          this.toastService.error('Failed to load category assignments.');
+        },
+      });
   }
 
   private loadBrands(): void {
@@ -686,7 +882,7 @@ export class AdminAttributesComponent implements OnInit {
 
   private loadAssignmentSelection(): void {
     const value = this.assignForm.getRawValue();
-    if (!value.productId) {
+    if (!value.categoryId) {
       this.assignForm.patchValue({ attributeIds: [] }, { emitEvent: false });
       return;
     }
@@ -695,9 +891,6 @@ export class AdminAttributesComponent implements OnInit {
       page: 1,
       limit: 1,
       category_id: value.categoryId ? Number(value.categoryId) : undefined,
-      car_brand_id: value.brandId ? Number(value.brandId) : undefined,
-      model_id: value.modelId ? Number(value.modelId) : undefined,
-      product_id: value.productId ? Number(value.productId) : undefined,
     };
 
     this.assignmentLoading = true;
@@ -756,6 +949,110 @@ export class AdminAttributesComponent implements OnInit {
     return items.filter((item) =>
       project(item).toLowerCase().includes(normalized),
     );
+  }
+
+  private groupAttributeValues(
+    items: ProductAttributeValuesResponseDto[],
+  ): Map<number, ProductAttributeValuesResponseDto[]> {
+    const grouped = new Map<number, ProductAttributeValuesResponseDto[]>();
+
+    for (const item of items) {
+      const current = grouped.get(item.attribute_id) ?? [];
+      current.push(item);
+      grouped.set(item.attribute_id, current);
+    }
+
+    return grouped;
+  }
+
+  private groupCategoryAssignments(
+    items: ProductCategoryAttributeResponseDto[],
+  ): Map<number, number[]> {
+    const grouped = new Map<number, Set<number>>();
+
+    for (const item of items) {
+      if (!grouped.has(item.attribute_id)) {
+        grouped.set(item.attribute_id, new Set<number>());
+      }
+      grouped.get(item.attribute_id)!.add(item.category_id);
+    }
+
+    return new Map(
+      Array.from(grouped.entries()).map(([attributeId, categoryIds]) => [
+        attributeId,
+        Array.from(categoryIds),
+      ]),
+    );
+  }
+
+  private getAttributeValueItems(attributeId?: number): DummyAttributeValueItem[] {
+    if (!attributeId) {
+      return [];
+    }
+
+    if (
+      this.selectedValueAttribute?.attribute_id === attributeId &&
+      this.valueDraftItems.length >= 0 &&
+      this.valuesModalOpen
+    ) {
+      return this.valueDraftItems;
+    }
+
+    return this.dummyValuesByAttributeId.get(attributeId) ?? [];
+  }
+
+  private ensureDummyValues(attribute: ProductAttributeResponseDto): void {
+    if (this.dummyValuesByAttributeId.has(attribute.attribute_id)) {
+      return;
+    }
+
+    this.dummyValuesByAttributeId.set(
+      attribute.attribute_id,
+      this.createInitialDummyValues(attribute),
+    );
+  }
+
+  private seedDummyValues(): void {
+    for (const attribute of this.attributes) {
+      this.ensureDummyValues(attribute);
+    }
+  }
+
+  private createInitialDummyValues(
+    attribute: ProductAttributeResponseDto,
+  ): DummyAttributeValueItem[] {
+    const existingValues = this.attributeValuesByAttributeId.get(
+      attribute.attribute_id,
+    );
+
+    if (existingValues?.length) {
+      return existingValues.map((item) => ({
+        id: item.value_id,
+        label: item.attribute_value,
+        selected: true,
+      }));
+    }
+
+    const fallbackByName: Record<string, string[]> = {
+      size: ['205/55R16', '225/45R17', '17x8'],
+      color: ['Matte Black', 'Gloss Black', 'Bronze'],
+      'bolt pattern': ['5x114.3', '6x139.7'],
+      width: ['8J', '9J'],
+      offset: ['+20', '+35'],
+    };
+
+    const fallbackValues =
+      fallbackByName[attribute.attribute_name.trim().toLowerCase()] ?? [];
+
+    const seededValues = fallbackValues.map((label, index) => ({
+      id: this.nextDummyValueId + index,
+      label,
+      selected: index < 2,
+    }));
+
+    this.nextDummyValueId += fallbackValues.length;
+
+    return seededValues;
   }
 
   private getDropdownSearch(dropdown: AttributeDropdownKey): string {

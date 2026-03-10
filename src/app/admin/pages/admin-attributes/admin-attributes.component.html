@@ -33,515 +33,143 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
-    <div
-      class="overflow-hidden rounded-3xl border bg-white shadow-sm xl:col-span-1"
-    >
-      <div class="border-b px-6 py-5">
-        <div class="text-lg font-semibold text-gray-900">Attribute List</div>
-        <div class="text-sm text-gray-500">
-          Search, filter, edit, delete, and paginate
-        </div>
-      </div>
+  <div class="attribute-screen">
+    <section class="attribute-shell attribute-shell--list">
+      <header class="attribute-shell__header">
+        <h2 class="attribute-shell__title">Attribute List</h2>
+        <p class="attribute-shell__subtitle">Search attributes and manage values</p>
+      </header>
 
-      <div class="space-y-4 p-5">
+      <div class="attribute-shell__body">
         <input
           [(ngModel)]="query"
-          (keyup.enter)="applyFilters()"
-          class="w-full rounded-2xl border px-4 py-3"
-          placeholder="Search attribute name or creator..."
+          (ngModelChange)="applyFilters()"
+          class="attribute-search"
+          placeholder="Search attribute..."
         />
 
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
-          <select
-            [(ngModel)]="statusFilter"
-            class="w-full rounded-2xl border px-4 py-3"
+        <div class="attribute-shell__scroll">
+          <article
+            *ngFor="let attribute of filteredAttributes; trackBy: trackByAttributeId"
+            class="attribute-card"
           >
-            <option *ngFor="let option of statusOptions" [value]="option">
-              {{ option }}
-            </option>
-          </select>
-
-          <div class="flex gap-3">
-            <button
-              type="button"
-              (click)="resetFilters()"
-              class="rounded-2xl border px-4 py-3 text-sm hover:bg-gray-50"
-            >
-              Reset
-            </button>
-            <button
-              type="button"
-              (click)="applyFilters()"
-              class="rounded-2xl bg-black px-4 py-3 text-sm text-white hover:bg-gray-900"
-            >
-              Filter
-            </button>
-          </div>
-        </div>
-
-        <div class="space-y-3">
-          <div
-            *ngFor="
-              let attribute of paginatedAttributes;
-              trackBy: trackByAttributeId
-            "
-            class="rounded-3xl border p-4 transition hover:shadow-sm"
-          >
-            <div class="flex items-start justify-between gap-3">
-              <div class="min-w-0">
-                <div class="font-semibold text-gray-900">
-                  {{ attribute.attribute_name }}
-                </div>
-                <div class="mt-1 text-xs text-gray-500">
-                  ID: {{ attribute.attribute_id }}
-                </div>
-                <div class="mt-1 text-xs text-gray-500">
-                  Created by: {{ attribute.created_by || "-" }}
-                </div>
-              </div>
-
-              <div class="flex shrink-0 items-center gap-2">
-                <span
-                  class="rounded-full px-3 py-1 text-xs font-medium"
-                  [class.bg-green-100]="attribute.is_active"
-                  [class.text-green-700]="attribute.is_active"
-                  [class.bg-gray-100]="!attribute.is_active"
-                  [class.text-gray-700]="!attribute.is_active"
-                >
-                  {{ attribute.is_active ? "Active" : "Inactive" }}
-                </span>
-                <button
-                  type="button"
-                  (click)="openEditAttribute(attribute)"
-                  class="rounded-xl border px-3 py-2 text-sm hover:bg-gray-50"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  (click)="openDeleteAttribute(attribute)"
-                  class="rounded-xl bg-black px-3 py-2 text-sm text-white hover:bg-gray-900"
-                >
-                  Delete
-                </button>
-              </div>
+            <div class="attribute-card__content">
+              <h3 class="attribute-card__title">{{ attribute.attribute_name }}</h3>
+              <p class="attribute-card__meta">
+                <span>Values:</span>
+                {{ getAttributeValuePreview(attribute.attribute_id) }}
+              </p>
+              <p class="attribute-card__meta">
+                <span>Assigned Categories:</span>
+                {{ getAssignedCategoryNames(attribute.attribute_id) }}
+              </p>
             </div>
-          </div>
 
-          <div
-            *ngIf="!loading && paginatedAttributes.length === 0"
-            class="py-8 text-center text-sm text-gray-500"
-          >
+            <div class="attribute-card__actions">
+              <button
+                type="button"
+                class="attribute-action"
+                (click)="openEditAttribute(attribute)"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                class="attribute-action attribute-action--dark"
+                (click)="openDeleteAttribute(attribute)"
+              >
+                Delete
+              </button>
+            </div>
+          </article>
+
+          <div *ngIf="!loading && filteredAttributes.length === 0" class="attribute-empty">
             No attributes found.
           </div>
         </div>
       </div>
+    </section>
 
-      <div
-        *ngIf="!loading && filteredAttributes.length > 0"
-        class="flex items-center justify-between border-t px-6 py-4"
-      >
-        <div class="flex items-center gap-2 text-sm text-gray-600">
-          <span>Rows</span>
-          <select
-            class="min-w-20 rounded-xl border px-2 py-1 text-gray-800"
-            [ngModel]="pageSize"
-            (ngModelChange)="changePageSize($event)"
-          >
-            <option *ngFor="let size of pageSizeOptions" [value]="size">
-              {{ size }}
-            </option>
-          </select>
-        </div>
-
-        <div class="text-sm text-gray-600">
-          Page {{ page }} of {{ totalPages }}
-        </div>
-
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            class="rounded-xl border px-3 py-2 text-sm disabled:opacity-50"
-            (click)="prevPage()"
-            [disabled]="page === 1"
-          >
-            Prev
-          </button>
-          <button
-            type="button"
-            class="rounded-xl border px-3 py-2 text-sm disabled:opacity-50"
-            (click)="nextPage()"
-            [disabled]="page >= totalPages"
-          >
-            Next
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div
-      class="overflow-hidden rounded-3xl border bg-white shadow-sm xl:col-span-2"
-    >
-      <div class="border-b px-6 py-5">
-        <div class="text-lg font-semibold text-gray-900">
-          Assign Attributes to Product
-        </div>
-        <div class="text-sm text-gray-500">
-          Select Category, Brand, Model, and Product, then save assigned
-          attributes
-        </div>
-      </div>
+    <section class="attribute-shell attribute-shell--assign">
+      <header class="attribute-shell__header">
+        <h2 class="attribute-shell__title">Assign Attributes to Category</h2>
+        <p class="attribute-shell__subtitle">Select category and assign attributes</p>
+      </header>
 
       <form
-        class="space-y-5 p-6"
+        class="attribute-shell__body attribute-assignment"
         [formGroup]="assignForm"
         (ngSubmit)="saveAssignment()"
       >
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div class="relative">
-            <label class="text-sm font-medium text-gray-700">Category</label>
-            <div class="relative mt-1">
-              <input
-                [ngModel]="categoryDisplayValue"
-                [ngModelOptions]="{ standalone: true }"
-                (ngModelChange)="updateDropdownSearch('category', $event)"
-                (focus)="activateDropdown('category')"
-                class="w-full rounded-2xl border px-4 py-3 pr-11"
-                placeholder="Search category"
-              />
-              <button
-                type="button"
-                (click)="
-                  activeDropdown === 'category'
-                    ? closeDropdown()
-                    : activateDropdown('category')
-                "
-                class="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-gray-500"
-              >
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 9l6 6 6-6"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </button>
-              <div
-                *ngIf="activeDropdown === 'category'"
-                class="absolute z-20 mt-2 max-h-56 w-full overflow-auto rounded-2xl border bg-white p-2 shadow-xl"
-              >
-                <button
-                  type="button"
-                  *ngFor="let category of filteredCategories"
-                  (mousedown)="selectCategory(category)"
-                  class="block w-full rounded-xl px-3 py-2 text-left text-sm hover:bg-gray-100"
-                >
-                  {{ category.category_name }}
-                </button>
-                <div
-                  *ngIf="filteredCategories.length === 0"
-                  class="px-3 py-2 text-sm text-gray-500"
-                >
-                  No categories found.
-                </div>
-              </div>
-            </div>
-            <p
-              *ngIf="invalidAssign('categoryId')"
-              class="mt-1 text-xs text-red-600"
-            >
-              Category required.
-            </p>
-          </div>
-
-          <div class="relative">
-            <label class="text-sm font-medium text-gray-700">Brand</label>
-            <div class="relative mt-1">
-              <input
-                [ngModel]="brandDisplayValue"
-                [ngModelOptions]="{ standalone: true }"
-                (ngModelChange)="updateDropdownSearch('brand', $event)"
-                (focus)="activateDropdown('brand')"
-                class="w-full rounded-2xl border px-4 py-3 pr-11 disabled:cursor-not-allowed disabled:bg-gray-100"
-                placeholder="Search brand"
-                [disabled]="!assignForm.get('categoryId')!.value"
-              />
-              <button
-                type="button"
-                (click)="
-                  activeDropdown === 'brand'
-                    ? closeDropdown()
-                    : activateDropdown('brand')
-                "
-                class="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-gray-500 disabled:cursor-not-allowed"
-                [disabled]="!assignForm.get('categoryId')!.value"
-              >
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 9l6 6 6-6"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </button>
-              <div
-                *ngIf="activeDropdown === 'brand' && assignForm.get('categoryId')!.value"
-                class="absolute z-20 mt-2 max-h-56 w-full overflow-auto rounded-2xl border bg-white p-2 shadow-xl"
-              >
-                <div
-                  *ngIf="brandsLoading"
-                  class="px-3 py-2 text-sm text-gray-500"
-                >
-                  Loading brands...
-                </div>
-                <ng-container *ngIf="!brandsLoading">
-                  <button
-                    type="button"
-                    *ngFor="let brand of filteredBrands"
-                    (mousedown)="selectBrand(brand)"
-                    class="block w-full rounded-xl px-3 py-2 text-left text-sm hover:bg-gray-100"
-                  >
-                    {{ brand.car_brand_name }}
-                  </button>
-                </ng-container>
-                <div
-                  *ngIf="!brandsLoading && filteredBrands.length === 0"
-                  class="px-3 py-2 text-sm text-gray-500"
-                >
-                  No brands found.
-                </div>
-              </div>
-            </div>
-            <p
-              *ngIf="invalidAssign('brandId')"
-              class="mt-1 text-xs text-red-600"
-            >
-              Brand required.
-            </p>
-          </div>
-
-          <div class="relative">
-            <label class="text-sm font-medium text-gray-700">Model</label>
-            <div class="relative mt-1">
-              <input
-                [ngModel]="modelDisplayValue"
-                [ngModelOptions]="{ standalone: true }"
-                (ngModelChange)="updateDropdownSearch('model', $event)"
-                (focus)="activateDropdown('model')"
-                class="w-full rounded-2xl border px-4 py-3 pr-11 disabled:cursor-not-allowed disabled:bg-gray-100"
-                placeholder="Search model"
-                [disabled]="!assignForm.get('brandId')!.value"
-              />
-              <button
-                type="button"
-                (click)="
-                  activeDropdown === 'model'
-                    ? closeDropdown()
-                    : activateDropdown('model')
-                "
-                class="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-gray-500 disabled:cursor-not-allowed"
-                [disabled]="!assignForm.get('brandId')!.value"
-              >
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 9l6 6 6-6"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </button>
-              <div
-                *ngIf="activeDropdown === 'model' && assignForm.get('brandId')!.value"
-                class="absolute z-20 mt-2 max-h-56 w-full overflow-auto rounded-2xl border bg-white p-2 shadow-xl"
-              >
-                <div
-                  *ngIf="modelsLoading"
-                  class="px-3 py-2 text-sm text-gray-500"
-                >
-                  Loading models...
-                </div>
-                <ng-container *ngIf="!modelsLoading">
-                  <button
-                    type="button"
-                    *ngFor="let model of filteredModels"
-                    (mousedown)="selectModel(model)"
-                    class="block w-full rounded-xl px-3 py-2 text-left text-sm hover:bg-gray-100"
-                  >
-                    {{ model.model_name }}
-                  </button>
-                </ng-container>
-                <div
-                  *ngIf="!modelsLoading && filteredModels.length === 0"
-                  class="px-3 py-2 text-sm text-gray-500"
-                >
-                  No models found.
-                </div>
-              </div>
-            </div>
-            <p
-              *ngIf="invalidAssign('modelId')"
-              class="mt-1 text-xs text-red-600"
-            >
-              Model required.
-            </p>
-          </div>
-
-          <div class="relative">
-            <label class="text-sm font-medium text-gray-700">Product</label>
-            <div class="relative mt-1">
-              <input
-                [ngModel]="productDisplayValue"
-                [ngModelOptions]="{ standalone: true }"
-                (ngModelChange)="updateDropdownSearch('product', $event)"
-                (focus)="activateDropdown('product')"
-                class="w-full rounded-2xl border px-4 py-3 pr-11 disabled:cursor-not-allowed disabled:bg-gray-100"
-                placeholder="Search product"
-                [disabled]="!assignForm.get('modelId')!.value"
-              />
-              <button
-                type="button"
-                (click)="
-                  activeDropdown === 'product'
-                    ? closeDropdown()
-                    : activateDropdown('product')
-                "
-                class="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-gray-500 disabled:cursor-not-allowed"
-                [disabled]="!assignForm.get('modelId')!.value"
-              >
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 9l6 6 6-6"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </button>
-              <div
-                *ngIf="activeDropdown === 'product' && assignForm.get('modelId')!.value"
-                class="absolute z-20 mt-2 max-h-56 w-full overflow-auto rounded-2xl border bg-white p-2 shadow-xl"
-              >
-                <button
-                  type="button"
-                  *ngFor="let product of filteredProducts"
-                  (mousedown)="selectProduct(product)"
-                  class="block w-full rounded-xl px-3 py-2 text-left text-sm hover:bg-gray-100"
-                >
-                  {{ product.title || "Untitled product" }}
-                  <span *ngIf="product.sku" class="text-gray-500">
-                    ({{ product.sku }})
-                  </span>
-                </button>
-                <div
-                  *ngIf="filteredProducts.length === 0"
-                  class="px-3 py-2 text-sm text-gray-500"
-                >
-                  No products found.
-                </div>
-              </div>
-            </div>
-            <p
-              *ngIf="invalidAssign('productId')"
-              class="mt-1 text-xs text-red-600"
-            >
-              Product required.
-            </p>
-          </div>
+        <div class="attribute-field">
+          <label class="attribute-field__label" for="categoryId">Category</label>
+          <select id="categoryId" formControlName="categoryId" class="attribute-select">
+            <option value="">Select category</option>
+            <option *ngFor="let category of categories" [value]="category.category_id">
+              {{ category.category_name }}
+            </option>
+          </select>
+          <p *ngIf="invalidAssign('categoryId')" class="attribute-error">
+            Category required.
+          </p>
         </div>
 
-        <div
-          class="rounded-3xl border bg-gradient-to-br from-gray-50 to-white p-5"
-        >
-          <div class="flex items-start justify-between gap-4">
+        <section class="attribute-picker">
+          <div class="attribute-picker__header">
             <div>
-              <div class="font-semibold text-gray-900">Select Attributes</div>
-              <div class="text-sm text-gray-500">
-                Choose one or more attributes for the current product selection
-              </div>
+              <h3 class="attribute-picker__title">Select Attributes</h3>
+              <p class="attribute-picker__subtitle">
+                Assign attributes to selected category
+              </p>
             </div>
-            <div class="text-xs text-gray-600">
-              Selected:
-              <span class="font-semibold text-gray-900">{{
-                selectedAttributeIds.length
-              }}</span>
-            </div>
+            <div class="attribute-picker__count">Selected: {{ selectedAttributeCount }}</div>
           </div>
 
-          <div *ngIf="assignmentLoading" class="mt-4 text-sm text-gray-500">
+          <div *ngIf="assignmentLoading" class="attribute-empty attribute-empty--compact">
             Loading saved assignment...
           </div>
 
-          <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div class="attribute-picker__grid">
             <button
               type="button"
               *ngFor="let attribute of attributes"
               (click)="toggleAttr(attribute.attribute_id)"
-              class="rounded-3xl border p-4 text-left transition"
-              [ngClass]="{
-                'bg-black text-white': isSelectedAttr(attribute.attribute_id),
-                'hover:bg-gray-50': !isSelectedAttr(attribute.attribute_id),
-              }"
+              class="picker-card"
+              [class.picker-card--selected]="isSelectedAttr(attribute.attribute_id)"
             >
-              <div class="flex items-center justify-between gap-3">
-                <div class="font-semibold truncate">
-                  {{ attribute.attribute_name }}
-                </div>
-                <span
-                  class="rounded-full px-2 py-0.5 text-xs"
-                  [ngClass]="{
-                    'bg-white/10': isSelectedAttr(attribute.attribute_id),
-                    'bg-gray-100 text-gray-700': !isSelectedAttr(
-                      attribute.attribute_id
-                    ),
-                  }"
-                >
-                  {{ attribute.is_active ? "Active" : "Inactive" }}
+              <div class="picker-card__head">
+                <span class="picker-card__title">{{ attribute.attribute_name }}</span>
+                <span class="picker-card__badge">
+                  {{ getAttributeValueCount(attribute.attribute_id) }} values
                 </span>
               </div>
-              <div
-                class="mt-2 text-xs"
-                [ngClass]="{
-                  'text-white/80': isSelectedAttr(attribute.attribute_id),
-                  'text-gray-500': !isSelectedAttr(attribute.attribute_id),
-                }"
-              >
-                Created by {{ attribute.created_by || "admin" }}
+              <div class="picker-card__text">
+                {{ getAttributeValuePreview(attribute.attribute_id) }}
+              </div>
+              <div class="picker-card__footer">
+                <button
+                  type="button"
+                  class="picker-card__values-button"
+                  (click)="$event.stopPropagation(); openAttributeValues(attribute)"
+                >
+                  Values
+                </button>
               </div>
             </button>
           </div>
+        </section>
 
-          <div
-            class="mt-4 flex flex-wrap gap-2"
-            *ngIf="selectedAttributeNames.length > 0"
-          >
-            <span
-              *ngFor="let name of selectedAttributeNames"
-              class="rounded-full border bg-white px-3 py-1 text-xs"
-            >
-              {{ name }}
-            </span>
-          </div>
-        </div>
-
-        <div class="flex justify-end">
+        <div class="attribute-submit">
           <button
             type="submit"
             [disabled]="savingAssignment"
-            class="rounded-2xl bg-black px-5 py-3 text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+            class="attribute-submit__button"
           >
             {{ savingAssignment ? "Saving..." : "Save Assignment" }}
           </button>
         </div>
       </form>
-    </div>
+    </section>
   </div>
 
   <div *ngIf="attrModalOpen" class="fixed inset-0 z-50">
@@ -627,6 +255,161 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="valuesModalOpen" class="fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/50" (click)="closeValuesModal()"></div>
+
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="values-modal">
+        <div class="values-modal__header">
+          <div>
+            <div class="values-modal__title">
+              Values for {{ selectedValueAttribute?.attribute_name || "Attribute" }}
+            </div>
+            <div class="values-modal__subtitle">
+              Selected values appear first. Add, edit, delete, and select values
+              for this attribute.
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="values-modal__close"
+            (click)="closeValuesModal()"
+          >
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M6 6l12 12M18 6L6 18"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div class="values-modal__body">
+          <div class="values-modal__toolbar">
+            <input
+              [(ngModel)]="valueSearch"
+              [ngModelOptions]="{ standalone: true }"
+              class="values-search"
+              placeholder="Search values..."
+            />
+
+            <div class="values-counter">Selected: {{ selectedValueCount }}</div>
+          </div>
+
+          <div class="values-add">
+            <input
+              [(ngModel)]="newValueLabel"
+              [ngModelOptions]="{ standalone: true }"
+              class="values-add__input"
+              placeholder="Add value to attribute"
+              (keyup.enter)="addDummyValue()"
+            />
+            <button
+              type="button"
+              class="values-add__button"
+              (click)="addDummyValue()"
+            >
+              Add Value
+            </button>
+          </div>
+
+          <div class="values-list">
+            <div *ngIf="visibleAttributeValues.length === 0" class="attribute-empty attribute-empty--compact">
+              No values found.
+            </div>
+
+            <div
+              *ngFor="let value of visibleAttributeValues"
+              class="value-row"
+              [class.value-row--selected]="value.selected"
+            >
+              <label class="value-row__main">
+                <input
+                  type="checkbox"
+                  class="value-row__checkbox"
+                  [checked]="value.selected"
+                  (change)="toggleDummyValue(value.id)"
+                />
+
+                <div class="value-row__content">
+                  <ng-container *ngIf="editingValueId !== value.id; else editValueTemplate">
+                    <div class="value-row__label">{{ value.label }}</div>
+                    <div class="value-row__status">
+                      {{ value.selected ? "Selected for attribute" : "Available value" }}
+                    </div>
+                  </ng-container>
+                  <ng-template #editValueTemplate>
+                    <input
+                      [(ngModel)]="editingValueLabel"
+                      [ngModelOptions]="{ standalone: true }"
+                      class="value-row__edit-input"
+                      (keyup.enter)="saveEditedValue(value.id)"
+                    />
+                  </ng-template>
+                </div>
+              </label>
+
+              <div class="value-row__actions">
+                <ng-container *ngIf="editingValueId !== value.id; else editActionsTemplate">
+                  <button
+                    type="button"
+                    class="value-row__button"
+                    (click)="startEditingValue(value)"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    class="value-row__button value-row__button--danger"
+                    (click)="deleteDummyValue(value.id)"
+                  >
+                    Delete
+                  </button>
+                </ng-container>
+                <ng-template #editActionsTemplate>
+                  <button
+                    type="button"
+                    class="value-row__button"
+                    (click)="saveEditedValue(value.id)"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    class="value-row__button"
+                    (click)="cancelEditingValue()"
+                  >
+                    Cancel
+                  </button>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+
+          <div class="values-modal__footer">
+            <button
+              type="button"
+              class="values-footer__button"
+              (click)="closeValuesModal()"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="values-footer__button values-footer__button--dark"
+              (click)="saveValueSelections()"
+            >
+              Save
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
