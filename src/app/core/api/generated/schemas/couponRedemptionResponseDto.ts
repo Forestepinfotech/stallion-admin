@@ -10,6 +10,6 @@ export interface CouponRedemptionResponseDto {
   user_id: number;
   order_id: number;
   is_deleted: boolean;
-  created_by: string;
+  created_by?: number;
   red_id: number;
 }

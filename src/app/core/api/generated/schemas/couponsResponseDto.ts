@@ -16,6 +16,6 @@ export interface CouponsResponseDto {
   expire_at?: string;
   is_valid: boolean;
   is_deleted: boolean;
-  created_by: string;
+  created_by?: number;
   coupon_id: number;
 }

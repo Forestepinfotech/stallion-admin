@@ -12,6 +12,6 @@ export interface ProductFitmentResponseDto {
   yearto: string;
   is_active: boolean;
   is_deleted: boolean;
-  created_by: string;
+  created_by?: number;
   fitment_id: number;
 }

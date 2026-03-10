@@ -19,7 +19,9 @@ import { Observable } from "rxjs";
 import type {
   CreateProductCategoryAttributeDto,
   PaginatedProductCategoryAttributeResponseDto,
+  ProductCategoryAttributeControllerWorkspaceParams,
   ProductCategoryAttributeResponseDto,
+  SaveProductCategoryAttributeAssignmentDto,
   UpdateProductCategoryAttributeDto,
 } from "../schemas";
 
@@ -44,6 +46,46 @@ interface HttpClientOptions {
   readonly integrity?: string;
   readonly referrerPolicy?: ReferrerPolicy;
   readonly transferCache?: { includeHeaders?: string[] } | boolean;
+}
+
+function filterParams(
+  params: Record<string, unknown>,
+  requiredNullableKeys: Set<string> = new Set(),
+): Record<
+  string,
+  string | number | boolean | Array<string | number | boolean>
+> {
+  const filteredParams: Record<
+    string,
+    string | number | boolean | null | Array<string | number | boolean>
+  > = {};
+  for (const [key, value] of Object.entries(params)) {
+    if (Array.isArray(value)) {
+      const filtered = value.filter(
+        (item) =>
+          item != null &&
+          (typeof item === "string" ||
+            typeof item === "number" ||
+            typeof item === "boolean"),
+      ) as Array<string | number | boolean>;
+      if (filtered.length) {
+        filteredParams[key] = filtered;
+      }
+    } else if (value === null && requiredNullableKeys.has(key)) {
+      filteredParams[key] = value;
+    } else if (
+      value != null &&
+      (typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean")
+    ) {
+      filteredParams[key] = value as string | number | boolean;
+    }
+  }
+  return filteredParams as Record<
+    string,
+    string | number | boolean | Array<string | number | boolean>
+  >;
 }
 
 @Injectable({ providedIn: "root" })
@@ -135,6 +177,96 @@ export class ProductCategoryAttributeService {
     return this.http.post<TData>(
       `/product-category-attribute`,
       createProductCategoryAttributeDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
+  productCategoryAttributeControllerWorkspace<TData = void>(
+    params?: ProductCategoryAttributeControllerWorkspaceParams,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  productCategoryAttributeControllerWorkspace<TData = void>(
+    params?: ProductCategoryAttributeControllerWorkspaceParams,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  productCategoryAttributeControllerWorkspace<TData = void>(
+    params?: ProductCategoryAttributeControllerWorkspaceParams,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  productCategoryAttributeControllerWorkspace<TData = void>(
+    params?: ProductCategoryAttributeControllerWorkspaceParams,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/product-category-attribute/workspace`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+        params: filteredParams,
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/product-category-attribute/workspace`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+        params: filteredParams,
+      });
+    }
+
+    return this.http.get<TData>(`/product-category-attribute/workspace`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+      params: filteredParams,
+    });
+  }
+  productCategoryAttributeControllerSaveAssignment<TData = void>(
+    saveProductCategoryAttributeAssignmentDto: SaveProductCategoryAttributeAssignmentDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  productCategoryAttributeControllerSaveAssignment<TData = void>(
+    saveProductCategoryAttributeAssignmentDto: SaveProductCategoryAttributeAssignmentDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  productCategoryAttributeControllerSaveAssignment<TData = void>(
+    saveProductCategoryAttributeAssignmentDto: SaveProductCategoryAttributeAssignmentDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  productCategoryAttributeControllerSaveAssignment<TData = void>(
+    saveProductCategoryAttributeAssignmentDto: SaveProductCategoryAttributeAssignmentDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.post<TData>(
+        `/product-category-attribute/workspace/assignment`,
+        saveProductCategoryAttributeAssignmentDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.post<TData>(
+        `/product-category-attribute/workspace/assignment`,
+        saveProductCategoryAttributeAssignmentDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.post<TData>(
+      `/product-category-attribute/workspace/assignment`,
+      saveProductCategoryAttributeAssignmentDto,
       {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "body",

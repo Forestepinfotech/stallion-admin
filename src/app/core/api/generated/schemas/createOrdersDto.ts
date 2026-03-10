@@ -16,7 +16,7 @@ export interface CreateOrdersDto {
   is_paid: boolean;
   is_active: boolean;
   is_deleted: boolean;
-  created_by: string;
+  created_by?: number;
   address_id: number;
   discount: number;
   order_note: string;

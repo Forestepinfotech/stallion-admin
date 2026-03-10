@@ -25,8 +25,8 @@ export interface UsersResponseDto {
   failed_login_attempts: string;
   locked_until: string;
   last_login_at?: string;
-  created_by: string;
-  updated_by?: string;
+  created_by?: number;
+  updated_by?: number;
   user_id: number;
   /** @nullable */
   usertypename?: UsersResponseDtoUsertypename;

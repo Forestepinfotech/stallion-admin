@@ -13,6 +13,10 @@ export type CarBrandModelControllerListParams = {
    * Search by model name, engine, or brand name
    */
   search?: string;
+  /**
+   * Alias for search
+   */
+  q?: string;
   car_brand_id?: number;
   is_active?: boolean;
   dateFrom?: string;

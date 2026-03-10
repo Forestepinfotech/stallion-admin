@@ -19,8 +19,8 @@ export interface UpdateUsersDto {
   failed_login_attempts?: string;
   locked_until?: string;
   last_login_at?: string;
-  created_by?: string;
-  updated_by?: string;
+  created_by?: number;
+  updated_by?: number;
   line1?: string;
   /** @nullable */
   line2?: string | null;

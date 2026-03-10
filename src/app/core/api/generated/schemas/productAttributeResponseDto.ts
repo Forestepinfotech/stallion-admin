@@ -4,11 +4,14 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
+import type { ProductAttributeResponseDtoCreatedByProfile } from "./productAttributeResponseDtoCreatedByProfile";
 
 export interface ProductAttributeResponseDto {
   attribute_name: string;
   is_active: boolean;
   is_deleted: boolean;
-  created_by: string;
+  created_by?: number;
   attribute_id: number;
+  /** @nullable */
+  created_by_profile?: ProductAttributeResponseDtoCreatedByProfile;
 }

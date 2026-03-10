@@ -192,7 +192,6 @@ export class AdminUserComponent implements OnInit {
       is_deleted: false,
       failed_login_attempts: '0',
       locked_until: '',
-      updated_by: 'admin',
     } satisfies Partial<CreateUsersDto & UpdateUsersDto>;
 
     this.savingUser = true;
@@ -201,7 +200,6 @@ export class AdminUserComponent implements OnInit {
       this.editMode === 'create'
         ? this.usersApi.usersControllerCreate({
             ...(payloadCommon as Partial<CreateUsersDto> & { name?: string }),
-            created_by: 'admin',
             // optional fields managed by backend defaults
           } as CreateUsersDto)
         : this.usersApi.usersControllerUpdate(
@@ -524,7 +522,6 @@ export class AdminUserComponent implements OnInit {
       postalcode: formValue.postalCode.trim() || undefined,
       province: formValue.province.trim() || undefined,
       country: formValue.country.trim() || undefined,
-      updated_by: 'admin',
     });
   }
 

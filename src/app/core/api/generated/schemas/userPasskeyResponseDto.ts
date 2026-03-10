@@ -11,6 +11,6 @@ export interface UserPasskeyResponseDto {
   expire_at?: string;
   is_active: boolean;
   is_deleted: boolean;
-  created_by: string;
+  created_by?: number;
   passkey_id: number;
 }
