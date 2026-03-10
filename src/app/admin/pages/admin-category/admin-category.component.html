@@ -1,181 +1,508 @@
 <div class="space-y-6">
-  <!-- Header -->
-  <div class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+  <div
+    class="rounded-3xl bg-gradient-to-br from-black via-gray-900 to-gray-800 p-6 text-white shadow-2xl"
+  >
+    <div
+      class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+    >
       <div>
-        <h1 class="text-2xl md:text-3xl font-semibold">Categories</h1>
-        <p class="text-sm text-white/70 mt-1">Manage category list with image</p>
+        <h1 class="text-2xl font-semibold md:text-3xl">Categories</h1>
+        <p class="mt-1 text-sm text-white/70">
+          Manage product categories, images, and category availability.
+        </p>
       </div>
 
       <button
         type="button"
         (click)="openCreateCategory()"
-        class="rounded-2xl bg-white text-black font-medium px-4 py-3 hover:bg-gray-100 transition"
+        class="rounded-2xl bg-white px-4 py-3 font-medium text-black transition hover:bg-gray-100"
       >
         + Create Category
       </button>
     </div>
-  </div>
 
-  <!-- Simple List -->
-  <div class="rounded-3xl border bg-white shadow-sm overflow-hidden">
-    <div class="px-6 py-5 border-b">
-      <div class="text-lg font-semibold text-gray-900">Category List</div>
-      <div class="text-sm text-gray-500">Simple CRUD list</div>
+    <div class="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-5">
+      <div class="lg:col-span-3">
+        <div class="relative">
+          <input
+            [(ngModel)]="query"
+            (keyup.enter)="applyFilters()"
+            placeholder="Search by category name..."
+            class="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 pl-11 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
+          />
+          <svg
+            class="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/70"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M21 21l-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <div>
+        <select
+          [(ngModel)]="statusFilter"
+          class="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+        >
+          <option
+            *ngFor="let option of statusOptions"
+            class="text-black"
+            [value]="option"
+          >
+            {{ option }}
+          </option>
+        </select>
+      </div>
+
+      <div class="flex gap-3">
+        <button
+          type="button"
+          (click)="resetFilters()"
+          class="flex-1 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
+        >
+          Reset
+        </button>
+        <button
+          type="button"
+          (click)="applyFilters()"
+          class="flex-1 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-gray-100"
+        >
+          Filter
+        </button>
+      </div>
     </div>
 
-    <div class="p-5 space-y-4">
-      <div
-        *ngFor="let category of categories"
-        class="rounded-3xl border p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-      >
-        <div class="flex items-center gap-4 min-w-0">
-          <div class="h-16 w-16 rounded-2xl overflow-hidden border bg-gray-100 shrink-0">
-            <img
-              *ngIf="category.image; else noImage"
-              [src]="category.image"
-              [alt]="category.name"
-              class="w-full h-full object-cover"
-            />
-            <ng-template #noImage>
-              <div class="w-full h-full flex items-center justify-center text-xs text-gray-400">
-                No Image
-              </div>
-            </ng-template>
-          </div>
+    <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div class="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
+        <div class="text-xs text-white/70">Loaded</div>
+        <div class="text-xl font-semibold">{{ totalCount }}</div>
+      </div>
+      <div class="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
+        <div class="text-xs text-white/70">Active</div>
+        <div class="text-xl font-semibold">{{ activeCount }}</div>
+      </div>
+      <div class="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
+        <div class="text-xs text-white/70">Inactive</div>
+        <div class="text-xl font-semibold">{{ inactiveCount }}</div>
+      </div>
+    </div>
+  </div>
 
-          <div class="min-w-0">
-            <div class="font-semibold text-gray-900 text-lg truncate">{{ category.name }}</div>
-            <div class="text-sm text-gray-500 truncate">
-              {{ category.imageName || 'No image uploaded' }}
+  <div class="overflow-hidden rounded-3xl border bg-white shadow-sm">
+    <div class="flex items-center justify-between border-b px-6 py-5">
+      <div>
+        <div class="text-lg font-semibold text-gray-900">Category List</div>
+        <div class="text-sm text-gray-500">
+          Create, edit, delete, and filter categories
+        </div>
+      </div>
+      <div class="text-sm text-gray-600">
+        <span *ngIf="loading">Loading...</span>
+        <span *ngIf="!loading">
+          Showing
+          <span class="font-semibold text-gray-900">{{
+            paginatedCategories.length
+          }}</span>
+          of
+          <span class="font-semibold text-gray-900">{{
+            filteredCategories.length
+          }}</span>
+          categories
+        </span>
+      </div>
+    </div>
+
+    <div class="hidden md:block">
+      <table class="w-full">
+        <thead
+          class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+        >
+          <tr>
+            <th class="px-6 py-3">Category</th>
+            <th class="px-6 py-3">Status</th>
+            <th class="px-6 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y">
+          <tr
+            *ngFor="
+              let category of paginatedCategories;
+              trackBy: trackByCategoryId
+            "
+            class="transition hover:bg-gray-50"
+          >
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-4">
+                <div
+                  class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-gray-100"
+                >
+                  <ng-container *ngIf="category.category_image; else noImage">
+                    <img
+                      [src]="category.category_image"
+                      [alt]="category.category_name"
+                      class="h-full w-full object-cover"
+                    />
+                  </ng-container>
+                  <ng-template #noImage>
+                    <span class="text-xs text-gray-400">No Image</span>
+                  </ng-template>
+                </div>
+
+                <div class="min-w-0">
+                  <div class="truncate font-semibold text-gray-900">
+                    {{ category.category_name }}
+                  </div>
+                  <div class="text-xs text-gray-500">
+                    ID: {{ category.category_id }}
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <td class="px-6 py-4">
+              <span
+                class="rounded-full px-3 py-1 text-xs font-medium"
+                [class.bg-green-100]="category.is_active"
+                [class.text-green-700]="category.is_active"
+                [class.bg-gray-100]="!category.is_active"
+                [class.text-gray-700]="!category.is_active"
+              >
+                {{ category.is_active ? "Active" : "Inactive" }}
+              </span>
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="flex justify-end gap-2">
+                <button
+                  type="button"
+                  (click)="openEditCategory(category)"
+                  class="rounded-xl border px-3 py-2 text-sm transition hover:bg-gray-50"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  (click)="openDeleteCategory(category)"
+                  class="rounded-xl bg-black px-3 py-2 text-sm text-white transition hover:bg-gray-900"
+                >
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="!loading && paginatedCategories.length === 0">
+            <td
+              colspan="3"
+              class="px-6 py-10 text-center text-sm text-gray-500"
+            >
+              No categories found.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="space-y-3 p-4 md:hidden">
+      <div *ngIf="loading" class="py-10 text-center text-sm text-gray-500">
+        Loading categories...
+      </div>
+
+      <div
+        *ngFor="let category of paginatedCategories; trackBy: trackByCategoryId"
+        class="rounded-3xl border p-4 shadow-sm"
+      >
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex min-w-0 items-center gap-3">
+            <div
+              class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-gray-100"
+            >
+              <ng-container *ngIf="category.category_image; else noImageMobile">
+                <img
+                  [src]="category.category_image"
+                  [alt]="category.category_name"
+                  class="h-full w-full object-cover"
+                />
+              </ng-container>
+              <ng-template #noImageMobile>
+                <span class="text-xs text-gray-400">No Image</span>
+              </ng-template>
+            </div>
+
+            <div class="min-w-0">
+              <div class="truncate font-semibold text-gray-900">
+                {{ category.category_name }}
+              </div>
+              <div class="text-xs text-gray-500">
+                ID: {{ category.category_id }}
+              </div>
             </div>
           </div>
+
+          <span
+            class="shrink-0 rounded-full px-3 py-1 text-xs font-medium"
+            [class.bg-green-100]="category.is_active"
+            [class.text-green-700]="category.is_active"
+            [class.bg-gray-100]="!category.is_active"
+            [class.text-gray-700]="!category.is_active"
+          >
+            {{ category.is_active ? "Active" : "Inactive" }}
+          </span>
         </div>
 
-        <div class="flex gap-2">
+        <div class="mt-4 flex justify-end gap-2">
           <button
             type="button"
             (click)="openEditCategory(category)"
-            class="px-4 py-2 rounded-xl border text-sm hover:bg-gray-50"
+            class="rounded-xl border px-3 py-2 text-sm"
           >
             Edit
           </button>
-
           <button
             type="button"
-            (click)="deleteCategory(category)"
-            class="px-4 py-2 rounded-xl bg-black text-white text-sm hover:bg-gray-900"
+            (click)="openDeleteCategory(category)"
+            class="rounded-xl bg-black px-3 py-2 text-sm text-white"
           >
             Delete
           </button>
         </div>
       </div>
 
-      <div *ngIf="categories.length === 0" class="text-sm text-gray-500 text-center py-6">
+      <div
+        *ngIf="!loading && paginatedCategories.length === 0"
+        class="py-10 text-center text-sm text-gray-500"
+      >
         No categories found.
+      </div>
+    </div>
+
+    <div
+      *ngIf="!loading && filteredCategories.length > 0"
+      class="flex items-center justify-between border-t px-6 py-4"
+    >
+      <div class="flex items-center gap-2 text-sm text-gray-600">
+        <span>Rows</span>
+        <select
+          class="min-w-20 rounded-xl border px-2 py-1 text-gray-800"
+          [ngModel]="pageSize"
+          (ngModelChange)="changePageSize($event)"
+        >
+          <option *ngFor="let size of pageSizeOptions" [value]="size">
+            {{ size }}
+          </option>
+        </select>
+      </div>
+
+      <div class="text-sm text-gray-600">
+        Page {{ page }} of {{ totalPages }}
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="rounded-xl border px-3 py-2 text-sm disabled:opacity-50"
+          (click)="prevPage()"
+          [disabled]="page === 1"
+        >
+          Prev
+        </button>
+        <button
+          type="button"
+          class="rounded-xl border px-3 py-2 text-sm disabled:opacity-50"
+          (click)="nextPage()"
+          [disabled]="page >= totalPages"
+        >
+          Next
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Modal -->
   <div *ngIf="categoryModalOpen" class="fixed inset-0 z-50">
-    <div class="absolute inset-0 bg-black/50" (click)="closeCategoryModal()"></div>
+    <div
+      class="absolute inset-0 bg-black/50"
+      (click)="closeCategoryModal()"
+    ></div>
 
     <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="w-full max-w-xl rounded-3xl bg-white shadow-2xl overflow-hidden">
-        <div class="px-6 py-5 border-b flex items-center justify-between">
+      <div
+        class="w-full max-w-xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+      >
+        <div class="flex items-center justify-between border-b px-6 py-5">
           <div>
             <div class="text-lg font-semibold text-gray-900">
-              {{ categoryMode === 'create' ? 'Create Category' : 'Edit Category' }}
+              {{
+                categoryMode === "create" ? "Create Category" : "Edit Category"
+              }}
             </div>
-            <div class="text-sm text-gray-500">Add category name and image</div>
+            <div class="text-sm text-gray-500">
+              Update category name, image, and status
+            </div>
           </div>
 
           <button
             type="button"
-            class="p-2 rounded-xl hover:bg-gray-100"
+            class="rounded-xl p-2 hover:bg-gray-100"
             (click)="closeCategoryModal()"
           >
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M6 6l12 12M18 6L6 18"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
             </svg>
           </button>
         </div>
 
-        <form class="p-6 space-y-4" [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
+        <form
+          class="space-y-4 p-6"
+          [formGroup]="categoryForm"
+          (ngSubmit)="saveCategory()"
+        >
           <div>
-            <label class="text-sm font-medium text-gray-700">Category Name</label>
+            <label class="text-sm font-medium text-gray-700"
+              >Category Name</label
+            >
             <input
-              formControlName="name"
+              formControlName="category_name"
               class="mt-1 w-full rounded-2xl border px-4 py-3"
               placeholder="e.g. Tires"
             />
-            <p *ngIf="invalid(categoryForm,'name')" class="text-xs text-red-600 mt-1">
-              Required.
+            <p
+              *ngIf="invalid('category_name')"
+              class="mt-1 text-xs text-red-600"
+            >
+              Category name is required.
             </p>
           </div>
 
           <div>
-            <label class="text-sm font-medium text-gray-700">Category Image</label>
+            <label class="text-sm font-medium text-gray-700">Status</label>
+            <select
+              formControlName="is_active"
+              class="mt-1 w-full rounded-2xl border px-4 py-3"
+            >
+              <option [ngValue]="true">Active</option>
+              <option [ngValue]="false">Inactive</option>
+            </select>
+          </div>
 
-            <div class="mt-2 flex items-center gap-4 flex-wrap">
-              <label
-                for="categoryImage"
-                class="inline-flex cursor-pointer items-center rounded-2xl bg-black px-4 py-3 text-white hover:bg-gray-900 transition"
+          <div>
+            <label class="text-sm font-medium text-gray-700"
+              >Category Image</label
+            >
+            <input
+              type="file"
+              accept="image/*"
+              class="mt-2 w-full rounded-2xl border px-4 py-2.5"
+              (change)="onCategoryImageSelected($event)"
+            />
+            <p class="mt-1 text-xs text-gray-500">
+              Max 2MB. Stored as base64 for the API payload.
+            </p>
+          </div>
+
+          <div
+            class="flex items-center gap-4 rounded-2xl border bg-gray-50 p-4"
+          >
+            <div
+              class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border bg-white"
+            >
+              <ng-container
+                *ngIf="categoryForm.value.category_image; else previewEmpty"
               >
-                Upload Image
-              </label>
-
-              <input
-                id="categoryImage"
-                type="file"
-                accept="image/*"
-                class="hidden"
-                (change)="onCategoryImageSelected($event)"
-              />
-
-              <span class="text-sm text-gray-500">
-                {{ selectedCategoryImageName || 'No file selected' }}
-              </span>
+                <img
+                  [src]="categoryForm.value.category_image!"
+                  alt="Category Preview"
+                  class="h-full w-full object-cover"
+                />
+              </ng-container>
+              <ng-template #previewEmpty>
+                <span class="text-xs text-gray-400">No Image</span>
+              </ng-template>
             </div>
 
-            <div *ngIf="categoryImagePreview" class="mt-4">
-              <div class="text-sm font-medium text-gray-700 mb-2">Preview</div>
-
-              <div class="flex items-start gap-4">
-                <img
-                  [src]="categoryImagePreview"
-                  alt="Category Preview"
-                  class="h-28 w-28 rounded-2xl object-cover border"
-                />
-
-                <button
-                  type="button"
-                  (click)="removeCategoryImage()"
-                  class="px-4 py-2 rounded-xl border border-red-300 text-red-600 hover:bg-red-50"
-                >
-                  Remove Image
-                </button>
+            <div class="min-w-0 flex-1 text-sm text-gray-600">
+              <div class="font-semibold text-gray-900">
+                {{ categoryForm.value.category_name || "Category Preview" }}
               </div>
             </div>
+
+            <button
+              *ngIf="categoryForm.value.category_image"
+              type="button"
+              (click)="removeCategoryImage()"
+              class="rounded-xl border border-red-300 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+            >
+              Remove Image
+            </button>
           </div>
 
           <div class="flex justify-end gap-3 pt-2">
             <button
               type="button"
               (click)="closeCategoryModal()"
-              class="px-4 py-2.5 rounded-xl border hover:bg-gray-50"
+              class="rounded-xl border px-4 py-2.5 hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900"
+              [disabled]="saving"
+              class="rounded-xl bg-black px-4 py-2.5 text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Save
+              {{ saving ? "Saving..." : "Save" }}
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="confirmOpen" class="fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/50" (click)="closeConfirm()"></div>
+
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div
+        class="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl"
+      >
+        <div class="p-6">
+          <div class="text-lg font-semibold text-gray-900">
+            Delete category?
+          </div>
+          <p class="mt-1 text-sm text-gray-500">
+            This will remove
+            {{ selectedCategory?.category_name || "this category" }} from the
+            backend.
+          </p>
+
+          <div class="mt-6 flex justify-end gap-3">
+            <button
+              type="button"
+              class="rounded-xl border px-4 py-2.5 hover:bg-gray-50"
+              (click)="closeConfirm()"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="rounded-xl bg-black px-4 py-2.5 text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+              [disabled]="deleting"
+              (click)="confirmDelete()"
+            >
+              {{ deleting ? "Deleting..." : "Delete" }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
