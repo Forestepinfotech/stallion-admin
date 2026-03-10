@@ -1,23 +1,28 @@
-
 <div class="space-y-6">
-  <!-- Header / top summary -->
-  <div class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+  <div
+    class="rounded-3xl bg-gradient-to-br from-black via-gray-900 to-gray-800 p-6 text-white shadow-2xl"
+  >
+    <div
+      class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between"
+    >
       <div>
-        <h1 class="text-2xl md:text-3xl font-semibold">Car Models</h1>
-        <p class="text-sm text-white/70 mt-1">Create, edit, and manage vehicle models</p>
+        <h1 class="text-2xl font-semibold md:text-3xl">Car Models</h1>
+        <p class="mt-1 text-sm text-white/70">
+          Add, edit, delete, and filter vehicle models with server-backed
+          search.
+        </p>
       </div>
 
-      <div class="flex gap-3">
-        <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
-          <div class="text-xs text-white/70">Total</div>
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div class="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
+          <div class="text-xs text-white/70">Loaded</div>
           <div class="text-xl font-semibold">{{ totalCount }}</div>
         </div>
-        <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+        <div class="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
           <div class="text-xs text-white/70">Active</div>
           <div class="text-xl font-semibold">{{ activeCount }}</div>
         </div>
-        <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+        <div class="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
           <div class="text-xs text-white/70">Inactive</div>
           <div class="text-xl font-semibold">{{ inactiveCount }}</div>
         </div>
@@ -25,122 +30,255 @@
         <button
           type="button"
           (click)="openCreate()"
-          class="rounded-2xl bg-white text-black font-medium px-4 py-3 hover:bg-gray-100 transition"
+          class="min-h-16 rounded-2xl bg-white px-4 py-3 font-medium text-black transition hover:bg-gray-100"
         >
           + Add Model
         </button>
       </div>
     </div>
 
-    <!-- Search / sort -->
-    <div class="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3">
-      <div class="md:col-span-2">
-        <div class="relative">
-          <input
-            [(ngModel)]="query"
-            (ngModelChange)="query = $event"
-            placeholder="Search by name, brand, year..."
-            class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 pl-11 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
-          />
-          <svg class="w-5 h-5 text-white/70 absolute left-4 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none">
-            <path d="M21 21l-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+    <div class="mt-6 rounded-3xl border border-white/10 bg-white/5 p-4 sm:p-5">
+      <div class="grid grid-cols-1 gap-3 xl:grid-cols-12">
+        <div class="xl:col-span-5">
+          <div class="relative">
+            <input
+              [(ngModel)]="query"
+              (keyup.enter)="applyFilters()"
+              placeholder="Search by model, engine, or brand..."
+              class="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 pl-11 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
+            />
+            <svg
+              class="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/70"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <path
+                d="M21 21l-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </div>
         </div>
-        <p class="text-xs text-white/60 mt-2">Tip: Upload an image (max 2MB) for each model.</p>
+
+        <div class="xl:col-span-3">
+          <select
+            [(ngModel)]="filterBrandId"
+            class="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+          >
+            <option class="text-black" value="">All Brands</option>
+            <option
+              *ngFor="let brand of brands"
+              class="text-black"
+              [value]="brand.car_brand_id"
+            >
+              {{ brand.car_brand_name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="xl:col-span-2">
+          <select
+            [(ngModel)]="filterStatus"
+            class="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+          >
+            <option
+              *ngFor="let option of statusOptions"
+              class="text-black"
+              [value]="option"
+            >
+              {{ option }}
+            </option>
+          </select>
+        </div>
+
+        <div class="xl:col-span-2">
+          <select
+            [(ngModel)]="sortBy"
+            class="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+          >
+            <option class="text-black" value="newest">Newest</option>
+            <option class="text-black" value="oldest">Oldest</option>
+            <option class="text-black" value="name">Name</option>
+          </select>
+        </div>
       </div>
 
-      <div>
-        <select
-          [(ngModel)]="sortBy"
-          class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-        >
-          <option class="text-black" value="newest">Sort: Newest</option>
-          <option class="text-black" value="name">Sort: Name</option>
-          <option class="text-black" value="year">Sort: Year</option>
-        </select>
+      <div
+        class="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-end"
+      >
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label
+              class="mb-2 block text-xs font-medium uppercase tracking-[0.2em] text-white/60"
+            >
+              From Date
+            </label>
+            <input
+              type="date"
+              [(ngModel)]="dateFrom"
+              class="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-white/30"
+            />
+          </div>
+
+          <div>
+            <label
+              class="mb-2 block text-xs font-medium uppercase tracking-[0.2em] text-white/60"
+            >
+              To Date
+            </label>
+            <input
+              type="date"
+              [(ngModel)]="dateTo"
+              class="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-white/30"
+            />
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
+          <button
+            type="button"
+            (click)="resetFilters()"
+            class="rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/10"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            (click)="applyFilters()"
+            class="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-gray-100"
+          >
+            Apply Filters
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- CONTENT -->
-  <div class="rounded-3xl border-gray-300 bg-white shadow-sm overflow-hidden">
-    <div class="px-6 py-5 border-b flex items-center justify-between">
+  <div class="overflow-hidden rounded-3xl bg-white shadow-sm">
+    <div class="flex items-center justify-between border-b px-6 py-5">
       <div>
-        <div class="text-lg font-semibold text-gray-900">Inventory</div>
-        <div class="text-sm text-gray-500">Manage your vehicle catalog</div>
+        <div class="text-lg font-semibold text-gray-900">Model Inventory</div>
+        <div class="text-sm text-gray-500">
+          Server results for the current filters
+        </div>
       </div>
       <div class="text-sm text-gray-600">
-        Showing <span class="font-semibold text-gray-900">{{ filtered.length }}</span> items
+        <span *ngIf="loading">Loading...</span>
+        <span *ngIf="!loading">
+          Showing
+          <span class="font-semibold text-gray-900">{{ items.length }}</span>
+          items
+        </span>
       </div>
     </div>
 
-    <!-- Desktop table -->
     <div class="hidden md:block">
       <table class="w-full">
-        <thead class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <thead
+          class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+        >
           <tr>
             <th class="px-6 py-3">Model</th>
             <th class="px-6 py-3">Brand</th>
-            <th class="px-6 py-3">Year</th>
-            <th class="px-6 py-3">Price</th>
+            <th class="px-6 py-3">Engine</th>
             <th class="px-6 py-3">Status</th>
+            <th class="px-6 py-3">Updated</th>
             <th class="px-6 py-3 text-right">Actions</th>
           </tr>
         </thead>
 
         <tbody class="divide-y">
-          <tr *ngFor="let item of filtered" class="hover:bg-gray-50 transition">
+          <tr
+            *ngFor="let item of items; trackBy: trackByModelId"
+            class="transition hover:bg-gray-50"
+          >
             <td class="px-6 py-4">
               <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-2xl bg-gray-100 overflow-hidden flex items-center justify-center">
-                  <ng-container *ngIf="item.imageUrl; else noImg">
-                    <img [src]="item.imageUrl" alt="car" class="w-full h-full object-cover" />
+                <div
+                  class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-gray-100"
+                >
+                  <ng-container *ngIf="item.model_image; else noImg">
+                    <img
+                      [src]="item.model_image"
+                      alt="car model"
+                      class="h-full w-full object-cover"
+                    />
                   </ng-container>
                   <ng-template #noImg>
-                    <svg class="w-6 h-6 text-gray-400" viewBox="0 0 24 24" fill="none">
-                      <path d="M3 17h18v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4Z" stroke="currentColor" stroke-width="2"/>
-                      <path d="M6 17a2 2 0 1 0 4 0M14 17a2 2 0 1 0 4 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                      <path d="M7 11l1.2-3A2 2 0 0 1 10 7h4a2 2 0 0 1 1.8 1l1.2 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <svg
+                      class="h-6 w-6 text-gray-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <path
+                        d="M3 17h18v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4Z"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      />
+                      <path
+                        d="M6 17a2 2 0 1 0 4 0M14 17a2 2 0 1 0 4 0"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                      <path
+                        d="M7 11l1.2-3A2 2 0 0 1 10 7h4a2 2 0 0 1 1.8 1l1.2 3"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
                     </svg>
                   </ng-template>
                 </div>
 
                 <div class="min-w-0">
-                  <div class="font-semibold text-gray-900 truncate">{{ item.name }}</div>
-                  <div class="text-xs text-gray-500 line-clamp-1">{{ item.description }}</div>
+                  <div class="truncate font-semibold text-gray-900">
+                    {{ item.model_name }}
+                  </div>
+                  <div class="text-xs text-gray-500">
+                    ID: {{ item.model_id }}
+                  </div>
                 </div>
               </div>
             </td>
 
-            <td class="px-6 py-4 text-sm text-gray-700">{{ item.brand }}</td>
-            <td class="px-6 py-4 text-sm text-gray-700">{{ item.year }}</td>
-            <td class="px-6 py-4 text-sm text-gray-700">${{ item.price }}</td>
-
+            <td class="px-6 py-4 text-sm text-gray-700">
+              {{ item.car_brand_name || getBrandName(item.car_brand_id) }}
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-700">
+              {{ item.model_engine }}
+            </td>
             <td class="px-6 py-4">
               <span
-                class="text-xs font-medium px-3 py-1 rounded-full"
-                [class.bg-green-100]="item.status === 'Active'"
-                [class.text-green-700]="item.status === 'Active'"
-                [class.bg-gray-100]="item.status === 'Inactive'"
-                [class.text-gray-700]="item.status === 'Inactive'"
+                class="rounded-full px-3 py-1 text-xs font-medium"
+                [class.bg-green-100]="item.is_active"
+                [class.text-green-700]="item.is_active"
+                [class.bg-gray-100]="!item.is_active"
+                [class.text-gray-700]="!item.is_active"
               >
-                {{ item.status }}
+                {{ item.is_active ? "Active" : "Inactive" }}
               </span>
             </td>
-
+            <td class="px-6 py-4 text-sm text-gray-700">
+              {{
+                item.updated_at || item.created_at || "-" | date: "mediumDate"
+              }}
+            </td>
             <td class="px-6 py-4">
               <div class="flex justify-end gap-2">
                 <button
                   type="button"
                   (click)="openEdit(item)"
-                  class="px-3 py-2 rounded-xl border hover:bg-gray-50 transition text-sm"
+                  class="rounded-xl border px-3 py-2 text-sm transition hover:bg-gray-50"
                 >
                   Edit
                 </button>
                 <button
                   type="button"
                   (click)="openDelete(item)"
-                  class="px-3 py-2 rounded-xl bg-black text-white hover:bg-gray-900 transition text-sm"
+                  class="rounded-xl bg-black px-3 py-2 text-sm text-white transition hover:bg-gray-900"
                 >
                   Delete
                 </button>
@@ -148,149 +286,227 @@
             </td>
           </tr>
 
-          <tr *ngIf="filtered.length === 0">
-            <td class="px-6 py-10 text-center text-sm text-gray-500" colspan="6">
-              No car models found. Try a different search.
+          <tr *ngIf="!loading && items.length === 0">
+            <td
+              class="px-6 py-10 text-center text-sm text-gray-500"
+              colspan="6"
+            >
+              No car models found for the current filters.
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Mobile cards -->
-    <div class="md:hidden p-4 space-y-3">
-      <div *ngFor="let item of filtered" class="rounded-3xl border p-4 shadow-sm">
+    <div class="space-y-3 p-4 md:hidden">
+      <div *ngIf="loading" class="py-10 text-center text-sm text-gray-500">
+        Loading car models...
+      </div>
+
+      <div
+        *ngFor="let item of items; trackBy: trackByModelId"
+        class="rounded-3xl border p-4 shadow-sm"
+      >
         <div class="flex gap-3">
-          <div class="w-16 h-16 rounded-2xl bg-gray-100 overflow-hidden flex items-center justify-center">
-            <ng-container *ngIf="item.imageUrl; else noImg2">
-              <img [src]="item.imageUrl" alt="car" class="w-full h-full object-cover" />
+          <div
+            class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-gray-100"
+          >
+            <ng-container *ngIf="item.model_image; else noImg2">
+              <img
+                [src]="item.model_image"
+                alt="car model"
+                class="h-full w-full object-cover"
+              />
             </ng-container>
             <ng-template #noImg2>
-              <svg class="w-7 h-7 text-gray-400" viewBox="0 0 24 24" fill="none">
-                <path d="M3 17h18v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4Z" stroke="currentColor" stroke-width="2"/>
-                <path d="M6 17a2 2 0 1 0 4 0M14 17a2 2 0 1 0 4 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                <path d="M7 11l1.2-3A2 2 0 0 1 10 7h4a2 2 0 0 1 1.8 1l1.2 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <svg
+                class="h-7 w-7 text-gray-400"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M3 17h18v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4Z"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <path
+                  d="M6 17a2 2 0 1 0 4 0M14 17a2 2 0 1 0 4 0"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+                <path
+                  d="M7 11l1.2-3A2 2 0 0 1 10 7h4a2 2 0 0 1 1.8 1l1.2 3"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
               </svg>
             </ng-template>
           </div>
 
-          <div class="flex-1 min-w-0">
+          <div class="min-w-0 flex-1">
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
-                <div class="font-semibold text-gray-900 truncate">{{ item.name }}</div>
-                <div class="text-sm text-gray-600">{{ item.brand }} • {{ item.year }}</div>
+                <div class="truncate font-semibold text-gray-900">
+                  {{ item.model_name }}
+                </div>
+                <div class="text-sm text-gray-600">
+                  {{ item.car_brand_name || getBrandName(item.car_brand_id) }}
+                </div>
               </div>
 
               <span
-                class="text-xs font-medium px-3 py-1 rounded-full shrink-0"
-                [class.bg-green-100]="item.status === 'Active'"
-                [class.text-green-700]="item.status === 'Active'"
-                [class.bg-gray-100]="item.status === 'Inactive'"
-                [class.text-gray-700]="item.status === 'Inactive'"
+                class="shrink-0 rounded-full px-3 py-1 text-xs font-medium"
+                [class.bg-green-100]="item.is_active"
+                [class.text-green-700]="item.is_active"
+                [class.bg-gray-100]="!item.is_active"
+                [class.text-gray-700]="!item.is_active"
               >
-                {{ item.status }}
+                {{ item.is_active ? "Active" : "Inactive" }}
               </span>
             </div>
 
-            <div class="text-sm text-gray-500 mt-2 line-clamp-2">{{ item.description }}</div>
+            <div class="mt-2 text-sm text-gray-500">
+              {{ item.model_engine }}
+            </div>
+            <div class="mt-1 text-xs text-gray-400">
+              Updated
+              {{
+                item.updated_at || item.created_at || "-" | date: "mediumDate"
+              }}
+            </div>
 
-            <div class="flex items-center justify-between mt-3">
-              <div class="text-sm font-semibold text-gray-900">${{ item.price }}</div>
-              <div class="flex gap-2">
-                <button type="button" (click)="openEdit(item)" class="px-3 py-2 rounded-xl border text-sm">
-                  Edit
-                </button>
-                <button type="button" (click)="openDelete(item)" class="px-3 py-2 rounded-xl bg-black text-white text-sm">
-                  Delete
-                </button>
-              </div>
+            <div class="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                (click)="openEdit(item)"
+                class="rounded-xl border px-3 py-2 text-sm"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                (click)="openDelete(item)"
+                class="rounded-xl bg-black px-3 py-2 text-sm text-white"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div *ngIf="filtered.length === 0" class="text-center text-sm text-gray-500 py-10">
-        No car models found. Try a different search.
+      <div
+        *ngIf="!loading && items.length === 0"
+        class="py-10 text-center text-sm text-gray-500"
+      >
+        No car models found for the current filters.
       </div>
     </div>
   </div>
 
-  <!-- ===== Create/Edit Modal ===== -->
   <div *ngIf="modalOpen" class="fixed inset-0 z-50">
     <div class="absolute inset-0 bg-black/50" (click)="closeModal()"></div>
 
     <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="w-full max-w-2xl rounded-3xl bg-white shadow-2xl overflow-hidden">
-        <div class="px-6 py-5 border-b flex items-center justify-between">
+      <div
+        class="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+      >
+        <div class="flex items-center justify-between border-b px-6 py-5">
           <div>
             <div class="text-lg font-semibold text-gray-900">
-              {{ mode === 'create' ? 'Create Car Model' : 'Edit Car Model' }}
+              {{ mode === "create" ? "Create Car Model" : "Edit Car Model" }}
             </div>
-            <div class="text-sm text-gray-500">Enter details and upload an image</div>
+            <div class="text-sm text-gray-500">
+              Use backend fields for model details.
+            </div>
           </div>
 
-          <button type="button" class="p-2 rounded-xl hover:bg-gray-100" (click)="closeModal()">
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <button
+            type="button"
+            class="rounded-xl p-2 hover:bg-gray-100"
+            (click)="closeModal()"
+          >
+            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M6 6l12 12M18 6L6 18"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
             </svg>
           </button>
         </div>
 
-        <form class="p-6 space-y-5" [formGroup]="form" (ngSubmit)="save()">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="text-sm font-medium text-gray-700">Car Name</label>
-              <input
-                formControlName="name"
-                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-                placeholder="e.g. Civic LX"
-              />
-              <p *ngIf="isInvalid('name')" class="text-xs text-red-600 mt-1">Name is required.</p>
-            </div>
-
+        <form class="space-y-5 p-6" [formGroup]="form" (ngSubmit)="save()">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label class="text-sm font-medium text-gray-700">Brand</label>
-              <input
-                formControlName="brand"
+              <select
+                formControlName="car_brand_id"
                 class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-                placeholder="e.g. Honda"
-              />
-              <p *ngIf="isInvalid('brand')" class="text-xs text-red-600 mt-1">Brand is required.</p>
-            </div>
-
-            <div>
-              <label class="text-sm font-medium text-gray-700">Year</label>
-              <input
-                type="number"
-                formControlName="year"
-                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-              />
-              <p *ngIf="isInvalid('year')" class="text-xs text-red-600 mt-1">Enter valid year.</p>
-            </div>
-
-            <div>
-              <label class="text-sm font-medium text-gray-700">Price</label>
-              <input
-                type="number"
-                formControlName="price"
-                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-                placeholder="e.g. 25000"
-              />
-              <p *ngIf="isInvalid('price')" class="text-xs text-red-600 mt-1">Price must be 0 or more.</p>
+              >
+                <option [ngValue]="null">Select brand</option>
+                <option
+                  *ngFor="let brand of brands"
+                  [ngValue]="brand.car_brand_id"
+                >
+                  {{ brand.car_brand_name }}
+                </option>
+              </select>
+              <p
+                *ngIf="isInvalid('car_brand_id')"
+                class="mt-1 text-xs text-red-600"
+              >
+                Brand is required.
+              </p>
             </div>
 
             <div>
               <label class="text-sm font-medium text-gray-700">Status</label>
               <select
-                formControlName="status"
+                formControlName="is_active"
                 class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
               >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
+                <option [ngValue]="true">Active</option>
+                <option [ngValue]="false">Inactive</option>
               </select>
             </div>
 
             <div>
+              <label class="text-sm font-medium text-gray-700"
+                >Model Name</label
+              >
+              <input
+                formControlName="model_name"
+                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+                placeholder="e.g. Civic LX"
+              />
+              <p
+                *ngIf="isInvalid('model_name')"
+                class="mt-1 text-xs text-red-600"
+              >
+                Model name is required.
+              </p>
+            </div>
+
+            <div>
+              <label class="text-sm font-medium text-gray-700">Engine</label>
+              <input
+                formControlName="model_engine"
+                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+                placeholder="e.g. 2.0L Turbo"
+              />
+              <p
+                *ngIf="isInvalid('model_engine')"
+                class="mt-1 text-xs text-red-600"
+              >
+                Engine is required.
+              </p>
+            </div>
+
+            <div class="md:col-span-2">
               <label class="text-sm font-medium text-gray-700">Image</label>
               <input
                 type="file"
@@ -298,48 +514,70 @@
                 (change)="onFileChange($event)"
                 class="mt-1 w-full rounded-2xl border px-4 py-2.5"
               />
-              <p class="text-xs text-gray-500 mt-1">Max 2MB • JPG/PNG/WebP</p>
+              <p class="mt-1 text-xs text-gray-500">
+                Max 2MB. Stored as base64 image data for the API payload.
+              </p>
             </div>
           </div>
 
-          <div>
-            <label class="text-sm font-medium text-gray-700">Description</label>
-            <textarea
-              rows="4"
-              formControlName="description"
-              class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-              placeholder="Write details about this car model..."
-            ></textarea>
-            <p *ngIf="isInvalid('description')" class="text-xs text-red-600 mt-1">Min 10 characters.</p>
-          </div>
-
-          <!-- Preview -->
-          <div class="rounded-2xl border bg-gray-50 p-4 flex items-center gap-4">
-            <div class="w-20 h-20 rounded-2xl bg-white overflow-hidden border flex items-center justify-center">
-              <ng-container *ngIf="form.value.imageUrl; else previewEmpty">
-                <img [src]="form.value.imageUrl!" class="w-full h-full object-cover" alt="preview"/>
+          <div
+            class="flex items-center gap-4 rounded-2xl border bg-gray-50 p-4"
+          >
+            <div
+              class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border bg-white"
+            >
+              <ng-container *ngIf="form.value.model_image; else previewEmpty">
+                <img
+                  [src]="form.value.model_image!"
+                  class="h-full w-full object-cover"
+                  alt="preview"
+                />
               </ng-container>
               <ng-template #previewEmpty>
                 <span class="text-xs text-gray-400">No Image</span>
               </ng-template>
             </div>
 
-            <div class="text-sm text-gray-600">
+            <div class="min-w-0 flex-1 text-sm text-gray-600">
               <div class="font-semibold text-gray-900">
-                {{ form.value.name || 'Car Model Preview' }}
+                {{ form.value.model_name || "Car Model Preview" }}
               </div>
               <div class="text-gray-500">
-                {{ form.value.brand || 'Brand' }} • {{ form.value.year || 'Year' }}
+                {{ getBrandName(form.value.car_brand_id || 0) }} •
+                {{ form.value.model_engine || "Engine" }}
               </div>
             </div>
+
+            <button
+              *ngIf="form.value.model_image"
+              type="button"
+              (click)="clearImage()"
+              class="rounded-xl border px-3 py-2 text-sm hover:bg-white"
+            >
+              Remove Image
+            </button>
           </div>
 
           <div class="flex items-center justify-end gap-3 pt-2">
-            <button type="button" (click)="closeModal()" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50">
+            <button
+              type="button"
+              (click)="closeModal()"
+              class="rounded-xl border px-4 py-2.5 hover:bg-gray-50"
+            >
               Cancel
             </button>
-            <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900">
-              {{ mode === 'create' ? 'Create' : 'Save Changes' }}
+            <button
+              type="submit"
+              [disabled]="saving || brandsLoading"
+              class="rounded-xl bg-black px-4 py-2.5 text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {{
+                saving
+                  ? "Saving..."
+                  : mode === "create"
+                    ? "Create"
+                    : "Save Changes"
+              }}
             </button>
           </div>
         </form>
@@ -347,22 +585,36 @@
     </div>
   </div>
 
-  <!-- ===== Delete Confirm ===== -->
   <div *ngIf="confirmOpen" class="fixed inset-0 z-50">
     <div class="absolute inset-0 bg-black/50" (click)="closeConfirm()"></div>
 
     <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="w-full max-w-md rounded-3xl bg-white shadow-2xl overflow-hidden">
+      <div
+        class="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl"
+      >
         <div class="p-6">
-          <div class="text-lg font-semibold text-gray-900">Delete car model?</div>
-          <p class="text-sm text-gray-500 mt-1">This action cannot be undone.</p>
+          <div class="text-lg font-semibold text-gray-900">
+            Delete car model?
+          </div>
+          <p class="mt-1 text-sm text-gray-500">
+            This will remove the model from the backend.
+          </p>
 
-          <div class="flex justify-end gap-3 mt-6">
-            <button type="button" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50" (click)="closeConfirm()">
+          <div class="mt-6 flex justify-end gap-3">
+            <button
+              type="button"
+              class="rounded-xl border px-4 py-2.5 hover:bg-gray-50"
+              (click)="closeConfirm()"
+            >
               Cancel
             </button>
-            <button type="button" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900" (click)="confirmDelete()">
-              Delete
+            <button
+              type="button"
+              class="rounded-xl bg-black px-4 py-2.5 text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+              [disabled]="deleting"
+              (click)="confirmDelete()"
+            >
+              {{ deleting ? "Deleting..." : "Delete" }}
             </button>
           </div>
         </div>

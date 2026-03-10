@@ -21,6 +21,8 @@ import type {
   CreateProductQuestionDto,
   CreateProductReviewDto,
   CreateProductsDto,
+  PaginatedProductQuestionDto,
+  PaginatedProductReviewDto,
   PaginatedProductsResponseDto,
   ProductDetailDto,
   ProductQuestionDto,
@@ -145,19 +147,19 @@ export class ProductsService {
       params: filteredParams,
     });
   }
-  productsControllerReviews<TData = ProductReviewDto[]>(
+  productsControllerReviews<TData = PaginatedProductReviewDto>(
     productId: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  productsControllerReviews<TData = ProductReviewDto[]>(
+  productsControllerReviews<TData = PaginatedProductReviewDto>(
     productId: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  productsControllerReviews<TData = ProductReviewDto[]>(
+  productsControllerReviews<TData = PaginatedProductReviewDto>(
     productId: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  productsControllerReviews<TData = ProductReviewDto[]>(
+  productsControllerReviews<TData = PaginatedProductReviewDto>(
     productId: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -334,19 +336,19 @@ export class ProductsService {
       },
     );
   }
-  productsControllerQuestions<TData = ProductQuestionDto[]>(
+  productsControllerQuestions<TData = PaginatedProductQuestionDto>(
     productId: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  productsControllerQuestions<TData = ProductQuestionDto[]>(
+  productsControllerQuestions<TData = PaginatedProductQuestionDto>(
     productId: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  productsControllerQuestions<TData = ProductQuestionDto[]>(
+  productsControllerQuestions<TData = PaginatedProductQuestionDto>(
     productId: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  productsControllerQuestions<TData = ProductQuestionDto[]>(
+  productsControllerQuestions<TData = PaginatedProductQuestionDto>(
     productId: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {

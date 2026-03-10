@@ -13,4 +13,7 @@ export interface CarBrandModelResponseDto {
   is_active: boolean;
   is_deleted: boolean;
   model_id: number;
+  car_brand_name?: string;
+  created_at?: string;
+  updated_at?: string;
 }
