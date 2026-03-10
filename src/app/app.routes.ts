@@ -4,6 +4,7 @@ import { authGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
 import { AdminLayoutComponent } from './admin/layout/admin-layout/admin-layout.component';
 import { AdminDashboardComponent } from './admin/pages/admin-dashboard/admin-dashboard.component';
+import { AdminCarbrandComponent } from './admin/pages/admin-carbrand/admin-carbrand.component';
 import { AdminCarmodelComponent } from './admin/pages/admin-carmodel/admin-carmodel.component';
 import { AdminProductsComponent } from './admin/pages/admin-products/admin-products.component';
 import { AdminCouponsComponent } from './admin/pages/admin-coupons/admin-coupons.component';
@@ -33,6 +34,10 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         component: AdminDashboardComponent,
+      },
+      {
+        path: 'car-brand',
+        component: AdminCarbrandComponent,
       },
       {
         path: 'car-model',

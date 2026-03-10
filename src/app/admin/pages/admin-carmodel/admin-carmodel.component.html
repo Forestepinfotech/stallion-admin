@@ -168,6 +168,10 @@
         <span *ngIf="loading">Loading...</span>
         <span *ngIf="!loading">
           Showing
+          <span class="font-semibold text-gray-900">{{
+            paginatedItems.length
+          }}</span>
+          of
           <span class="font-semibold text-gray-900">{{ items.length }}</span>
           items
         </span>
@@ -191,7 +195,7 @@
 
         <tbody class="divide-y">
           <tr
-            *ngFor="let item of items; trackBy: trackByModelId"
+            *ngFor="let item of paginatedItems; trackBy: trackByModelId"
             class="transition hover:bg-gray-50"
           >
             <td class="px-6 py-4">
@@ -286,7 +290,7 @@
             </td>
           </tr>
 
-          <tr *ngIf="!loading && items.length === 0">
+          <tr *ngIf="!loading && paginatedItems.length === 0">
             <td
               class="px-6 py-10 text-center text-sm text-gray-500"
               colspan="6"
@@ -304,7 +308,7 @@
       </div>
 
       <div
-        *ngFor="let item of items; trackBy: trackByModelId"
+        *ngFor="let item of paginatedItems; trackBy: trackByModelId"
         class="rounded-3xl border p-4 shadow-sm"
       >
         <div class="flex gap-3">
@@ -398,10 +402,51 @@
       </div>
 
       <div
-        *ngIf="!loading && items.length === 0"
+        *ngIf="!loading && paginatedItems.length === 0"
         class="py-10 text-center text-sm text-gray-500"
       >
         No car models found for the current filters.
+      </div>
+    </div>
+
+    <div
+      *ngIf="!loading && items.length > 0"
+      class="flex items-center justify-between border-t px-6 py-4"
+    >
+      <div class="flex items-center gap-2 text-sm text-gray-600">
+        <span>Rows</span>
+        <select
+          class="min-w-20 rounded-xl border px-2 py-1 text-gray-800"
+          [ngModel]="pageSize"
+          (ngModelChange)="changePageSize($event)"
+        >
+          <option *ngFor="let size of pageSizeOptions" [value]="size">
+            {{ size }}
+          </option>
+        </select>
+      </div>
+
+      <div class="text-sm text-gray-600">
+        Page {{ page }} of {{ totalPages }}
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="rounded-xl border px-3 py-2 text-sm disabled:opacity-50"
+          (click)="prevPage()"
+          [disabled]="page === 1"
+        >
+          Prev
+        </button>
+        <button
+          type="button"
+          class="rounded-xl border px-3 py-2 text-sm disabled:opacity-50"
+          (click)="nextPage()"
+          [disabled]="page >= totalPages"
+        >
+          Next
+        </button>
       </div>
     </div>
   </div>

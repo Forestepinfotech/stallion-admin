@@ -52,6 +52,9 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
   saving = false;
   deleting = false;
   brandsLoading = false;
+  page = 1;
+  pageSize = 50;
+  readonly pageSizeOptions = [20, 50, 100];
 
   items: CarBrandModelResponseDto[] = [];
   brands: CarBrandResponseDto[] = [];
@@ -92,6 +95,15 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
     return this.items.filter((item) => !item.is_active).length;
   }
 
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.items.length / this.pageSize));
+  }
+
+  get paginatedItems(): CarBrandModelResponseDto[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.items.slice(start, start + this.pageSize);
+  }
+
   applyFilters(): void {
     if (this.dateFrom && this.dateTo && this.dateFrom > this.dateTo) {
       this.toastService.warning('From date must be earlier than To date.');
@@ -104,6 +116,7 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
     this.appliedFilterBrandId = this.filterBrandId;
     this.appliedDateFrom = this.dateFrom;
     this.appliedDateTo = this.dateTo;
+    this.page = 1;
     this.loadModels();
   }
 
@@ -115,6 +128,23 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
     this.dateFrom = '';
     this.dateTo = '';
     this.applyFilters();
+  }
+
+  changePageSize(size: number): void {
+    this.pageSize = Number(size) || 50;
+    this.page = 1;
+  }
+
+  prevPage(): void {
+    if (this.page > 1) {
+      this.page -= 1;
+    }
+  }
+
+  nextPage(): void {
+    if (this.page < this.totalPages) {
+      this.page += 1;
+    }
   }
 
   openCreate(): void {
@@ -176,8 +206,9 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => (this.deleting = false)))
       .subscribe({
         next: () => {
+          this.confirmOpen = false;
+          this.selectedId = null;
           this.toastService.success('Car model deleted successfully.');
-          this.closeConfirm();
           this.loadModels();
         },
         error: (error) => {
@@ -312,6 +343,7 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.items = response.data ?? [];
+          this.page = Math.min(this.page, this.totalPages);
         },
         error: (error) => {
           this.toastService.error(
