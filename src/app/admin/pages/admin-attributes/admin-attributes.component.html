@@ -278,6 +278,17 @@
     </section>
   </div>
 
+  <app-category-modal
+    [open]="categoryModalOpen"
+    [saving]="savingCategory"
+    mode="create"
+    [category]="null"
+    (close)="closeCategoryModal()"
+    (save)="saveCategory($event)"
+    (warning)="onCategoryModalWarning($event)"
+    (error)="onCategoryModalError($event)"
+  />
+
   <div *ngIf="attrModalOpen" class="fixed inset-0 z-50">
     <div class="absolute inset-0 bg-black/50" (click)="closeAttrModal()"></div>
 

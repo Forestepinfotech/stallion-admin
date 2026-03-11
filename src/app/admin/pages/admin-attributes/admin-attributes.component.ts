@@ -1,13 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import {
-  FormBuilder,
-  FormsModule,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import { Router } from '@angular/router';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, forkJoin, of } from 'rxjs';
+import { CategoryModalComponent } from '../../components/category-modal/category-modal.component';
 import { CarBrandService } from '../../../core/api/generated/car-brand/car-brand.service';
 import { CarBrandModelService } from '../../../core/api/generated/car-brand-model/car-brand-model.service';
 import { ProductAttributeService } from '../../../core/api/generated/product-attribute/product-attribute.service';
@@ -18,6 +13,7 @@ import { ProductsService } from '../../../core/api/generated/products/products.s
 import type {
   CarBrandResponseDto,
   CarBrandModelResponseDto,
+  CreateProductCategoryDto,
   CreateProductAttributeDto,
   ProductAttributeResponseDto,
   ProductAttributeValuesResponseDto,
@@ -44,7 +40,7 @@ interface DummyAttributeValueItem {
 
 @Component({
   selector: 'app-admin-attributes',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, CategoryModalComponent],
   templateUrl: './admin-attributes.component.html',
   styleUrl: './admin-attributes.component.css',
 })
@@ -62,6 +58,7 @@ export class AdminAttributesComponent implements OnInit {
   appliedStatusFilter: AttributeStatusFilter = 'All';
 
   loading = true;
+  savingCategory = false;
   saving = false;
   deleting = false;
   savingAssignment = false;
@@ -72,6 +69,7 @@ export class AdminAttributesComponent implements OnInit {
   page = 1;
   pageSize = 20;
 
+  categoryModalOpen = false;
   attrModalOpen = false;
   confirmOpen = false;
   assignConfirmOpen = false;
@@ -132,7 +130,6 @@ export class AdminAttributesComponent implements OnInit {
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly router: Router,
     private readonly productAttributeService: ProductAttributeService,
     private readonly productAttributeValuesService: ProductAttributeValuesService,
     private readonly productCategoryAttributeService: ProductCategoryAttributeService,
@@ -382,7 +379,56 @@ export class AdminAttributesComponent implements OnInit {
   }
 
   goToCategoryPage(): void {
-    this.router.navigateByUrl('/admin/category');
+    this.openCreateCategory();
+  }
+
+  openCreateCategory(): void {
+    this.categoryModalOpen = true;
+  }
+
+  closeCategoryModal(): void {
+    if (this.savingCategory) {
+      return;
+    }
+
+    this.categoryModalOpen = false;
+  }
+
+  saveCategory(payload: CreateProductCategoryDto): void {
+    this.savingCategory = true;
+    this.productCategoryService
+      .productCategoryControllerCreate(payload)
+      .pipe(finalize(() => (this.savingCategory = false)))
+      .subscribe({
+        next: (response: any) => {
+          if (response?.success === false && response?.already_added) {
+            this.toastService.error(
+              this.getErrorMessage(response, 'This category is already added.'),
+            );
+            return;
+          }
+
+          const createdCategory = this.normalizeCategoryResponse(response);
+          this.categories = [createdCategory, ...this.categories];
+          this.selectedCategoryLabel = createdCategory.category_name;
+          this.assignForm.patchValue({ categoryId: String(createdCategory.category_id) });
+          this.categoryModalOpen = false;
+          this.toastService.success('Category created successfully.');
+        },
+        error: (error) => {
+          this.toastService.error(
+            this.getErrorMessage(error, 'Failed to save category.'),
+          );
+        },
+      });
+  }
+
+  onCategoryModalWarning(message: string): void {
+    this.toastService.warning(message);
+  }
+
+  onCategoryModalError(message: string): void {
+    this.toastService.error(message);
   }
 
   activateDropdown(dropdown: AttributeDropdownKey): void {
@@ -1136,7 +1182,7 @@ export class AdminAttributesComponent implements OnInit {
   private loadCategories(): void {
     this.productCategoryService.productCategoryControllerList().subscribe({
       next: (response) => {
-        this.categories = response.data ?? [];
+        this.categories = (response.data ?? []).filter((item) => item.is_active);
         this.selectedCategoryLabel = this.resolveSelectedCategoryName();
       },
       error: () => {
@@ -1943,6 +1989,16 @@ export class AdminAttributesComponent implements OnInit {
 
   private formatProductLabel(product: ProductSummaryDto): string {
     return `${product.title || 'Untitled product'}${product.sku ? ` (${product.sku})` : ''}`;
+  }
+
+  private normalizeCategoryResponse(response: any): ProductCategoryResponseDto {
+    return {
+      category_id: Number(response?.category_id ?? 0),
+      category_name: String(response?.category_name ?? ''),
+      category_image: String(response?.category_image ?? ''),
+      is_active: Boolean(response?.is_active),
+      is_deleted: Boolean(response?.is_deleted),
+    };
   }
 
   private normalizeAttributeResponse(response: any): ProductAttributeResponseDto {

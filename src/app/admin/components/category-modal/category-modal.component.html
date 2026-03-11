@@ -1,0 +1,120 @@
+<div *ngIf="open" class="fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-black/50" (click)="requestClose()"></div>
+
+  <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div class="w-full max-w-xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+      <div class="flex items-center justify-between border-b px-6 py-5">
+        <div>
+          <div class="text-lg font-semibold text-gray-900">
+            {{ mode === "create" ? "Create Category" : "Edit Category" }}
+          </div>
+          <div class="text-sm text-gray-500">
+            Update category name, image, and status
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="rounded-xl p-2 hover:bg-gray-100"
+          (click)="requestClose()"
+        >
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M6 6l12 12M18 6L6 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <form class="space-y-4 p-6" [formGroup]="categoryForm" (ngSubmit)="submit()">
+        <div>
+          <label class="text-sm font-medium text-gray-700">Category Name</label>
+          <input
+            formControlName="category_name"
+            class="mt-1 w-full rounded-2xl border px-4 py-3"
+            placeholder="e.g. Tires"
+          />
+          <p *ngIf="invalid('category_name')" class="mt-1 text-xs text-red-600">
+            Category name is required.
+          </p>
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-gray-700">Status</label>
+          <select
+            formControlName="is_active"
+            class="mt-1 w-full rounded-2xl border px-4 py-3"
+          >
+            <option [ngValue]="true">Active</option>
+            <option [ngValue]="false">Inactive</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-gray-700">Category Image</label>
+          <input
+            type="file"
+            accept="image/*"
+            class="mt-2 w-full rounded-2xl border px-4 py-2.5"
+            (change)="onCategoryImageSelected($event)"
+          />
+          <p class="mt-1 text-xs text-gray-500">
+            Max 2MB. Stored as base64 for the API payload.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-4 rounded-2xl border bg-gray-50 p-4">
+          <div
+            class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border bg-white"
+          >
+            <ng-container *ngIf="categoryForm.value.category_image; else previewEmpty">
+              <img
+                [src]="categoryForm.value.category_image!"
+                alt="Category Preview"
+                class="h-full w-full object-cover"
+              />
+            </ng-container>
+            <ng-template #previewEmpty>
+              <span class="text-xs text-gray-400">No Image</span>
+            </ng-template>
+          </div>
+
+          <div class="min-w-0 flex-1 text-sm text-gray-600">
+            <div class="font-semibold text-gray-900">
+              {{ categoryForm.value.category_name || "Category Preview" }}
+            </div>
+          </div>
+
+          <button
+            *ngIf="categoryForm.value.category_image"
+            type="button"
+            (click)="removeCategoryImage()"
+            class="rounded-xl border border-red-300 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+          >
+            Remove Image
+          </button>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button
+            type="button"
+            (click)="requestClose()"
+            class="rounded-xl border px-4 py-2.5 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            [disabled]="saving"
+            class="rounded-xl bg-black px-4 py-2.5 text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {{ saving ? "Saving..." : "Save" }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

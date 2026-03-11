@@ -1,12 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import {
-  FormBuilder,
-  FormsModule,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { CategoryModalComponent } from '../../components/category-modal/category-modal.component';
 import { ProductCategoryService } from '../../../core/api/generated/product-category/product-category.service';
 import type {
   CreateProductCategoryDto,
@@ -19,7 +15,7 @@ type CategoryStatusFilter = 'All' | 'Active' | 'Inactive';
 
 @Component({
   selector: 'app-admin-category',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, CategoryModalComponent],
   templateUrl: './admin-category.component.html',
   styleUrl: './admin-category.component.css',
 })
@@ -42,6 +38,7 @@ export class AdminCategoryComponent implements OnInit {
 
   page = 1;
   pageSize = 50;
+  totalItems = 0;
 
   categoryModalOpen = false;
   confirmOpen = false;
@@ -51,26 +48,17 @@ export class AdminCategoryComponent implements OnInit {
   categories: ProductCategoryResponseDto[] = [];
   filteredCategories: ProductCategoryResponseDto[] = [];
 
-  readonly categoryForm;
-
   constructor(
-    private readonly fb: FormBuilder,
     private readonly productCategoryService: ProductCategoryService,
     private readonly toastService: ToastService,
-  ) {
-    this.categoryForm = this.fb.group({
-      category_name: ['', [Validators.required, Validators.minLength(2)]],
-      is_active: [true, [Validators.required]],
-      category_image: [''],
-    });
-  }
+  ) {}
 
   ngOnInit(): void {
     this.loadCategories();
   }
 
   get totalCount(): number {
-    return this.filteredCategories.length;
+    return this.totalItems;
   }
 
   get activeCount(): number {
@@ -82,79 +70,58 @@ export class AdminCategoryComponent implements OnInit {
   }
 
   get totalPages(): number {
-    return Math.max(
-      1,
-      Math.ceil(this.filteredCategories.length / this.pageSize),
-    );
+    return Math.max(1, Math.ceil(this.totalItems / this.pageSize));
   }
 
   get paginatedCategories(): ProductCategoryResponseDto[] {
-    const start = (this.page - 1) * this.pageSize;
-    return this.filteredCategories.slice(start, start + this.pageSize);
+    return this.filteredCategories;
   }
 
   applyFilters(): void {
-    this.appliedQuery = this.query.trim().toLowerCase();
+    this.appliedQuery = this.query.trim();
     this.appliedStatusFilter = this.statusFilter;
-
-    this.filteredCategories = this.categories.filter((item) => {
-      const matchesQuery =
-        !this.appliedQuery ||
-        item.category_name.toLowerCase().includes(this.appliedQuery);
-
-      const matchesStatus =
-        this.appliedStatusFilter === 'All'
-          ? true
-          : item.is_active === (this.appliedStatusFilter === 'Active');
-
-      return matchesQuery && matchesStatus;
-    });
-
     this.page = 1;
+    this.loadCategories();
   }
 
   resetFilters(): void {
     this.query = '';
     this.statusFilter = 'All';
-    this.applyFilters();
+    this.appliedQuery = '';
+    this.appliedStatusFilter = 'All';
+    this.page = 1;
+    this.loadCategories();
   }
 
   changePageSize(size: number): void {
     this.pageSize = Number(size) || 50;
     this.page = 1;
+    this.loadCategories();
   }
 
   prevPage(): void {
     if (this.page > 1) {
       this.page -= 1;
+      this.loadCategories();
     }
   }
 
   nextPage(): void {
     if (this.page < this.totalPages) {
       this.page += 1;
+      this.loadCategories();
     }
   }
 
   openCreateCategory(): void {
     this.categoryMode = 'create';
     this.selectedCategory = null;
-    this.categoryForm.reset({
-      category_name: '',
-      is_active: true,
-      category_image: '',
-    });
     this.categoryModalOpen = true;
   }
 
   openEditCategory(category: ProductCategoryResponseDto): void {
     this.categoryMode = 'edit';
     this.selectedCategory = category;
-    this.categoryForm.reset({
-      category_name: category.category_name,
-      is_active: category.is_active,
-      category_image: category.category_image ?? '',
-    });
     this.categoryModalOpen = true;
   }
 
@@ -181,20 +148,7 @@ export class AdminCategoryComponent implements OnInit {
     this.selectedCategory = null;
   }
 
-  saveCategory(): void {
-    if (this.categoryForm.invalid || this.saving) {
-      this.categoryForm.markAllAsTouched();
-      return;
-    }
-
-    const value = this.categoryForm.getRawValue();
-    const payload: CreateProductCategoryDto = {
-      category_name: String(value.category_name).trim(),
-      category_image: String(value.category_image ?? '').trim(),
-      is_active: Boolean(value.is_active),
-      is_deleted: false,
-    };
-
+  saveCategory(payload: CreateProductCategoryDto): void {
     this.saving = true;
 
     const request =
@@ -250,36 +204,12 @@ export class AdminCategoryComponent implements OnInit {
       });
   }
 
-  async onCategoryImageSelected(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      this.toastService.warning('Please select an image file.');
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      this.toastService.warning('Image must be 2MB or smaller.');
-      return;
-    }
-
-    try {
-      const base64 = await this.fileToBase64(file);
-      this.categoryForm.patchValue({ category_image: base64 });
-    } catch {
-      this.toastService.error('Failed to read the selected image.');
-    }
+  onCategoryModalWarning(message: string): void {
+    this.toastService.warning(message);
   }
 
-  removeCategoryImage(): void {
-    this.categoryForm.patchValue({ category_image: '' });
-  }
-
-  invalid(controlName: keyof typeof this.categoryForm.controls): boolean {
-    const control = this.categoryForm.get(controlName);
-    return !!control && control.invalid && (control.touched || control.dirty);
+  onCategoryModalError(message: string): void {
+    this.toastService.error(message);
   }
 
   trackByCategoryId(_: number, item: ProductCategoryResponseDto): number {
@@ -287,14 +217,30 @@ export class AdminCategoryComponent implements OnInit {
   }
 
   private loadCategories(): void {
+    const params: Record<string, string | number | boolean> = {
+      page: this.page,
+      limit: this.pageSize,
+    };
+
+    if (this.appliedQuery) {
+      params['search'] = this.appliedQuery;
+    }
+
+    if (this.appliedStatusFilter !== 'All') {
+      params['is_active'] = this.appliedStatusFilter === 'Active';
+    }
+
     this.loading = true;
     this.productCategoryService
-      .productCategoryControllerList()
+      .productCategoryControllerList({
+        params,
+      })
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (response) => {
           this.categories = response.data ?? [];
-          this.applyFilters();
+          this.filteredCategories = response.data ?? [];
+          this.totalItems = Number(response.meta?.['total'] ?? response.data?.length ?? 0);
         },
         error: (error) => {
           this.toastService.error(
@@ -313,15 +259,6 @@ export class AdminCategoryComponent implements OnInit {
       is_active: payload.is_active,
       is_deleted: payload.is_deleted,
     };
-  }
-
-  private fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {
