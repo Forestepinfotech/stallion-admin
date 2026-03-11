@@ -7,7 +7,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin, of } from 'rxjs';
 import { CarBrandService } from '../../../core/api/generated/car-brand/car-brand.service';
 import { CarBrandModelService } from '../../../core/api/generated/car-brand-model/car-brand-model.service';
 import { ProductAttributeService } from '../../../core/api/generated/product-attribute/product-attribute.service';
@@ -21,6 +21,7 @@ import type {
   CreateProductAttributeDto,
   ProductAttributeResponseDto,
   ProductAttributeValuesResponseDto,
+  SaveProductCategoryAttributeValuesDto,
   ProductCategoryAttributeControllerWorkspaceParams,
   ProductCategoryAttributeResponseDto,
   ProductCategoryResponseDto,
@@ -37,6 +38,8 @@ interface DummyAttributeValueItem {
   id: number;
   label: string;
   selected: boolean;
+  persisted: boolean;
+  createdAt?: string;
 }
 
 @Component({
@@ -67,30 +70,52 @@ export class AdminAttributesComponent implements OnInit {
   modelsLoading = false;
 
   page = 1;
-  pageSize = 50;
+  pageSize = 20;
 
   attrModalOpen = false;
   confirmOpen = false;
+  assignConfirmOpen = false;
   valuesModalOpen = false;
   attrMode: 'create' | 'edit' = 'create';
   selectedAttr: ProductAttributeResponseDto | null = null;
+  pendingAssignAttribute: ProductAttributeResponseDto | null = null;
   selectedValueAttribute: ProductAttributeResponseDto | null = null;
   selectedModelOption: CarBrandModelResponseDto | null = null;
+  selectedCategoryLabel = '';
   valueSearch = '';
+  valueSelectionFilter = 'all';
+  valueSortBy = 'new_first';
+  valueDateFrom = '';
+  valueDateTo = '';
   newValueLabel = '';
   editingValueId: number | null = null;
   editingValueLabel = '';
+  duplicateValueConfirmOpen = false;
+  pendingDuplicateValue: ProductAttributeValuesResponseDto | null = null;
   nextDummyValueId = 1000;
   valueDraftItems: DummyAttributeValueItem[] = [];
+  valueOriginalItems: DummyAttributeValueItem[] = [];
+  selectedValueIdsDraft: number[] = [];
+  savingValues = false;
+  addingValue = false;
+  loadingValueSelection = false;
+  applyingValueFilters = false;
+  assignmentPage = 1;
+  assignmentPageSize = 50;
+  assignmentTotalItems = 0;
+  valuePage = 1;
+  valuePageSize = 10;
+  valueTotalItems = 0;
 
   attributes: ProductAttributeResponseDto[] = [];
   filteredAttributes: ProductAttributeResponseDto[] = [];
+  workspaceAttributes: ProductAttributeResponseDto[] = [];
   attributeValuesByAttributeId = new Map<
     number,
     ProductAttributeValuesResponseDto[]
   >();
   categoryIdsByAttributeId = new Map<number, number[]>();
-  dummyValuesByAttributeId = new Map<number, DummyAttributeValueItem[]>();
+  categoryAttributeValueIds = new Map<string, number[]>();
 
   categories: ProductCategoryResponseDto[] = [];
   brands: CarBrandResponseDto[] = [];
@@ -131,12 +156,18 @@ export class AdminAttributesComponent implements OnInit {
     });
 
     this.assignForm.get('categoryId')!.valueChanges.subscribe(() => {
+      this.selectedCategoryLabel = this.resolveSelectedCategoryName();
+      this.assignmentPage = 1;
+      this.assignmentPageSize = 50;
+      this.assignmentTotalItems = 0;
       this.assignForm.patchValue(
         { brandId: '', modelId: '', productId: '', attributeIds: [] },
         { emitEvent: false },
       );
       if (this.assignForm.get('categoryId')!.value) {
         this.loadAssignmentSelection();
+      } else {
+        this.categoryAttributeValueIds.clear();
       }
     });
   }
@@ -144,8 +175,6 @@ export class AdminAttributesComponent implements OnInit {
   ngOnInit(): void {
     this.loadAttributes();
     this.loadCategories();
-    this.loadAttributeValues();
-    this.loadCategoryAssignments();
   }
 
   get totalCount(): number {
@@ -231,8 +260,7 @@ export class AdminAttributesComponent implements OnInit {
   }
 
   get selectedCategoryName(): string {
-    const id = Number(this.assignForm.get('categoryId')!.value);
-    return this.categories.find((item) => item.category_id === id)?.category_name || '';
+    return this.selectedCategoryLabel || this.resolveSelectedCategoryName();
   }
 
   get selectedBrandName(): string {
@@ -259,29 +287,32 @@ export class AdminAttributesComponent implements OnInit {
     return this.selectedAttributeIds.length;
   }
 
+  get hasSelectedCategory(): boolean {
+    return !!this.assignForm.get('categoryId')!.value;
+  }
+
+  get assignmentAttributes(): ProductAttributeResponseDto[] {
+    if (!this.hasSelectedCategory) {
+      return [];
+    }
+
+    return [...this.workspaceAttributes];
+  }
+
   get selectedValueCount(): number {
-    return this.valueDraftItems.filter((item) => item.selected).length;
+    return this.selectedValueIdsDraft.length;
+  }
+
+  get assignmentTotalPages(): number {
+    return Math.max(1, Math.ceil(this.assignmentTotalItems / this.assignmentPageSize));
   }
 
   get visibleAttributeValues(): DummyAttributeValueItem[] {
-    const values = this.getAttributeValueItems(
-      this.selectedValueAttribute?.attribute_id,
-    );
-    const normalized = this.valueSearch.trim().toLowerCase();
+    return this.valueDraftItems;
+  }
 
-    return values
-      .filter((item) =>
-        !normalized ? true : item.label.toLowerCase().includes(normalized),
-      )
-      .sort((left, right) => {
-        if (left.selected !== right.selected) {
-          return left.selected ? -1 : 1;
-        }
-        if (left.id !== right.id) {
-          return right.id - left.id;
-        }
-        return left.label.localeCompare(right.label);
-      });
+  get valueTotalPages(): number {
+    return Math.max(1, Math.ceil(this.valueTotalItems / this.valuePageSize));
   }
 
   applyFilters(): void {
@@ -314,7 +345,7 @@ export class AdminAttributesComponent implements OnInit {
   }
 
   changePageSize(size: number): void {
-    this.pageSize = Number(size) || 50;
+    this.pageSize = Number(size) || 20;
     this.page = 1;
   }
 
@@ -327,6 +358,26 @@ export class AdminAttributesComponent implements OnInit {
   nextPage(): void {
     if (this.page < this.totalPages) {
       this.page += 1;
+    }
+  }
+
+  changeAssignmentPageSize(size: number): void {
+    this.assignmentPageSize = Number(size) || 50;
+    this.assignmentPage = 1;
+    this.loadAssignmentSelection();
+  }
+
+  prevAssignmentPage(): void {
+    if (this.assignmentPage > 1) {
+      this.assignmentPage -= 1;
+      this.loadAssignmentSelection();
+    }
+  }
+
+  nextAssignmentPage(): void {
+    if (this.assignmentPage < this.assignmentTotalPages) {
+      this.assignmentPage += 1;
+      this.loadAssignmentSelection();
     }
   }
 
@@ -492,7 +543,15 @@ export class AdminAttributesComponent implements OnInit {
           );
 
     request.pipe(finalize(() => (this.saving = false))).subscribe({
-      next: () => {
+      next: (response) => {
+        const result = response as any;
+        if (result?.success === false && result?.already_added) {
+          this.toastService.error(
+            this.getErrorMessage(result, 'This attribute name already exists.'),
+          );
+          return;
+        }
+
         this.toastService.success(
           this.attrMode === 'create'
             ? 'Attribute created successfully.'
@@ -500,6 +559,28 @@ export class AdminAttributesComponent implements OnInit {
         );
         this.attrModalOpen = false;
         this.selectedAttr = null;
+
+        if (this.attrMode === 'create') {
+          const createdAttribute = this.normalizeAttributeResponse(response);
+          this.attributes = [createdAttribute, ...this.attributes];
+          this.applyFilters();
+          return;
+        }
+
+        if (response) {
+          const updatedAttribute = this.normalizeAttributeResponse(response);
+          this.attributes = this.attributes.map((attribute) =>
+            attribute.attribute_id === updatedAttribute.attribute_id
+              ? {
+                  ...attribute,
+                  ...updatedAttribute,
+                }
+              : attribute,
+          );
+          this.applyFilters();
+          return;
+        }
+
         this.loadAttributes();
       },
       error: (error) => {
@@ -547,22 +628,146 @@ export class AdminAttributesComponent implements OnInit {
     this.assignForm.patchValue({ attributeIds: next });
   }
 
-  getAttributeValueCount(attributeId: number): number {
-    return this.getAttributeValueItems(attributeId).length;
+  addAttributeToCategory(attribute: ProductAttributeResponseDto): void {
+    const categoryId = Number(this.assignForm.get('categoryId')!.value);
+    const categoryName = this.selectedCategoryName;
+
+    if (!categoryId) {
+      window.alert('You need to select category to add attribute into category.');
+      return;
+    }
+
+    if (this.isSelectedAttr(attribute.attribute_id)) {
+      window.alert(
+        `"${attribute.attribute_name}" is already selected for "${categoryName}".`,
+      );
+      return;
+    }
+
+    this.pendingAssignAttribute = attribute;
+    this.assignConfirmOpen = true;
   }
 
-  getAttributeValuePreview(attributeId: number, limit = 3): string {
-    const values = this.getAttributeValueItems(attributeId);
+  closeAssignConfirm(): void {
+    this.assignConfirmOpen = false;
+    this.pendingAssignAttribute = null;
+  }
+
+  confirmAssignAttribute(): void {
+    const categoryId = Number(this.assignForm.get('categoryId')!.value);
+    const attribute = this.pendingAssignAttribute;
+    if (!attribute || !categoryId || this.savingAssignment) {
+      this.closeAssignConfirm();
+      return;
+    }
+
+    const nextAttributeIds = [...this.selectedAttributeIds, attribute.attribute_id];
+    const payload: SaveProductCategoryAttributeAssignmentDto = {
+      category_id: categoryId,
+      attribute_ids: nextAttributeIds,
+      is_active: true,
+    };
+
+    this.savingAssignment = true;
+    this.productCategoryAttributeService
+      .productCategoryAttributeControllerSaveAssignment(payload)
+      .pipe(finalize(() => (this.savingAssignment = false)))
+      .subscribe({
+        next: (response: any) => {
+          if (response?.success === false && response?.already_added) {
+            this.toastService.error(
+              this.getAlreadyAssignedMessage(response),
+            );
+            this.closeAssignConfirm();
+            return;
+          }
+
+          this.assignForm.patchValue({ attributeIds: nextAttributeIds });
+          if (
+            !this.workspaceAttributes.some(
+              (item) => item.attribute_id === attribute.attribute_id,
+            )
+          ) {
+            this.workspaceAttributes = [...this.workspaceAttributes, attribute];
+          }
+          this.toastService.success('Attribute assigned successfully.');
+          this.closeAssignConfirm();
+        },
+        error: (error) => {
+          this.toastService.error(
+            this.getErrorMessage(error, 'Failed to assign attribute.'),
+          );
+        },
+      });
+  }
+
+  getAttributeValueCount(attributeId: number): number {
+    const draftAttributeId = this.selectedValueAttribute?.attribute_id;
+    if (this.valuesModalOpen && draftAttributeId === attributeId) {
+      return this.valueDraftItems.length;
+    }
+
     return (
-      values
-        .slice(0, limit)
-        .map((item) => item.label)
-        .filter(Boolean)
-        .join(', ') || 'No values added'
+      this.attributes.find((item) => item.attribute_id === attributeId)?.value_count ??
+      this.attributeValuesByAttributeId.get(attributeId)?.length ??
+      0
     );
   }
 
+  getAttributeValuePreview(attributeId: number, limit = 3): string {
+    const draftAttributeId = this.selectedValueAttribute?.attribute_id;
+    if (this.valuesModalOpen && draftAttributeId === attributeId) {
+      const draftPreview = this.valueDraftItems
+        .slice(0, limit)
+        .map((item) => item.label)
+        .filter(Boolean)
+        .join(', ');
+
+      return draftPreview || 'No values added';
+    }
+
+    const attribute = this.attributes.find((item) => item.attribute_id === attributeId);
+    const preview = attribute?.values?.slice(0, limit).join(', ');
+    return preview || 'No values added';
+  }
+
+  getCategoryValueCount(attributeId: number): number {
+    const categoryId = Number(this.assignForm.get('categoryId')!.value);
+    if (!categoryId) {
+      return 0;
+    }
+
+    return this.getCategorySelectedValueIds(categoryId, attributeId).length;
+  }
+
+  getCategoryValuePreview(attributeId: number, limit = 3): string {
+    const categoryId = Number(this.assignForm.get('categoryId')!.value);
+    if (!categoryId) {
+      return 'Select category first';
+    }
+
+    const selectedIds = this.getCategorySelectedValueIds(categoryId, attributeId);
+    if (selectedIds.length === 0) {
+      return 'No values selected';
+    }
+
+    const values = this.attributeValuesByAttributeId.get(attributeId) ?? [];
+    const preview = selectedIds
+      .map((id) => values.find((item) => item.value_id === id)?.attribute_value)
+      .filter((value): value is string => !!value)
+      .slice(0, limit)
+      .join(', ');
+
+    return preview || 'No values selected';
+  }
+
   getAssignedCategoryNames(attributeId: number, limit = 2): string {
+    const attribute = this.attributes.find((item) => item.attribute_id === attributeId);
+    const assignedCategoryCount = attribute?.assigned_category_count ?? 0;
+    if (assignedCategoryCount > 0) {
+      return `${assignedCategoryCount} categor${assignedCategoryCount === 1 ? 'y' : 'ies'} assigned`;
+    }
+
     const categoryIds = this.categoryIdsByAttributeId.get(attributeId) ?? [];
     const names = categoryIds
       .map(
@@ -584,70 +789,232 @@ export class AdminAttributesComponent implements OnInit {
   }
 
   openAttributeValues(attribute: ProductAttributeResponseDto): void {
+    const categoryId = Number(this.assignForm.get('categoryId')!.value);
+    if (!categoryId) {
+      this.toastService.warning('Select a category first.');
+      return;
+    }
+
     this.selectedValueAttribute = attribute;
-    this.ensureDummyValues(attribute);
-    this.valueDraftItems = this.getAttributeValueItems(attribute.attribute_id).map(
-      (item) => ({ ...item }),
-    );
+    this.valueOriginalItems = [];
+    this.valueDraftItems = [];
     this.valueSearch = '';
+    this.valueSelectionFilter = 'all';
+    this.valueSortBy = 'new_first';
+    this.valueDateFrom = '';
+    this.valueDateTo = '';
     this.newValueLabel = '';
     this.editingValueId = null;
     this.editingValueLabel = '';
+    this.selectedValueIdsDraft = [];
+    this.valuePage = 1;
+    this.valueTotalItems = 0;
     this.valuesModalOpen = true;
+    this.loadAttributeValuesWorkspace(categoryId, attribute.attribute_id);
   }
 
   closeValuesModal(): void {
     this.valuesModalOpen = false;
     this.selectedValueAttribute = null;
+    this.duplicateValueConfirmOpen = false;
+    this.pendingDuplicateValue = null;
+    this.valueOriginalItems = [];
     this.valueDraftItems = [];
+    this.selectedValueIdsDraft = [];
     this.valueSearch = '';
+    this.valueSelectionFilter = 'all';
+    this.valueSortBy = 'new_first';
+    this.valueDateFrom = '';
+    this.valueDateTo = '';
     this.newValueLabel = '';
     this.editingValueId = null;
     this.editingValueLabel = '';
+    this.valuePage = 1;
+    this.valueTotalItems = 0;
+  }
+
+  applyValueFilters(): void {
+    this.applyingValueFilters = true;
+    this.valuePage = 1;
+    this.reloadAttributeValuesWorkspace();
+  }
+
+  prevValuePage(): void {
+    if (this.valuePage > 1) {
+      this.valuePage -= 1;
+      this.reloadAttributeValuesWorkspace();
+    }
+  }
+
+  nextValuePage(): void {
+    if (this.valuePage < this.valueTotalPages) {
+      this.valuePage += 1;
+      this.reloadAttributeValuesWorkspace();
+    }
   }
 
   saveValueSelections(): void {
     const attributeId = this.selectedValueAttribute?.attribute_id;
-    if (!attributeId) {
+    const categoryId = Number(this.assignForm.get('categoryId')!.value);
+    if (!attributeId || !categoryId || this.savingValues) {
       return;
     }
 
-    this.dummyValuesByAttributeId.set(
-      attributeId,
-      this.valueDraftItems.map((item) => ({ ...item })),
+    const originalById = new Map(
+      this.valueOriginalItems
+        .filter((item) => item.persisted)
+        .map((item) => [item.id, item]),
     );
-    this.closeValuesModal();
+    const draftIds = new Set(
+      this.valueDraftItems.filter((item) => item.persisted).map((item) => item.id),
+    );
+
+    const requests = [
+      ...this.valueDraftItems
+        .filter((item) => !item.persisted)
+        .map((item) =>
+          this.productAttributeValuesService.productAttributeValuesControllerCreate({
+            attribute_id: attributeId,
+            attribute_value: item.label,
+            is_active: item.selected,
+          }),
+        ),
+      ...this.valueDraftItems
+        .filter((item) => item.persisted)
+        .filter((item) => {
+          const original = originalById.get(item.id);
+          return !!original && original.label !== item.label;
+        })
+        .map((item) =>
+          this.productAttributeValuesService.productAttributeValuesControllerUpdate(
+            String(item.id),
+            {
+              attribute_id: attributeId,
+              attribute_value: item.label,
+              is_active: true,
+            },
+          ),
+        ),
+      ...this.valueOriginalItems
+        .filter((item) => item.persisted && !draftIds.has(item.id))
+        .map((item) =>
+          this.productAttributeValuesService.productAttributeValuesControllerRemove(
+            String(item.id),
+          ),
+        ),
+    ];
+
+    const saveSelectionPayload: SaveProductCategoryAttributeValuesDto = {
+      category_id: categoryId,
+      attribute_id: attributeId,
+      value_ids: this.selectedValueIdsDraft,
+      is_active: true,
+    };
+
+    this.savingValues = true;
+    forkJoin([
+      ...(requests.length ? requests : [of([])]),
+      this.productCategoryAttributeService.productCategoryAttributeControllerSaveAttributeValues(
+        saveSelectionPayload,
+      ),
+    ])
+      .pipe(finalize(() => (this.savingValues = false)))
+      .subscribe({
+        next: () => {
+          this.toastService.success('Attribute values saved successfully.');
+          this.categoryAttributeValueIds.set(
+            this.getCategoryAttributeKey(categoryId, attributeId),
+            saveSelectionPayload.value_ids,
+          );
+          this.syncAttributeValueState(attributeId);
+          this.closeValuesModal();
+          this.loadAttributes();
+        },
+        error: (error) => {
+          this.toastService.error(
+            this.getErrorMessage(error, 'Failed to save attribute values.'),
+          );
+        },
+      });
   }
 
-  addDummyValue(): void {
+  addValueToServer(): void {
     const label = this.newValueLabel.trim();
     const attributeId = this.selectedValueAttribute?.attribute_id;
 
-    if (!attributeId || !label) {
+    if (!attributeId || !label || this.addingValue) {
       return;
     }
 
-    const values = [...this.getAttributeValueItems(attributeId)];
-    this.valueDraftItems = [
-      {
-      id: this.nextDummyValueId++,
-      label,
-      selected: true,
-      },
-      ...values,
-    ];
-    this.newValueLabel = '';
+    this.addingValue = true;
+    this.productAttributeValuesService
+      .productAttributeValuesControllerCreate({
+        attribute_id: attributeId,
+        attribute_value: label,
+        is_active: true,
+      })
+      .pipe(finalize(() => (this.addingValue = false)))
+      .subscribe({
+        next: (createdValue) => {
+          const existingValue = this.extractAlreadyAddedValue(
+            createdValue,
+            attributeId,
+            label,
+          );
+          if (existingValue) {
+            this.pendingDuplicateValue = existingValue;
+            this.duplicateValueConfirmOpen = true;
+            return;
+          }
+
+          const newItem = this.toDraftValueItem(createdValue, true);
+          this.valueDraftItems = [
+            newItem,
+            ...this.valueDraftItems.filter((item) => item.id !== newItem.id),
+          ];
+          this.valueOriginalItems = [
+            newItem,
+            ...this.valueOriginalItems.filter((item) => item.id !== newItem.id),
+          ];
+          this.selectedValueIdsDraft = [
+            newItem.id,
+            ...this.selectedValueIdsDraft.filter((id) => id !== newItem.id),
+          ];
+          this.valueTotalItems += 1;
+          this.newValueLabel = '';
+          this.syncAttributeValueState(attributeId);
+          this.toastService.success('Value added successfully.');
+        },
+        error: (error) => {
+          const existingValue = this.extractAlreadyAddedValue(
+            error,
+            attributeId,
+            label,
+          );
+          if (existingValue) {
+            this.pendingDuplicateValue = existingValue;
+            this.duplicateValueConfirmOpen = true;
+            return;
+          }
+
+          this.toastService.error(
+            this.getErrorMessage(error, 'Failed to add value.'),
+          );
+        },
+      });
   }
 
-  toggleDummyValue(valueId: number): void {
-    const attributeId = this.selectedValueAttribute?.attribute_id;
-    if (!attributeId) {
+  toggleValueDraft(valueId: number): void {
+    if (!this.selectedValueAttribute?.attribute_id) {
       return;
     }
 
-    this.valueDraftItems = this.getAttributeValueItems(attributeId).map((item) =>
+    this.valueDraftItems = this.valueDraftItems.map((item) =>
       item.id === valueId ? { ...item, selected: !item.selected } : item,
     );
+    this.selectedValueIdsDraft = this.selectedValueIdsDraft.includes(valueId)
+      ? this.selectedValueIdsDraft.filter((id) => id !== valueId)
+      : [valueId, ...this.selectedValueIdsDraft];
   }
 
   startEditingValue(value: DummyAttributeValueItem): void {
@@ -661,40 +1028,53 @@ export class AdminAttributesComponent implements OnInit {
   }
 
   saveEditedValue(valueId: number): void {
-    const attributeId = this.selectedValueAttribute?.attribute_id;
     const label = this.editingValueLabel.trim();
-    if (!attributeId || !label) {
+    if (!this.selectedValueAttribute?.attribute_id || !label) {
       return;
     }
 
-    this.valueDraftItems = this.getAttributeValueItems(attributeId).map((item) =>
+    this.valueDraftItems = this.valueDraftItems.map((item) =>
       item.id === valueId ? { ...item, label } : item,
     );
     this.cancelEditingValue();
   }
 
-  deleteDummyValue(valueId: number): void {
-    const attributeId = this.selectedValueAttribute?.attribute_id;
-    if (!attributeId) {
+  deleteValueDraft(valueId: number): void {
+    if (!this.selectedValueAttribute?.attribute_id) {
       return;
     }
 
-    this.valueDraftItems = this.getAttributeValueItems(attributeId).filter(
-      (item) => item.id !== valueId,
+    this.valueDraftItems = this.valueDraftItems.filter((item) => item.id !== valueId);
+    this.selectedValueIdsDraft = this.selectedValueIdsDraft.filter(
+      (id) => id !== valueId,
     );
     if (this.editingValueId === valueId) {
       this.cancelEditingValue();
     }
   }
 
-  saveAssignment(): void {
-    if (this.assignForm.invalid || this.savingAssignment) {
-      this.assignForm.markAllAsTouched();
+  closeDuplicateValueConfirm(): void {
+    this.duplicateValueConfirmOpen = false;
+    this.pendingDuplicateValue = null;
+  }
+
+  confirmSelectDuplicateValue(): void {
+    const attributeId = this.selectedValueAttribute?.attribute_id;
+    const duplicateValue = this.pendingDuplicateValue;
+    if (!attributeId || !duplicateValue) {
+      this.closeDuplicateValueConfirm();
       return;
     }
 
-    if (this.selectedAttributeIds.length === 0) {
-      this.toastService.warning('Select at least one attribute.');
+    this.selectExistingDraftValue(duplicateValue);
+    this.newValueLabel = '';
+    this.syncAttributeValueState(attributeId);
+    this.closeDuplicateValueConfirm();
+  }
+
+  saveAssignment(): void {
+    if (this.assignForm.invalid || this.savingAssignment) {
+      this.assignForm.markAllAsTouched();
       return;
     }
 
@@ -743,7 +1123,6 @@ export class AdminAttributesComponent implements OnInit {
       .subscribe({
         next: (response) => {
           this.attributes = response.data ?? [];
-          this.seedDummyValues();
           this.applyFilters();
         },
         error: (error) => {
@@ -758,28 +1137,12 @@ export class AdminAttributesComponent implements OnInit {
     this.productCategoryService.productCategoryControllerList().subscribe({
       next: (response) => {
         this.categories = response.data ?? [];
+        this.selectedCategoryLabel = this.resolveSelectedCategoryName();
       },
       error: () => {
         this.toastService.error('Failed to load categories.');
       },
     });
-  }
-
-  private loadAttributeValues(): void {
-    this.productAttributeValuesService
-      .productAttributeValuesControllerList({
-        params: { page: 1, limit: 1000 },
-      })
-      .subscribe({
-        next: (response) => {
-          this.attributeValuesByAttributeId = this.groupAttributeValues(
-            response.data ?? [],
-          );
-        },
-        error: () => {
-          this.toastService.error('Failed to load attribute values.');
-        },
-      });
   }
 
   private loadCategoryAssignments(): void {
@@ -884,12 +1247,13 @@ export class AdminAttributesComponent implements OnInit {
     const value = this.assignForm.getRawValue();
     if (!value.categoryId) {
       this.assignForm.patchValue({ attributeIds: [] }, { emitEvent: false });
+      this.workspaceAttributes = [];
       return;
     }
 
     const params: ProductCategoryAttributeControllerWorkspaceParams = {
-      page: 1,
-      limit: 1,
+      page: this.assignmentPage,
+      limit: this.assignmentPageSize,
       category_id: value.categoryId ? Number(value.categoryId) : undefined,
     };
 
@@ -899,18 +1263,149 @@ export class AdminAttributesComponent implements OnInit {
       .pipe(finalize(() => (this.assignmentLoading = false)))
       .subscribe({
         next: (response) => {
+          const categoryId = Number(value.categoryId);
+          this.selectedCategoryLabel =
+            String(response?.category_name ?? '').trim() || this.selectedCategoryName;
+          this.workspaceAttributes = this.extractWorkspaceAttributes(response);
+          this.assignmentTotalItems = this.extractWorkspaceTotal(
+            response,
+            this.workspaceAttributes.length,
+          );
+          this.hydrateWorkspaceAttributeValues(response, categoryId);
+          const selectedIds = this.mergeSelectedAttributeIds(
+            this.selectedAttributeIds,
+            this.workspaceAttributes.map((item) => item.attribute_id),
+            this.extractWorkspaceAttributeIds(response),
+          );
           this.assignForm.patchValue(
-            { attributeIds: this.extractWorkspaceAttributeIds(response) },
+            { attributeIds: selectedIds },
             { emitEvent: false },
           );
         },
         error: () => {
+          this.workspaceAttributes = [];
+          this.assignmentTotalItems = 0;
           this.assignForm.patchValue(
             { attributeIds: [] },
             { emitEvent: false },
           );
         },
       });
+  }
+
+  private extractWorkspaceAttributes(response: any): ProductAttributeResponseDto[] {
+    const candidates = [
+      response?.attributes,
+      response?.data?.attributes,
+      response?.workspace?.attributes,
+    ];
+
+    for (const candidate of candidates) {
+      if (Array.isArray(candidate)) {
+        const mappedAttributes: Array<ProductAttributeResponseDto | null> = candidate.map(
+          (item: any) => {
+            const attributeId = Number(item?.attribute_id ?? item?.id ?? 0);
+            if (!attributeId) {
+              return null;
+            }
+
+            const existing = this.attributes.find(
+              (attribute) => attribute.attribute_id === attributeId,
+            );
+
+            const normalizedValues = Array.isArray(item?.values)
+              ? item.values
+                  .map((value: any) => String(value?.attribute_value ?? value?.value ?? ''))
+                  .filter((value: string) => !!value)
+              : existing?.values ?? [];
+
+            return (
+              existing
+                ? {
+                    ...existing,
+                    attribute_name: String(
+                      item?.attribute_name ?? existing.attribute_name ?? 'Attribute',
+                    ),
+                    is_active: Boolean(item?.is_active ?? existing.is_active ?? true),
+                    values: normalizedValues,
+                    value_count: Number(item?.value_count ?? normalizedValues.length ?? 0),
+                  }
+                : {
+                    attribute_id: attributeId,
+                    attribute_name: String(
+                      item?.attribute_name ?? item?.name ?? 'Attribute',
+                    ),
+                    is_active: Boolean(item?.is_active ?? true),
+                    is_deleted: Boolean(item?.is_deleted ?? false),
+                    created_by: undefined,
+                    values: normalizedValues,
+                    value_count: Number(item?.value_count ?? normalizedValues.length ?? 0),
+                    assigned_category_count: 0,
+                  }
+            );
+          },
+        );
+
+        return mappedAttributes.filter(
+          (item): item is ProductAttributeResponseDto => item !== null,
+        );
+      }
+    }
+
+    return [];
+  }
+
+  private hydrateWorkspaceAttributeValues(response: any, categoryId: number): void {
+    const candidates = [
+      response?.attributes,
+      response?.data?.attributes,
+      response?.workspace?.attributes,
+    ];
+
+    for (const candidate of candidates) {
+      if (!Array.isArray(candidate)) {
+        continue;
+      }
+
+      candidate.forEach((item: any) => {
+        const attributeId = Number(item?.attribute_id ?? item?.id ?? 0);
+        if (!attributeId) {
+          return;
+        }
+
+        const values = Array.isArray(item?.values)
+          ? item.values
+              .map((value: any) => ({
+                value_id: Number(value?.value_id ?? value?.id ?? 0),
+                attribute_id: attributeId,
+                attribute_name: String(
+                  item?.attribute_name ??
+                    this.workspaceAttributes.find(
+                      (attribute) => attribute.attribute_id === attributeId,
+                    )?.attribute_name ??
+                    '',
+                ),
+                attribute_value: String(
+                  value?.attribute_value ?? value?.value ?? value?.label ?? '',
+                ),
+                is_active: Boolean(value?.is_active ?? true),
+                is_deleted: Boolean(value?.is_deleted ?? false),
+              }))
+              .filter(
+                (value: ProductAttributeValuesResponseDto) =>
+                  value.value_id > 0 && !!value.attribute_value,
+              )
+          : [];
+
+        this.attributeValuesByAttributeId.set(attributeId, values);
+        this.categoryAttributeValueIds.set(
+          this.getCategoryAttributeKey(categoryId, attributeId),
+          values.map((value: ProductAttributeValuesResponseDto) => value.value_id),
+        );
+      });
+
+      return;
+    }
   }
 
   private extractWorkspaceAttributeIds(response: any): number[] {
@@ -933,7 +1428,62 @@ export class AdminAttributesComponent implements OnInit {
       }
     }
 
+    const attributeCandidates = [
+      response?.attributes,
+      response?.data?.attributes,
+      response?.workspace?.attributes,
+    ];
+
+    for (const candidate of attributeCandidates) {
+      if (Array.isArray(candidate)) {
+        return candidate
+          .filter((item: any) => Boolean(item?.is_assigned))
+          .map((item: any) => Number(item?.attribute_id ?? item?.id ?? 0))
+          .filter((value) => Number.isFinite(value) && value > 0);
+      }
+    }
+
     return [];
+  }
+
+  private resolveSelectedCategoryName(): string {
+    const id = Number(this.assignForm.get('categoryId')!.value);
+    if (!id) {
+      return '';
+    }
+
+    return (
+      this.categories.find((item) => item.category_id === id)?.category_name || ''
+    );
+  }
+
+  private getAlreadyAssignedMessage(response: any): string {
+    const baseMessage =
+      typeof response?.message === 'string' && response.message.trim()
+        ? response.message.trim()
+        : 'One or more attributes are already assigned to this category.';
+
+    const attributeNames = Array.isArray(response?.data)
+      ? response.data
+          .map((item: any) => String(item?.attribute_name ?? '').trim())
+          .filter((name: string) => !!name)
+      : [];
+
+    if (attributeNames.length === 0) {
+      return baseMessage;
+    }
+
+    return `${baseMessage}: ${attributeNames.join(', ')}`;
+  }
+
+  private mergeSelectedAttributeIds(
+    existingIds: number[],
+    pageAttributeIds: number[],
+    pageSelectedIds: number[],
+  ): number[] {
+    const pageSet = new Set(pageAttributeIds);
+    const merged = existingIds.filter((id) => !pageSet.has(id));
+    return [...merged, ...pageSelectedIds];
   }
 
   private filterByText<T>(
@@ -949,20 +1499,6 @@ export class AdminAttributesComponent implements OnInit {
     return items.filter((item) =>
       project(item).toLowerCase().includes(normalized),
     );
-  }
-
-  private groupAttributeValues(
-    items: ProductAttributeValuesResponseDto[],
-  ): Map<number, ProductAttributeValuesResponseDto[]> {
-    const grouped = new Map<number, ProductAttributeValuesResponseDto[]>();
-
-    for (const item of items) {
-      const current = grouped.get(item.attribute_id) ?? [];
-      current.push(item);
-      grouped.set(item.attribute_id, current);
-    }
-
-    return grouped;
   }
 
   private groupCategoryAssignments(
@@ -985,74 +1521,378 @@ export class AdminAttributesComponent implements OnInit {
     );
   }
 
-  private getAttributeValueItems(attributeId?: number): DummyAttributeValueItem[] {
-    if (!attributeId) {
-      return [];
-    }
+  private syncAttributeValueState(attributeId: number): void {
+    const persistedItems = this.valueDraftItems.filter((item) => item.persisted);
+    const attributeName =
+      this.attributes.find((attribute) => attribute.attribute_id === attributeId)
+        ?.attribute_name ?? '';
+    const normalizedValues: ProductAttributeValuesResponseDto[] = persistedItems.map(
+      (item) => ({
+        attribute_id: attributeId,
+        attribute_name: attributeName,
+        attribute_value: item.label,
+        is_active: item.selected,
+        is_deleted: false,
+        value_id: item.id,
+      }),
+    );
 
-    if (
-      this.selectedValueAttribute?.attribute_id === attributeId &&
-      this.valueDraftItems.length >= 0 &&
-      this.valuesModalOpen
-    ) {
-      return this.valueDraftItems;
-    }
-
-    return this.dummyValuesByAttributeId.get(attributeId) ?? [];
+    this.attributeValuesByAttributeId.set(attributeId, normalizedValues);
+    this.attributes = this.attributes.map((attribute) =>
+      attribute.attribute_id === attributeId
+        ? {
+            ...attribute,
+            values: persistedItems.map((item) => item.label),
+            value_count: persistedItems.length,
+          }
+        : attribute,
+    );
+    this.applyFilters();
   }
 
-  private ensureDummyValues(attribute: ProductAttributeResponseDto): void {
-    if (this.dummyValuesByAttributeId.has(attribute.attribute_id)) {
+  private reloadAttributeValuesWorkspace(): void {
+    const categoryId = Number(this.assignForm.get('categoryId')!.value);
+    const attributeId = this.selectedValueAttribute?.attribute_id;
+    if (!categoryId || !attributeId) {
       return;
     }
 
-    this.dummyValuesByAttributeId.set(
-      attribute.attribute_id,
-      this.createInitialDummyValues(attribute),
-    );
+    this.loadAttributeValuesWorkspace(categoryId, attributeId);
   }
 
-  private seedDummyValues(): void {
-    for (const attribute of this.attributes) {
-      this.ensureDummyValues(attribute);
-    }
+  private loadAttributeValuesWorkspace(
+    categoryId: number,
+    attributeId: number,
+  ): void {
+    this.loadingValueSelection = true;
+    this.productCategoryAttributeService
+      .productCategoryAttributeControllerAttributeValuesWorkspace<any>({
+        page: this.valuePage,
+        limit: this.valuePageSize,
+        category_id: categoryId,
+        attribute_id: attributeId,
+        search: this.valueSearch.trim() || undefined,
+        selection:
+          this.valueSelectionFilter === 'all'
+            ? undefined
+            : this.valueSelectionFilter,
+        sortBy: this.valueSortBy || undefined,
+        dateFrom: this.valueDateFrom || undefined,
+        dateTo: this.valueDateTo || undefined,
+      })
+      .pipe(
+        finalize(() => {
+          this.loadingValueSelection = false;
+          this.applyingValueFilters = false;
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          const workspaceValues = this.extractWorkspaceValueItems(response, attributeId);
+          const selectedIds = this.extractSelectedValueIds(response);
+          this.attributeValuesByAttributeId.set(attributeId, workspaceValues);
+
+          const draftItems = workspaceValues.map((item) => ({
+            id: item.value_id,
+            label: item.attribute_value,
+            selected: selectedIds.includes(item.value_id),
+            persisted: true,
+          }));
+
+          this.valueOriginalItems = draftItems.map((item) => ({ ...item }));
+          this.valueDraftItems = draftItems.map((item) => ({ ...item }));
+
+          this.selectedValueIdsDraft = selectedIds;
+          this.categoryAttributeValueIds.set(
+            this.getCategoryAttributeKey(categoryId, attributeId),
+            selectedIds,
+          );
+          this.applyCategorySelectionToDraft(selectedIds);
+          this.valueTotalItems = this.extractWorkspaceTotal(
+            response,
+            workspaceValues.length,
+          );
+        },
+        error: () => {
+          const attribute = this.attributes.find((item) => item.attribute_id === attributeId);
+          const fallbackItems = (attribute?.values ?? []).map((value, index) => ({
+            id: index + 1,
+            label: value,
+            selected: false,
+            persisted: true,
+          }));
+          this.valueOriginalItems = fallbackItems.map((item) => ({ ...item }));
+          this.valueDraftItems = fallbackItems.map((item) => ({ ...item }));
+          this.selectedValueIdsDraft = [];
+          this.valueTotalItems = fallbackItems.length;
+          this.categoryAttributeValueIds.set(
+            this.getCategoryAttributeKey(categoryId, attributeId),
+            [],
+          );
+          this.applyCategorySelectionToDraft([]);
+        },
+      });
   }
 
-  private createInitialDummyValues(
-    attribute: ProductAttributeResponseDto,
-  ): DummyAttributeValueItem[] {
-    const existingValues = this.attributeValuesByAttributeId.get(
-      attribute.attribute_id,
-    );
+  private extractWorkspaceValueItems(
+    response: any,
+    attributeId: number,
+  ): ProductAttributeValuesResponseDto[] {
+    const candidates = [
+      response?.values,
+      response?.value_items,
+      response?.items,
+      response?.data?.values,
+      response?.data?.value_items,
+      response?.data?.items,
+      response?.workspace?.values,
+      response?.workspace?.value_items,
+      response?.workspace?.items,
+    ];
 
-    if (existingValues?.length) {
-      return existingValues.map((item) => ({
-        id: item.value_id,
-        label: item.attribute_value,
-        selected: true,
-      }));
+    for (const candidate of candidates) {
+      if (Array.isArray(candidate)) {
+        return candidate
+          .map((item: any, index: number) => ({
+            value_id: Number(item?.value_id ?? item?.id ?? index + 1),
+            attribute_id: Number(item?.attribute_id ?? attributeId),
+            attribute_name: String(
+              item?.attribute_name ??
+                this.selectedValueAttribute?.attribute_name ??
+                '',
+            ),
+            attribute_value: String(
+              item?.attribute_value ?? item?.value ?? item?.label ?? '',
+            ),
+            is_active: Boolean(
+              item?.is_active ?? true,
+            ),
+            is_deleted: Boolean(item?.is_deleted ?? false),
+            created_at: item?.created_at,
+            created_by: item?.created_by,
+            updated_by: item?.updated_by,
+          }))
+          .filter((item) => !!item.attribute_value);
+      }
     }
 
-    const fallbackByName: Record<string, string[]> = {
-      size: ['205/55R16', '225/45R17', '17x8'],
-      color: ['Matte Black', 'Gloss Black', 'Bronze'],
-      'bolt pattern': ['5x114.3', '6x139.7'],
-      width: ['8J', '9J'],
-      offset: ['+20', '+35'],
+    const attribute = this.attributes.find((item) => item.attribute_id === attributeId);
+    return (attribute?.values ?? []).map((value, index) => ({
+      value_id: index + 1,
+      attribute_id: attributeId,
+      attribute_name: attribute?.attribute_name ?? '',
+      attribute_value: value,
+      is_active: false,
+      is_deleted: false,
+    }));
+  }
+
+  private applyCategorySelectionToDraft(selectedIds: number[]): void {
+    const selected = new Set(selectedIds);
+    this.valueOriginalItems = this.valueOriginalItems.map((item) => ({
+      ...item,
+      selected: selected.has(item.id),
+    }));
+    this.valueDraftItems = this.valueDraftItems.map((item) => ({
+      ...item,
+      selected: selected.has(item.id),
+    }));
+  }
+
+  private selectExistingDraftValue(
+    value: ProductAttributeValuesResponseDto,
+  ): void {
+    const existingItem = this.valueDraftItems.find((item) => item.id === value.value_id);
+    const selectedItem: DummyAttributeValueItem = {
+      ...(existingItem ?? this.toDraftValueItem(value, true)),
+      id: value.value_id,
+      label: value.attribute_value || existingItem?.label || '',
+      selected: true,
+      persisted: true,
     };
 
-    const fallbackValues =
-      fallbackByName[attribute.attribute_name.trim().toLowerCase()] ?? [];
+    this.valueDraftItems = [
+      selectedItem,
+      ...this.valueDraftItems.filter((item) => item.id !== selectedItem.id),
+    ];
+    this.valueOriginalItems = this.valueOriginalItems.some(
+      (item) => item.id === selectedItem.id,
+    )
+      ? this.valueOriginalItems.map((item) =>
+          item.id === selectedItem.id ? selectedItem : item,
+        )
+      : [selectedItem, ...this.valueOriginalItems];
+    this.selectedValueIdsDraft = [
+      selectedItem.id,
+      ...this.selectedValueIdsDraft.filter((id) => id !== selectedItem.id),
+    ];
+    this.valueTotalItems = Math.max(this.valueTotalItems, this.valueDraftItems.length);
+  }
 
-    const seededValues = fallbackValues.map((label, index) => ({
-      id: this.nextDummyValueId + index,
-      label,
-      selected: index < 2,
-    }));
+  private extractAlreadyAddedValue(
+    payloadSource: unknown,
+    attributeId: number,
+    fallbackLabel: string,
+  ): ProductAttributeValuesResponseDto | null {
+    const payload = this.extractAlreadyAddedPayload(payloadSource);
+    if (!payload) {
+      return null;
+    }
 
-    this.nextDummyValueId += fallbackValues.length;
+    const duplicatePayload = payload as {
+      already_added?: unknown;
+      data?: Record<string, unknown>;
+    };
 
-    return seededValues;
+    if (!duplicatePayload.already_added || !duplicatePayload.data) {
+      return null;
+    }
+
+    const rawValueId = Number(duplicatePayload.data['value_id'] ?? 0);
+    const normalizedLabel = String(
+      duplicatePayload.data['attribute_value'] ??
+        duplicatePayload.data['value'] ??
+        fallbackLabel,
+    ).trim();
+    const existingValue =
+      this.attributeValuesByAttributeId
+        .get(attributeId)
+        ?.find(
+          (item) =>
+            item.value_id === rawValueId ||
+            item.attribute_value.toLowerCase() === normalizedLabel.toLowerCase(),
+        ) ?? null;
+
+    return {
+      value_id: existingValue?.value_id ?? rawValueId,
+      attribute_id:
+        existingValue?.attribute_id ??
+        Number(duplicatePayload.data['attribute_id'] ?? attributeId),
+      attribute_name: String(
+        duplicatePayload.data['attribute_name'] ??
+          existingValue?.attribute_name ??
+          this.selectedValueAttribute?.attribute_name ??
+          '',
+      ),
+      attribute_value: existingValue?.attribute_value ?? normalizedLabel,
+      is_active:
+        existingValue?.is_active ??
+        Boolean(duplicatePayload.data['is_active'] ?? true),
+      is_deleted:
+        existingValue?.is_deleted ??
+        Boolean(duplicatePayload.data['is_deleted'] ?? false),
+    };
+  }
+
+  private extractAlreadyAddedPayload(payloadSource: unknown): Record<string, unknown> | null {
+    if (typeof payloadSource !== 'object' || payloadSource === null) {
+      return null;
+    }
+
+    if (
+      'already_added' in payloadSource &&
+      typeof payloadSource['already_added'] !== 'undefined'
+    ) {
+      return payloadSource as Record<string, unknown>;
+    }
+
+    if (
+      'error' in payloadSource &&
+      typeof payloadSource.error === 'object' &&
+      payloadSource.error !== null &&
+      'already_added' in payloadSource.error
+    ) {
+      return payloadSource.error as Record<string, unknown>;
+    }
+
+    return null;
+  }
+
+  private toDraftValueItem(
+    value: ProductAttributeValuesResponseDto,
+    selected: boolean,
+  ): DummyAttributeValueItem {
+    return {
+      id: value.value_id,
+      label: value.attribute_value,
+      selected,
+      persisted: true,
+    };
+  }
+
+  private extractSelectedValueIds(response: any): number[] {
+    const candidates = [
+      response?.value_ids,
+      response?.selected_value_ids,
+      response?.attribute_value_ids,
+      response?.data?.value_ids,
+      response?.data?.selected_value_ids,
+      response?.data?.attribute_value_ids,
+      response?.workspace?.value_ids,
+      response?.workspace?.selected_value_ids,
+      response?.workspace?.attribute_value_ids,
+    ];
+
+    for (const candidate of candidates) {
+      if (Array.isArray(candidate)) {
+        return candidate
+          .map((value) => Number(value))
+          .filter((value) => Number.isFinite(value));
+      }
+    }
+
+    const valueCandidates = [
+      response?.values,
+      response?.data?.values,
+      response?.workspace?.values,
+    ];
+
+    for (const candidate of valueCandidates) {
+      if (Array.isArray(candidate)) {
+        return candidate
+          .filter((item: any) => Boolean(item?.is_selected))
+          .map((item: any) => Number(item?.value_id ?? item?.id ?? 0))
+          .filter((value) => Number.isFinite(value) && value > 0);
+      }
+    }
+
+    return [];
+  }
+
+  private getCategorySelectedValueIds(
+    categoryId: number,
+    attributeId: number,
+  ): number[] {
+    return (
+      this.categoryAttributeValueIds.get(
+        this.getCategoryAttributeKey(categoryId, attributeId),
+      ) ?? []
+    );
+  }
+
+  private getCategoryAttributeKey(categoryId: number, attributeId: number): string {
+    return `${categoryId}:${attributeId}`;
+  }
+
+  private extractWorkspaceTotal(response: any, fallback: number): number {
+    const meta = response?.meta ?? response?.data?.meta ?? response?.workspace?.meta;
+    const candidates = [
+      meta?.total,
+      meta?.totalItems,
+      meta?.count,
+      response?.total,
+      response?.totalItems,
+      response?.count,
+    ];
+
+    for (const candidate of candidates) {
+      const parsed = Number(candidate);
+      if (Number.isFinite(parsed) && parsed >= 0) {
+        return parsed;
+      }
+    }
+
+    return fallback;
   }
 
   private getDropdownSearch(dropdown: AttributeDropdownKey): string {
@@ -1105,13 +1945,33 @@ export class AdminAttributesComponent implements OnInit {
     return `${product.title || 'Untitled product'}${product.sku ? ` (${product.sku})` : ''}`;
   }
 
+  private normalizeAttributeResponse(response: any): ProductAttributeResponseDto {
+    return {
+      attribute_id: Number(response?.attribute_id ?? 0),
+      attribute_name: String(response?.attribute_name ?? ''),
+      is_active: Boolean(response?.is_active),
+      is_deleted: Boolean(response?.is_deleted),
+      created_by: response?.created_by,
+      updated_by: response?.updated_by,
+      created_by_profile: response?.created_by_profile ?? null,
+      values: Array.isArray(response?.values) ? response.values.map(String) : [],
+      value_count: Number(response?.value_count ?? 0),
+      value_items: Array.isArray(response?.value_items)
+        ? response.value_items
+        : [],
+      assigned_category_count: Number(response?.assigned_category_count ?? 0),
+      assigned_categories: Array.isArray(response?.assigned_categories)
+        ? response.assigned_categories
+        : [],
+    };
+  }
+
   private toUpdatePayload(
     payload: CreateProductAttributeDto,
   ): UpdateProductAttributeDto {
     return {
       attribute_name: payload.attribute_name,
       is_active: payload.is_active,
-      is_deleted: payload.is_deleted,
     };
   }
 

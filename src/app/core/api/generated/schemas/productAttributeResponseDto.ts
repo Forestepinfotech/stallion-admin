@@ -4,14 +4,26 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
+import type { ProductAttributeResponseDtoAssignedCategoriesItem } from "./productAttributeResponseDtoAssignedCategoriesItem";
+import type { ProductAttributeResponseDtoCreatedBy } from "./productAttributeResponseDtoCreatedBy";
 import type { ProductAttributeResponseDtoCreatedByProfile } from "./productAttributeResponseDtoCreatedByProfile";
+import type { ProductAttributeResponseDtoUpdatedBy } from "./productAttributeResponseDtoUpdatedBy";
+import type { ProductAttributeResponseDtoValueItemsItem } from "./productAttributeResponseDtoValueItemsItem";
 
 export interface ProductAttributeResponseDto {
+  attribute_id: number;
   attribute_name: string;
   is_active: boolean;
   is_deleted: boolean;
-  created_by?: number;
-  attribute_id: number;
+  /** @nullable */
+  created_by?: ProductAttributeResponseDtoCreatedBy;
+  /** @nullable */
+  updated_by?: ProductAttributeResponseDtoUpdatedBy;
   /** @nullable */
   created_by_profile?: ProductAttributeResponseDtoCreatedByProfile;
+  values?: string[];
+  value_count?: number;
+  value_items?: ProductAttributeResponseDtoValueItemsItem[];
+  assigned_category_count?: number;
+  assigned_categories?: ProductAttributeResponseDtoAssignedCategoriesItem[];
 }

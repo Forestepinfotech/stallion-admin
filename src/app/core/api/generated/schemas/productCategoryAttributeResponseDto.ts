@@ -4,11 +4,33 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
+import type { ProductCategoryAttributeResponseDtoAttributeIsActive } from "./productCategoryAttributeResponseDtoAttributeIsActive";
+import type { ProductCategoryAttributeResponseDtoAttributeName } from "./productCategoryAttributeResponseDtoAttributeName";
+import type { ProductCategoryAttributeResponseDtoCategoryAssignmentIsActive } from "./productCategoryAttributeResponseDtoCategoryAssignmentIsActive";
+import type { ProductCategoryAttributeResponseDtoCategoryName } from "./productCategoryAttributeResponseDtoCategoryName";
+import type { ProductCategoryAttributeResponseDtoCreatedBy } from "./productCategoryAttributeResponseDtoCreatedBy";
+import type { ProductCategoryAttributeResponseDtoUpdatedBy } from "./productCategoryAttributeResponseDtoUpdatedBy";
+import type { ProductCategoryAttributeResponseDtoValueItemsItem } from "./productCategoryAttributeResponseDtoValueItemsItem";
 
 export interface ProductCategoryAttributeResponseDto {
   category_id: number;
   attribute_id: number;
   is_active: boolean;
   is_deleted: boolean;
-  created_by?: number;
+  /** @nullable */
+  category_assignment_is_active?: ProductCategoryAttributeResponseDtoCategoryAssignmentIsActive;
+  /** @nullable */
+  created_by?: ProductCategoryAttributeResponseDtoCreatedBy;
+  /** @nullable */
+  updated_by?: ProductCategoryAttributeResponseDtoUpdatedBy;
+  /** @nullable */
+  category_name?: ProductCategoryAttributeResponseDtoCategoryName;
+  /** @nullable */
+  attribute_name?: ProductCategoryAttributeResponseDtoAttributeName;
+  /** @nullable */
+  attribute_is_active?: ProductCategoryAttributeResponseDtoAttributeIsActive;
+  values: string[];
+  value_ids: number[];
+  value_count: number;
+  value_items: ProductCategoryAttributeResponseDtoValueItemsItem[];
 }

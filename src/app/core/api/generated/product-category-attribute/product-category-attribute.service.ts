@@ -19,9 +19,11 @@ import { Observable } from "rxjs";
 import type {
   CreateProductCategoryAttributeDto,
   PaginatedProductCategoryAttributeResponseDto,
+  ProductCategoryAttributeControllerAttributeValuesWorkspaceParams,
   ProductCategoryAttributeControllerWorkspaceParams,
   ProductCategoryAttributeResponseDto,
   SaveProductCategoryAttributeAssignmentDto,
+  SaveProductCategoryAttributeValuesDto,
   UpdateProductCategoryAttributeDto,
 } from "../schemas";
 
@@ -273,33 +275,136 @@ export class ProductCategoryAttributeService {
       },
     );
   }
+  productCategoryAttributeControllerAttributeValuesWorkspace<TData = void>(
+    params: ProductCategoryAttributeControllerAttributeValuesWorkspaceParams,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  productCategoryAttributeControllerAttributeValuesWorkspace<TData = void>(
+    params: ProductCategoryAttributeControllerAttributeValuesWorkspaceParams,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  productCategoryAttributeControllerAttributeValuesWorkspace<TData = void>(
+    params: ProductCategoryAttributeControllerAttributeValuesWorkspaceParams,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  productCategoryAttributeControllerAttributeValuesWorkspace<TData = void>(
+    params: ProductCategoryAttributeControllerAttributeValuesWorkspaceParams,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
+    if (options?.observe === "events") {
+      return this.http.get<TData>(
+        `/product-category-attribute/workspace/attribute-values`,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+          params: filteredParams,
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(
+        `/product-category-attribute/workspace/attribute-values`,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+          params: filteredParams,
+        },
+      );
+    }
+
+    return this.http.get<TData>(
+      `/product-category-attribute/workspace/attribute-values`,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+        params: filteredParams,
+      },
+    );
+  }
+  productCategoryAttributeControllerSaveAttributeValues<TData = void>(
+    saveProductCategoryAttributeValuesDto: SaveProductCategoryAttributeValuesDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  productCategoryAttributeControllerSaveAttributeValues<TData = void>(
+    saveProductCategoryAttributeValuesDto: SaveProductCategoryAttributeValuesDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  productCategoryAttributeControllerSaveAttributeValues<TData = void>(
+    saveProductCategoryAttributeValuesDto: SaveProductCategoryAttributeValuesDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  productCategoryAttributeControllerSaveAttributeValues<TData = void>(
+    saveProductCategoryAttributeValuesDto: SaveProductCategoryAttributeValuesDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.post<TData>(
+        `/product-category-attribute/workspace/attribute-values`,
+        saveProductCategoryAttributeValuesDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.post<TData>(
+        `/product-category-attribute/workspace/attribute-values`,
+        saveProductCategoryAttributeValuesDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.post<TData>(
+      `/product-category-attribute/workspace/attribute-values`,
+      saveProductCategoryAttributeValuesDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
   productCategoryAttributeControllerGet<
     TData = ProductCategoryAttributeResponseDto,
   >(
+    categoryId: string,
     attributeId: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
   productCategoryAttributeControllerGet<
     TData = ProductCategoryAttributeResponseDto,
   >(
+    categoryId: string,
     attributeId: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
   productCategoryAttributeControllerGet<
     TData = ProductCategoryAttributeResponseDto,
   >(
+    categoryId: string,
     attributeId: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
   productCategoryAttributeControllerGet<
     TData = ProductCategoryAttributeResponseDto,
   >(
+    categoryId: string,
     attributeId: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     if (options?.observe === "events") {
       return this.http.get<TData>(
-        `/product-category-attribute/category_id/${attributeId}`,
+        `/product-category-attribute/${categoryId}/${attributeId}`,
         {
           ...(options as Omit<NonNullable<typeof options>, "observe">),
           observe: "events",
@@ -309,7 +414,7 @@ export class ProductCategoryAttributeService {
 
     if (options?.observe === "response") {
       return this.http.get<TData>(
-        `/product-category-attribute/category_id/${attributeId}`,
+        `/product-category-attribute/${categoryId}/${attributeId}`,
         {
           ...(options as Omit<NonNullable<typeof options>, "observe">),
           observe: "response",
@@ -318,7 +423,7 @@ export class ProductCategoryAttributeService {
     }
 
     return this.http.get<TData>(
-      `/product-category-attribute/category_id/${attributeId}`,
+      `/product-category-attribute/${categoryId}/${attributeId}`,
       {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "body",
@@ -328,6 +433,7 @@ export class ProductCategoryAttributeService {
   productCategoryAttributeControllerUpdate<
     TData = ProductCategoryAttributeResponseDto,
   >(
+    categoryId: string,
     attributeId: string,
     updateProductCategoryAttributeDto: UpdateProductCategoryAttributeDto,
     options?: HttpClientOptions & { observe?: "body" },
@@ -335,6 +441,7 @@ export class ProductCategoryAttributeService {
   productCategoryAttributeControllerUpdate<
     TData = ProductCategoryAttributeResponseDto,
   >(
+    categoryId: string,
     attributeId: string,
     updateProductCategoryAttributeDto: UpdateProductCategoryAttributeDto,
     options?: HttpClientOptions & { observe: "events" },
@@ -342,6 +449,7 @@ export class ProductCategoryAttributeService {
   productCategoryAttributeControllerUpdate<
     TData = ProductCategoryAttributeResponseDto,
   >(
+    categoryId: string,
     attributeId: string,
     updateProductCategoryAttributeDto: UpdateProductCategoryAttributeDto,
     options?: HttpClientOptions & { observe: "response" },
@@ -349,13 +457,14 @@ export class ProductCategoryAttributeService {
   productCategoryAttributeControllerUpdate<
     TData = ProductCategoryAttributeResponseDto,
   >(
+    categoryId: string,
     attributeId: string,
     updateProductCategoryAttributeDto: UpdateProductCategoryAttributeDto,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     if (options?.observe === "events") {
       return this.http.patch<TData>(
-        `/product-category-attribute/category_id/${attributeId}`,
+        `/product-category-attribute/${categoryId}/${attributeId}`,
         updateProductCategoryAttributeDto,
         {
           ...(options as Omit<NonNullable<typeof options>, "observe">),
@@ -366,7 +475,7 @@ export class ProductCategoryAttributeService {
 
     if (options?.observe === "response") {
       return this.http.patch<TData>(
-        `/product-category-attribute/category_id/${attributeId}`,
+        `/product-category-attribute/${categoryId}/${attributeId}`,
         updateProductCategoryAttributeDto,
         {
           ...(options as Omit<NonNullable<typeof options>, "observe">),
@@ -376,7 +485,7 @@ export class ProductCategoryAttributeService {
     }
 
     return this.http.patch<TData>(
-      `/product-category-attribute/category_id/${attributeId}`,
+      `/product-category-attribute/${categoryId}/${attributeId}`,
       updateProductCategoryAttributeDto,
       {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
@@ -387,30 +496,34 @@ export class ProductCategoryAttributeService {
   productCategoryAttributeControllerRemove<
     TData = ProductCategoryAttributeResponseDto,
   >(
+    categoryId: string,
     attributeId: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
   productCategoryAttributeControllerRemove<
     TData = ProductCategoryAttributeResponseDto,
   >(
+    categoryId: string,
     attributeId: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
   productCategoryAttributeControllerRemove<
     TData = ProductCategoryAttributeResponseDto,
   >(
+    categoryId: string,
     attributeId: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
   productCategoryAttributeControllerRemove<
     TData = ProductCategoryAttributeResponseDto,
   >(
+    categoryId: string,
     attributeId: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     if (options?.observe === "events") {
       return this.http.delete<TData>(
-        `/product-category-attribute/category_id/${attributeId}`,
+        `/product-category-attribute/${categoryId}/${attributeId}`,
         {
           ...(options as Omit<NonNullable<typeof options>, "observe">),
           observe: "events",
@@ -420,7 +533,7 @@ export class ProductCategoryAttributeService {
 
     if (options?.observe === "response") {
       return this.http.delete<TData>(
-        `/product-category-attribute/category_id/${attributeId}`,
+        `/product-category-attribute/${categoryId}/${attributeId}`,
         {
           ...(options as Omit<NonNullable<typeof options>, "observe">),
           observe: "response",
@@ -429,7 +542,7 @@ export class ProductCategoryAttributeService {
     }
 
     return this.http.delete<TData>(
-      `/product-category-attribute/category_id/${attributeId}`,
+      `/product-category-attribute/${categoryId}/${attributeId}`,
       {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "body",

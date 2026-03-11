@@ -50,19 +50,19 @@
 
         <div class="attribute-shell__scroll">
           <article
-            *ngFor="let attribute of filteredAttributes; trackBy: trackByAttributeId"
+            *ngFor="let attribute of paginatedAttributes; trackBy: trackByAttributeId"
             class="attribute-card"
           >
             <div class="attribute-card__content">
-              <h3 class="attribute-card__title">{{ attribute.attribute_name }}</h3>
-              <p class="attribute-card__meta">
-                <span>Values:</span>
-                {{ getAttributeValuePreview(attribute.attribute_id) }}
-              </p>
-              <p class="attribute-card__meta">
-                <span>Assigned Categories:</span>
-                {{ getAssignedCategoryNames(attribute.attribute_id) }}
-              </p>
+              <div class="attribute-card__head">
+                <h3 class="attribute-card__title">{{ attribute.attribute_name }}</h3>
+                <span
+                  class="attribute-card__status"
+                  [class.attribute-card__status--inactive]="!attribute.is_active"
+                >
+                  {{ attribute.is_active ? "Active" : "Inactive" }}
+                </span>
+              </div>
             </div>
 
             <div class="attribute-card__actions">
@@ -76,15 +76,54 @@
               <button
                 type="button"
                 class="attribute-action attribute-action--dark"
-                (click)="openDeleteAttribute(attribute)"
+                (click)="addAttributeToCategory(attribute)"
               >
-                Delete
+                Assign
               </button>
             </div>
           </article>
 
           <div *ngIf="!loading && filteredAttributes.length === 0" class="attribute-empty">
             No attributes found.
+          </div>
+        </div>
+
+        <div *ngIf="!loading && filteredAttributes.length > 0" class="attribute-list__pagination">
+          <div class="attribute-list__pagination-meta">
+            <span>Rows per page</span>
+            <select
+              [ngModel]="pageSize"
+              [ngModelOptions]="{ standalone: true }"
+              class="attribute-list__page-size"
+              (ngModelChange)="changePageSize($event)"
+            >
+              <option *ngFor="let size of pageSizeOptions" [ngValue]="size">
+                {{ size }}
+              </option>
+            </select>
+          </div>
+
+          <div class="attribute-list__pagination-meta">
+            Page {{ page }} of {{ totalPages }}
+          </div>
+
+          <div class="attribute-list__pagination-actions">
+            <button
+              type="button"
+              class="attribute-action"
+              [disabled]="page === 1"
+              (click)="prevPage()"
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              class="attribute-action"
+              [disabled]="page === totalPages"
+              (click)="nextPage()"
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>
@@ -129,10 +168,35 @@
             Loading saved assignment...
           </div>
 
-          <div class="attribute-picker__grid">
+          <div
+            *ngIf="!hasSelectedCategory && !assignmentLoading"
+            class="attribute-empty attribute-empty--compact"
+          >
+            Select a category to load its assigned attributes.
+          </div>
+
+          <div
+            *ngIf="
+              hasSelectedCategory &&
+              !assignmentLoading &&
+              assignmentAttributes.length === 0
+            "
+            class="attribute-empty attribute-empty--compact"
+          >
+            No attributes assigned for this category.
+          </div>
+
+          <div
+            *ngIf="
+              hasSelectedCategory &&
+              !assignmentLoading &&
+              assignmentAttributes.length > 0
+            "
+            class="attribute-picker__grid"
+          >
             <button
               type="button"
-              *ngFor="let attribute of attributes"
+              *ngFor="let attribute of assignmentAttributes"
               (click)="toggleAttr(attribute.attribute_id)"
               class="picker-card"
               [class.picker-card--selected]="isSelectedAttr(attribute.attribute_id)"
@@ -140,11 +204,11 @@
               <div class="picker-card__head">
                 <span class="picker-card__title">{{ attribute.attribute_name }}</span>
                 <span class="picker-card__badge">
-                  {{ getAttributeValueCount(attribute.attribute_id) }} values
+                  {{ getCategoryValueCount(attribute.attribute_id) }} values
                 </span>
               </div>
               <div class="picker-card__text">
-                {{ getAttributeValuePreview(attribute.attribute_id) }}
+                {{ getCategoryValuePreview(attribute.attribute_id) }}
               </div>
               <div class="picker-card__footer">
                 <button
@@ -156,6 +220,48 @@
                 </button>
               </div>
             </button>
+          </div>
+
+          <div
+            *ngIf="hasSelectedCategory && !assignmentLoading && assignmentTotalItems > 0"
+            class="attribute-picker__pagination"
+          >
+            <div class="attribute-picker__pagination-meta">
+              <span>Rows per page</span>
+              <select
+                [ngModel]="assignmentPageSize"
+                [ngModelOptions]="{ standalone: true }"
+                class="attribute-list__page-size"
+                (ngModelChange)="changeAssignmentPageSize($event)"
+              >
+                <option *ngFor="let size of pageSizeOptions" [ngValue]="size">
+                  {{ size }}
+                </option>
+              </select>
+            </div>
+
+            <div class="attribute-picker__pagination-meta">
+              Page {{ assignmentPage }} of {{ assignmentTotalPages }}
+            </div>
+
+            <div class="attribute-picker__pagination-actions">
+              <button
+                type="button"
+                class="attribute-action"
+                [disabled]="assignmentPage === 1"
+                (click)="prevAssignmentPage()"
+              >
+                Prev
+              </button>
+              <button
+                type="button"
+                class="attribute-action"
+                [disabled]="assignmentPage === assignmentTotalPages"
+                (click)="nextAssignmentPage()"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </section>
 
@@ -270,8 +376,8 @@
               Values for {{ selectedValueAttribute?.attribute_name || "Attribute" }}
             </div>
             <div class="values-modal__subtitle">
-              Selected values appear first. Add, edit, delete, and select values
-              for this attribute.
+              Manage global values for this attribute and save the selected
+              values only for the chosen category.
             </div>
           </div>
 
@@ -298,9 +404,54 @@
               [ngModelOptions]="{ standalone: true }"
               class="values-search"
               placeholder="Search values..."
+              (keyup.enter)="applyValueFilters()"
             />
 
             <div class="values-counter">Selected: {{ selectedValueCount }}</div>
+          </div>
+
+          <div class="values-filters">
+            <select
+              [(ngModel)]="valueSelectionFilter"
+              [ngModelOptions]="{ standalone: true }"
+              class="values-filter__control"
+            >
+              <option value="all">All</option>
+              <option value="selected">Selected</option>
+              <option value="unselected">Unselected</option>
+            </select>
+
+            <select
+              [(ngModel)]="valueSortBy"
+              [ngModelOptions]="{ standalone: true }"
+              class="values-filter__control"
+            >
+              <option value="new_first">New First</option>
+              <option value="old_first">Old First</option>
+            </select>
+
+            <input
+              [(ngModel)]="valueDateFrom"
+              [ngModelOptions]="{ standalone: true }"
+              class="values-filter__control"
+              type="date"
+            />
+
+            <input
+              [(ngModel)]="valueDateTo"
+              [ngModelOptions]="{ standalone: true }"
+              class="values-filter__control"
+              type="date"
+            />
+
+            <button
+              type="button"
+              class="values-filter__button"
+              [disabled]="applyingValueFilters || loadingValueSelection"
+              (click)="applyValueFilters()"
+            >
+              {{ applyingValueFilters ? "Applying..." : "Apply" }}
+            </button>
           </div>
 
           <div class="values-add">
@@ -309,87 +460,129 @@
               [ngModelOptions]="{ standalone: true }"
               class="values-add__input"
               placeholder="Add value to attribute"
-              (keyup.enter)="addDummyValue()"
+              (keyup.enter)="addValueToServer()"
             />
             <button
               type="button"
               class="values-add__button"
-              (click)="addDummyValue()"
+              [disabled]="addingValue"
+              (click)="addValueToServer()"
             >
-              Add Value
+              {{ addingValue ? "Adding..." : "Add Value" }}
             </button>
           </div>
 
-          <div class="values-list">
-            <div *ngIf="visibleAttributeValues.length === 0" class="attribute-empty attribute-empty--compact">
+          <div class="values-table-wrap">
+            <div *ngIf="loadingValueSelection" class="values-loading-overlay">
+              <div class="values-loading-overlay__card">Loading values...</div>
+            </div>
+
+            <div *ngIf="!loadingValueSelection && visibleAttributeValues.length === 0" class="attribute-empty attribute-empty--compact">
               No values found.
             </div>
 
-            <div
-              *ngFor="let value of visibleAttributeValues"
-              class="value-row"
-              [class.value-row--selected]="value.selected"
-            >
-              <label class="value-row__main">
-                <input
-                  type="checkbox"
-                  class="value-row__checkbox"
-                  [checked]="value.selected"
-                  (change)="toggleDummyValue(value.id)"
-                />
-
-                <div class="value-row__content">
-                  <ng-container *ngIf="editingValueId !== value.id; else editValueTemplate">
-                    <div class="value-row__label">{{ value.label }}</div>
-                    <div class="value-row__status">
-                      {{ value.selected ? "Selected for attribute" : "Available value" }}
-                    </div>
-                  </ng-container>
-                  <ng-template #editValueTemplate>
+            <table *ngIf="visibleAttributeValues.length > 0" class="values-table">
+              <thead>
+                <tr>
+                  <th>Select</th>
+                  <th>Value</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  *ngFor="let value of visibleAttributeValues"
+                  [class.values-table__row--selected]="value.selected"
+                >
+                  <td>
                     <input
-                      [(ngModel)]="editingValueLabel"
-                      [ngModelOptions]="{ standalone: true }"
-                      class="value-row__edit-input"
-                      (keyup.enter)="saveEditedValue(value.id)"
+                      type="checkbox"
+                      class="value-row__checkbox"
+                      [checked]="value.selected"
+                      (change)="toggleValueDraft(value.id)"
                     />
-                  </ng-template>
-                </div>
-              </label>
+                  </td>
+                  <td>
+                    <ng-container *ngIf="editingValueId !== value.id; else editValueTemplate">
+                      <div class="value-row__label">{{ value.label }}</div>
+                    </ng-container>
+                    <ng-template #editValueTemplate>
+                      <input
+                        [(ngModel)]="editingValueLabel"
+                        [ngModelOptions]="{ standalone: true }"
+                        class="value-row__edit-input"
+                        (keyup.enter)="saveEditedValue(value.id)"
+                      />
+                    </ng-template>
+                  </td>
+                  <td>
+                    <span class="value-row__status">
+                      Active
+                    </span>
+                  </td>
+                  <td>
+                    <div class="value-row__actions">
+                      <ng-container *ngIf="editingValueId !== value.id; else editActionsTemplate">
+                        <button
+                          type="button"
+                          class="value-row__button"
+                          (click)="startEditingValue(value)"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          class="value-row__button value-row__button--danger"
+                          (click)="deleteValueDraft(value.id)"
+                        >
+                          Delete
+                        </button>
+                      </ng-container>
+                      <ng-template #editActionsTemplate>
+                        <button
+                          type="button"
+                          class="value-row__button"
+                          (click)="saveEditedValue(value.id)"
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          class="value-row__button"
+                          (click)="cancelEditingValue()"
+                        >
+                          Cancel
+                        </button>
+                      </ng-template>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-              <div class="value-row__actions">
-                <ng-container *ngIf="editingValueId !== value.id; else editActionsTemplate">
-                  <button
-                    type="button"
-                    class="value-row__button"
-                    (click)="startEditingValue(value)"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    class="value-row__button value-row__button--danger"
-                    (click)="deleteDummyValue(value.id)"
-                  >
-                    Delete
-                  </button>
-                </ng-container>
-                <ng-template #editActionsTemplate>
-                  <button
-                    type="button"
-                    class="value-row__button"
-                    (click)="saveEditedValue(value.id)"
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    class="value-row__button"
-                    (click)="cancelEditingValue()"
-                  >
-                    Cancel
-                  </button>
-                </ng-template>
-              </div>
+          <div class="values-pagination" *ngIf="visibleAttributeValues.length > 0">
+            <div class="values-pagination__meta">
+              Page {{ valuePage }} of {{ valueTotalPages }}
+            </div>
+            <div class="values-pagination__actions">
+              <button
+                type="button"
+                class="values-footer__button"
+                [disabled]="valuePage === 1"
+                (click)="prevValuePage()"
+              >
+                Prev
+              </button>
+              <button
+                type="button"
+                class="values-footer__button"
+                [disabled]="valuePage >= valueTotalPages"
+                (click)="nextValuePage()"
+              >
+                Next
+              </button>
             </div>
           </div>
 
@@ -404,9 +597,10 @@
             <button
               type="button"
               class="values-footer__button values-footer__button--dark"
+              [disabled]="savingValues"
               (click)="saveValueSelections()"
             >
-              Save
+              {{ savingValues ? "Saving..." : "Save" }}
             </button>
           </div>
         </div>
@@ -446,6 +640,87 @@
               (click)="confirmDelete()"
             >
               {{ deleting ? "Deleting..." : "Delete" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="duplicateValueConfirmOpen" class="fixed inset-0 z-[60]">
+    <div
+      class="absolute inset-0 bg-black/50"
+      (click)="closeDuplicateValueConfirm()"
+    ></div>
+
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div
+        class="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl"
+      >
+        <div class="p-6">
+          <div class="text-lg font-semibold text-gray-900">
+            Value already added
+          </div>
+          <p class="mt-1 text-sm text-gray-500">
+            This value is already added, you want to select?
+          </p>
+
+          <div class="mt-6 flex justify-end gap-3">
+            <button
+              type="button"
+              class="rounded-xl border px-4 py-2.5 hover:bg-gray-50"
+              (click)="closeDuplicateValueConfirm()"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="rounded-xl bg-black px-4 py-2.5 text-white hover:bg-gray-900"
+              (click)="confirmSelectDuplicateValue()"
+            >
+              Select
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="assignConfirmOpen" class="fixed inset-0 z-[60]">
+    <div
+      class="absolute inset-0 bg-black/50"
+      (click)="closeAssignConfirm()"
+    ></div>
+
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div
+        class="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl"
+      >
+        <div class="p-6">
+          <div class="text-lg font-semibold text-gray-900">
+            Assign attribute?
+          </div>
+          <p class="mt-1 text-sm text-gray-500">
+            Are you sure want to add
+            "{{ pendingAssignAttribute?.attribute_name || "this attribute" }}"
+            to "{{ selectedCategoryName || "this" }}" category?
+          </p>
+
+          <div class="mt-6 flex justify-end gap-3">
+            <button
+              type="button"
+              class="rounded-xl border px-4 py-2.5 hover:bg-gray-50"
+              (click)="closeAssignConfirm()"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="rounded-xl bg-black px-4 py-2.5 text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+              [disabled]="savingAssignment"
+              (click)="confirmAssignAttribute()"
+            >
+              {{ savingAssignment ? "Assigning..." : "Assign" }}
             </button>
           </div>
         </div>

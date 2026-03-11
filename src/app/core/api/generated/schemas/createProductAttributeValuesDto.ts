@@ -8,7 +8,7 @@
 export interface CreateProductAttributeValuesDto {
   attribute_id: number;
   attribute_value: string;
-  is_active: boolean;
-  is_deleted: boolean;
+  is_active?: boolean;
+  is_deleted?: boolean;
   created_by?: number;
 }

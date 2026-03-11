@@ -5,11 +5,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface UpdateProductCategoryAttributeDto {
+export interface SaveProductCategoryAttributeValuesDto {
   category_id?: number;
-  attribute_id?: number;
+  product_id?: number;
+  attribute_id: number;
+  value_ids: number[];
   is_active?: boolean;
-  is_deleted?: boolean;
-  value_ids?: number[];
-  created_by?: number;
 }

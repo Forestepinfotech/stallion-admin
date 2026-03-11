@@ -8,7 +8,8 @@
 export interface CreateProductCategoryAttributeDto {
   category_id: number;
   attribute_id: number;
-  is_active: boolean;
-  is_deleted: boolean;
+  is_active?: boolean;
+  is_deleted?: boolean;
+  value_ids?: number[];
   created_by?: number;
 }
