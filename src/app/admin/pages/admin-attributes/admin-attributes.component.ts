@@ -1266,11 +1266,8 @@ export class AdminAttributesComponent implements OnInit {
 
     this.productsService
       .productsControllerList({
-        page: 1,
-        limit: 200,
-        categoryIds: String(categoryId),
-        brandIds: String(brandId),
-        modelIds: String(modelId),
+        category_id: Number(categoryId),
+        brand_id: Number(brandId),
       })
       .subscribe({
         next: (response) => {

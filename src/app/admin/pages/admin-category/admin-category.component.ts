@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { CategoryModalComponent } from '../../components/category-modal/category-modal.component';
 import { ProductCategoryService } from '../../../core/api/generated/product-category/product-category.service';
@@ -15,7 +16,7 @@ type CategoryStatusFilter = 'All' | 'Active' | 'Inactive';
 
 @Component({
   selector: 'app-admin-category',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, CategoryModalComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, CategoryModalComponent],
   templateUrl: './admin-category.component.html',
   styleUrl: './admin-category.component.css',
 })

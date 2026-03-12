@@ -4,65 +4,79 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
-import type { ProductDetailDtoActualCost } from "./productDetailDtoActualCost";
-import type { ProductDetailDtoAttributesItem } from "./productDetailDtoAttributesItem";
-import type { ProductDetailDtoAvgRating } from "./productDetailDtoAvgRating";
-import type { ProductDetailDtoBannerDesktopImage } from "./productDetailDtoBannerDesktopImage";
-import type { ProductDetailDtoBannerMobileImage } from "./productDetailDtoBannerMobileImage";
-import type { ProductDetailDtoBarCode } from "./productDetailDtoBarCode";
-import type { ProductDetailDtoCarBrandId } from "./productDetailDtoCarBrandId";
-import type { ProductDetailDtoCarBrandName } from "./productDetailDtoCarBrandName";
+import type { ProductDetailDtoAttributes } from "./productDetailDtoAttributes";
+import type { ProductDetailDtoBarcode } from "./productDetailDtoBarcode";
+import type { ProductDetailDtoBrandId } from "./productDetailDtoBrandId";
+import type { ProductDetailDtoBrandName } from "./productDetailDtoBrandName";
+import type { ProductDetailDtoBreadcrumbsItem } from "./productDetailDtoBreadcrumbsItem";
 import type { ProductDetailDtoCategoryId } from "./productDetailDtoCategoryId";
 import type { ProductDetailDtoCategoryName } from "./productDetailDtoCategoryName";
+import type { ProductDetailDtoCompareAtPrice } from "./productDetailDtoCompareAtPrice";
+import type { ProductDetailDtoCostPrice } from "./productDetailDtoCostPrice";
 import type { ProductDetailDtoCreatedAt } from "./productDetailDtoCreatedAt";
-import type { ProductDetailDtoDealerPricesItem } from "./productDetailDtoDealerPricesItem";
+import type { ProductDetailDtoCurrency } from "./productDetailDtoCurrency";
 import type { ProductDetailDtoDescription } from "./productDetailDtoDescription";
+import type { ProductDetailDtoFeatured } from "./productDetailDtoFeatured";
+import type { ProductDetailDtoFitmentsItem } from "./productDetailDtoFitmentsItem";
+import type { ProductDetailDtoHeight } from "./productDetailDtoHeight";
 import type { ProductDetailDtoIsActive } from "./productDetailDtoIsActive";
 import type { ProductDetailDtoIsDeleted } from "./productDetailDtoIsDeleted";
-import type { ProductDetailDtoIsFast } from "./productDetailDtoIsFast";
-import type { ProductDetailDtoIsPopular } from "./productDetailDtoIsPopular";
-import type { ProductDetailDtoIsReturnable } from "./productDetailDtoIsReturnable";
-import type { ProductDetailDtoLongDescription } from "./productDetailDtoLongDescription";
-import type { ProductDetailDtoLowStockQty } from "./productDetailDtoLowStockQty";
-import type { ProductDetailDtoMinDealerQty } from "./productDetailDtoMinDealerQty";
-import type { ProductDetailDtoMinRetailQty } from "./productDetailDtoMinRetailQty";
+import type { ProductDetailDtoLeadTimeDays } from "./productDetailDtoLeadTimeDays";
+import type { ProductDetailDtoLength } from "./productDetailDtoLength";
+import type { ProductDetailDtoLowStockThreshold } from "./productDetailDtoLowStockThreshold";
+import type { ProductDetailDtoMediaItem } from "./productDetailDtoMediaItem";
 import type { ProductDetailDtoModelId } from "./productDetailDtoModelId";
 import type { ProductDetailDtoModelName } from "./productDetailDtoModelName";
-import type { ProductDetailDtoNewCost } from "./productDetailDtoNewCost";
-import type { ProductDetailDtoOldCost } from "./productDetailDtoOldCost";
-import type { ProductDetailDtoProductAttributes } from "./productDetailDtoProductAttributes";
-import type { ProductDetailDtoProductGalleryUrl } from "./productDetailDtoProductGalleryUrl";
-import type { ProductDetailDtoProductImageUrl } from "./productDetailDtoProductImageUrl";
-import type { ProductDetailDtoSalesCount } from "./productDetailDtoSalesCount";
+import type { ProductDetailDtoPrice } from "./productDetailDtoPrice";
+import type { ProductDetailDtoReturnable } from "./productDetailDtoReturnable";
+import type { ProductDetailDtoSeoDescription } from "./productDetailDtoSeoDescription";
+import type { ProductDetailDtoSeoTitle } from "./productDetailDtoSeoTitle";
+import type { ProductDetailDtoShippingClass } from "./productDetailDtoShippingClass";
+import type { ProductDetailDtoShortDescription } from "./productDetailDtoShortDescription";
+import type { ProductDetailDtoSpecificationsItem } from "./productDetailDtoSpecificationsItem";
+import type { ProductDetailDtoStatus } from "./productDetailDtoStatus";
 import type { ProductDetailDtoStockQty } from "./productDetailDtoStockQty";
+import type { ProductDetailDtoStockStatus } from "./productDetailDtoStockStatus";
+import type { ProductDetailDtoSubCategoryId } from "./productDetailDtoSubCategoryId";
+import type { ProductDetailDtoSubCategoryName } from "./productDetailDtoSubCategoryName";
+import type { ProductDetailDtoSupplier } from "./productDetailDtoSupplier";
+import type { ProductDetailDtoThumbnailImage } from "./productDetailDtoThumbnailImage";
 import type { ProductDetailDtoUpdatedAt } from "./productDetailDtoUpdatedAt";
+import type { ProductDetailDtoVisibility } from "./productDetailDtoVisibility";
+import type { ProductDetailDtoWarehouseBin } from "./productDetailDtoWarehouseBin";
+import type { ProductDetailDtoWarranty } from "./productDetailDtoWarranty";
+import type { ProductDetailDtoWeight } from "./productDetailDtoWeight";
+import type { ProductDetailDtoWidth } from "./productDetailDtoWidth";
 
 export interface ProductDetailDto {
   product_id: number;
-  sku: string;
   title: string;
+  slug: string;
+  sku: string;
   /** @nullable */
-  new_cost?: ProductDetailDtoNewCost;
+  barcode?: ProductDetailDtoBarcode;
   /** @nullable */
-  old_cost?: ProductDetailDtoOldCost;
+  price?: ProductDetailDtoPrice;
   /** @nullable */
-  actual_cost?: ProductDetailDtoActualCost;
+  compare_at_price?: ProductDetailDtoCompareAtPrice;
+  /** @nullable */
+  cost_price?: ProductDetailDtoCostPrice;
+  /** @nullable */
+  currency?: ProductDetailDtoCurrency;
   /** @nullable */
   stock_qty?: ProductDetailDtoStockQty;
   /** @nullable */
+  stock_status?: ProductDetailDtoStockStatus;
+  /** @nullable */
+  status?: ProductDetailDtoStatus;
+  /** @nullable */
+  visibility?: ProductDetailDtoVisibility;
+  /** @nullable */
+  featured?: ProductDetailDtoFeatured;
+  /** @nullable */
   is_active?: ProductDetailDtoIsActive;
   /** @nullable */
-  is_popular?: ProductDetailDtoIsPopular;
-  /**
-   * Average rating 1-5
-   * @nullable
-   */
-  avg_rating?: ProductDetailDtoAvgRating;
-  /**
-   * Total units sold (completed orders)
-   * @nullable
-   */
-  sales_count?: ProductDetailDtoSalesCount;
+  thumbnail_image?: ProductDetailDtoThumbnailImage;
   /** @nullable */
   created_at?: ProductDetailDtoCreatedAt;
   /** @nullable */
@@ -72,43 +86,60 @@ export interface ProductDetailDto {
   /** @nullable */
   category_name?: ProductDetailDtoCategoryName;
   /** @nullable */
+  sub_category_id?: ProductDetailDtoSubCategoryId;
+  /** @nullable */
+  sub_category_name?: ProductDetailDtoSubCategoryName;
+  /** @nullable */
+  brand_id?: ProductDetailDtoBrandId;
+  /** @nullable */
+  brand_name?: ProductDetailDtoBrandName;
+  /** @nullable */
   model_id?: ProductDetailDtoModelId;
   /** @nullable */
   model_name?: ProductDetailDtoModelName;
   /** @nullable */
-  car_brand_id?: ProductDetailDtoCarBrandId;
-  /** @nullable */
-  car_brand_name?: ProductDetailDtoCarBrandName;
+  short_description?: ProductDetailDtoShortDescription;
   /** @nullable */
   description?: ProductDetailDtoDescription;
   /** @nullable */
-  long_description?: ProductDetailDtoLongDescription;
+  supplier?: ProductDetailDtoSupplier;
   /** @nullable */
-  product_image_url?: ProductDetailDtoProductImageUrl;
+  warehouse_bin?: ProductDetailDtoWarehouseBin;
   /** @nullable */
-  product_gallery_url?: ProductDetailDtoProductGalleryUrl;
+  lead_time_days?: ProductDetailDtoLeadTimeDays;
   /** @nullable */
-  min_retail_qty?: ProductDetailDtoMinRetailQty;
+  low_stock_threshold?: ProductDetailDtoLowStockThreshold;
   /** @nullable */
-  min_dealer_qty?: ProductDetailDtoMinDealerQty;
+  shipping_class?: ProductDetailDtoShippingClass;
   /** @nullable */
-  banner_desktop_image?: ProductDetailDtoBannerDesktopImage;
+  weight?: ProductDetailDtoWeight;
   /** @nullable */
-  banner_mobile_image?: ProductDetailDtoBannerMobileImage;
+  length?: ProductDetailDtoLength;
   /** @nullable */
-  is_fast?: ProductDetailDtoIsFast;
+  width?: ProductDetailDtoWidth;
+  /** @nullable */
+  height?: ProductDetailDtoHeight;
+  /** @nullable */
+  warranty?: ProductDetailDtoWarranty;
+  /** @nullable */
+  returnable?: ProductDetailDtoReturnable;
+  /** @nullable */
+  gallery_images?: string[] | null;
+  /** @nullable */
+  video_urls?: string[] | null;
+  /** @nullable */
+  media?: ProductDetailDtoMediaItem[] | null;
+  /** @nullable */
+  seo_title?: ProductDetailDtoSeoTitle;
+  /** @nullable */
+  seo_description?: ProductDetailDtoSeoDescription;
+  /** @nullable */
+  tags?: string[] | null;
+  /** @nullable */
+  attributes?: ProductDetailDtoAttributes;
   /** @nullable */
   is_deleted?: ProductDetailDtoIsDeleted;
-  /** @nullable */
-  low_stock_qty?: ProductDetailDtoLowStockQty;
-  /** @nullable */
-  product_attributes?: ProductDetailDtoProductAttributes;
-  /** @nullable */
-  is_returnable?: ProductDetailDtoIsReturnable;
-  /** @nullable */
-  bar_code?: ProductDetailDtoBarCode;
-  discount_amount: number;
-  discount_percent: number;
-  dealer_prices: ProductDetailDtoDealerPricesItem[];
-  attributes: ProductDetailDtoAttributesItem[];
+  breadcrumbs: ProductDetailDtoBreadcrumbsItem[];
+  specifications: ProductDetailDtoSpecificationsItem[];
+  fitments: ProductDetailDtoFitmentsItem[];
 }

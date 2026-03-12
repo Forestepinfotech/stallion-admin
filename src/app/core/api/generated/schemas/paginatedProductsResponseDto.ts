@@ -8,6 +8,8 @@ import type { PaginatedProductsResponseDtoMeta } from "./paginatedProductsRespon
 import type { ProductSummaryDto } from "./productSummaryDto";
 
 export interface PaginatedProductsResponseDto {
+  success: boolean;
+  message: string;
   data: ProductSummaryDto[];
   meta: PaginatedProductsResponseDtoMeta;
 }

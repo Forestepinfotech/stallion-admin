@@ -4,36 +4,50 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
-import type { UpdateProductsDtoProductAttributes } from "./updateProductsDtoProductAttributes";
-import type { UpdateProductsDtoProductGalleryUrl } from "./updateProductsDtoProductGalleryUrl";
-import type { UpdateProductsDtoProductImageUrl } from "./updateProductsDtoProductImageUrl";
+import type { ProductMediaItemDto } from "./productMediaItemDto";
+import type { UpdateProductsDtoAttributes } from "./updateProductsDtoAttributes";
 
 export interface UpdateProductsDto {
+  title?: string;
+  slug?: string;
+  sku?: string;
+  barcode?: string;
+  brand_id?: number;
   model_id?: number;
   category_id?: number;
-  attribute_id?: number;
-  sku?: string;
-  title?: string;
+  sub_category_id?: number;
+  short_description?: string;
   description?: string;
-  long_description?: string;
-  product_image_url?: UpdateProductsDtoProductImageUrl;
-  product_gallery_url?: UpdateProductsDtoProductGalleryUrl;
-  old_cost?: number;
-  new_cost?: number;
-  actual_cost?: number;
-  stock_qty?: number;
-  min_retail_qty?: number;
-  min_dealer_qty?: number;
-  banner_desktop_image?: string;
-  banner_mobile_image?: string;
-  is_fast?: boolean;
+  status?: string;
+  visibility?: string;
+  featured?: boolean;
   is_active?: boolean;
   is_deleted?: boolean;
-  low_stock_qty?: number;
-  is_popular?: boolean;
-  product_attributes?: UpdateProductsDtoProductAttributes;
-  is_returnable?: boolean;
-  bar_code?: string;
+  price?: number;
+  compare_at_price?: number;
+  cost_price?: number;
+  currency?: string;
+  stock_qty?: number;
+  low_stock_threshold?: number;
+  stock_status?: string;
+  supplier?: string;
+  warehouse_bin?: string;
+  lead_time_days?: number;
+  shipping_class?: string;
+  weight?: number;
+  length?: number;
+  width?: number;
+  height?: number;
+  warranty?: string;
+  returnable?: boolean;
+  thumbnail_image?: string;
+  gallery_images?: string[];
+  video_urls?: string[];
+  media?: ProductMediaItemDto[];
+  seo_title?: string;
+  seo_description?: string;
+  tags?: string[];
+  attributes?: UpdateProductsDtoAttributes;
   created_by?: number;
   updated_by?: number;
 }

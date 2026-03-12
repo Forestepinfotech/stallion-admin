@@ -8,6 +8,14 @@
 export interface UpdateProductCategoryAttributeDto {
   category_id?: number;
   attribute_id?: number;
+  sub_category_id?: number;
+  is_required?: boolean;
+  is_filterable?: boolean;
+  is_searchable?: boolean;
+  is_visible_on_pdp?: boolean;
+  is_visible_on_plp?: boolean;
+  display_group?: string;
+  sort_order?: number;
   is_active?: boolean;
   is_deleted?: boolean;
   value_ids?: number[];

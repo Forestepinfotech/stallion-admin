@@ -12,13 +12,22 @@
         </p>
       </div>
 
-      <button
-        type="button"
-        (click)="openCreateCategory()"
-        class="rounded-2xl bg-white px-4 py-3 font-medium text-black transition hover:bg-gray-100"
-      >
-        + Create Category
-      </button>
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <a
+          routerLink="/admin/sub-categories"
+          class="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-center font-medium text-white transition hover:bg-white/15"
+        >
+          Manage Sub Categories
+        </a>
+
+        <button
+          type="button"
+          (click)="openCreateCategory()"
+          class="rounded-2xl bg-white px-4 py-3 font-medium text-black transition hover:bg-gray-100"
+        >
+          + Create Category
+        </button>
+      </div>
     </div>
 
     <div class="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-5">

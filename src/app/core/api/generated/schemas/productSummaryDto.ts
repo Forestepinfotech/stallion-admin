@@ -4,49 +4,58 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
-import type { ProductSummaryDtoActualCost } from "./productSummaryDtoActualCost";
-import type { ProductSummaryDtoAvgRating } from "./productSummaryDtoAvgRating";
-import type { ProductSummaryDtoCarBrandId } from "./productSummaryDtoCarBrandId";
-import type { ProductSummaryDtoCarBrandName } from "./productSummaryDtoCarBrandName";
+import type { ProductSummaryDtoBarcode } from "./productSummaryDtoBarcode";
+import type { ProductSummaryDtoBrandId } from "./productSummaryDtoBrandId";
+import type { ProductSummaryDtoBrandName } from "./productSummaryDtoBrandName";
 import type { ProductSummaryDtoCategoryId } from "./productSummaryDtoCategoryId";
 import type { ProductSummaryDtoCategoryName } from "./productSummaryDtoCategoryName";
+import type { ProductSummaryDtoCompareAtPrice } from "./productSummaryDtoCompareAtPrice";
+import type { ProductSummaryDtoCostPrice } from "./productSummaryDtoCostPrice";
 import type { ProductSummaryDtoCreatedAt } from "./productSummaryDtoCreatedAt";
+import type { ProductSummaryDtoCurrency } from "./productSummaryDtoCurrency";
+import type { ProductSummaryDtoFeatured } from "./productSummaryDtoFeatured";
 import type { ProductSummaryDtoIsActive } from "./productSummaryDtoIsActive";
-import type { ProductSummaryDtoIsPopular } from "./productSummaryDtoIsPopular";
 import type { ProductSummaryDtoModelId } from "./productSummaryDtoModelId";
 import type { ProductSummaryDtoModelName } from "./productSummaryDtoModelName";
-import type { ProductSummaryDtoNewCost } from "./productSummaryDtoNewCost";
-import type { ProductSummaryDtoOldCost } from "./productSummaryDtoOldCost";
-import type { ProductSummaryDtoSalesCount } from "./productSummaryDtoSalesCount";
+import type { ProductSummaryDtoPrice } from "./productSummaryDtoPrice";
+import type { ProductSummaryDtoStatus } from "./productSummaryDtoStatus";
 import type { ProductSummaryDtoStockQty } from "./productSummaryDtoStockQty";
+import type { ProductSummaryDtoStockStatus } from "./productSummaryDtoStockStatus";
+import type { ProductSummaryDtoSubCategoryId } from "./productSummaryDtoSubCategoryId";
+import type { ProductSummaryDtoSubCategoryName } from "./productSummaryDtoSubCategoryName";
+import type { ProductSummaryDtoThumbnailImage } from "./productSummaryDtoThumbnailImage";
 import type { ProductSummaryDtoUpdatedAt } from "./productSummaryDtoUpdatedAt";
+import type { ProductSummaryDtoVisibility } from "./productSummaryDtoVisibility";
 
 export interface ProductSummaryDto {
   product_id: number;
-  sku: string;
   title: string;
+  slug: string;
+  sku: string;
   /** @nullable */
-  new_cost?: ProductSummaryDtoNewCost;
+  barcode?: ProductSummaryDtoBarcode;
   /** @nullable */
-  old_cost?: ProductSummaryDtoOldCost;
+  price?: ProductSummaryDtoPrice;
   /** @nullable */
-  actual_cost?: ProductSummaryDtoActualCost;
+  compare_at_price?: ProductSummaryDtoCompareAtPrice;
+  /** @nullable */
+  cost_price?: ProductSummaryDtoCostPrice;
+  /** @nullable */
+  currency?: ProductSummaryDtoCurrency;
   /** @nullable */
   stock_qty?: ProductSummaryDtoStockQty;
   /** @nullable */
+  stock_status?: ProductSummaryDtoStockStatus;
+  /** @nullable */
+  status?: ProductSummaryDtoStatus;
+  /** @nullable */
+  visibility?: ProductSummaryDtoVisibility;
+  /** @nullable */
+  featured?: ProductSummaryDtoFeatured;
+  /** @nullable */
   is_active?: ProductSummaryDtoIsActive;
   /** @nullable */
-  is_popular?: ProductSummaryDtoIsPopular;
-  /**
-   * Average rating 1-5
-   * @nullable
-   */
-  avg_rating?: ProductSummaryDtoAvgRating;
-  /**
-   * Total units sold (completed orders)
-   * @nullable
-   */
-  sales_count?: ProductSummaryDtoSalesCount;
+  thumbnail_image?: ProductSummaryDtoThumbnailImage;
   /** @nullable */
   created_at?: ProductSummaryDtoCreatedAt;
   /** @nullable */
@@ -56,11 +65,15 @@ export interface ProductSummaryDto {
   /** @nullable */
   category_name?: ProductSummaryDtoCategoryName;
   /** @nullable */
+  sub_category_id?: ProductSummaryDtoSubCategoryId;
+  /** @nullable */
+  sub_category_name?: ProductSummaryDtoSubCategoryName;
+  /** @nullable */
+  brand_id?: ProductSummaryDtoBrandId;
+  /** @nullable */
+  brand_name?: ProductSummaryDtoBrandName;
+  /** @nullable */
   model_id?: ProductSummaryDtoModelId;
   /** @nullable */
   model_name?: ProductSummaryDtoModelName;
-  /** @nullable */
-  car_brand_id?: ProductSummaryDtoCarBrandId;
-  /** @nullable */
-  car_brand_name?: ProductSummaryDtoCarBrandName;
 }

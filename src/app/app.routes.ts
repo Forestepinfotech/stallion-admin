@@ -14,9 +14,11 @@ import { AdminInventoryComponent } from './admin/pages/admin-inventory/admin-inv
 import { AdminUserComponent } from './admin/pages/admin-user/admin-user.component';
 import { AdminAttributesComponent } from './admin/pages/admin-attributes/admin-attributes.component';
 import { AdminProductListComponent } from './admin/pages/admin-product-list/admin-product-list.component';
+import { AdminProductDetailComponent } from './admin/pages/admin-product-detail/admin-product-detail.component';
 import { AdminProductReviewComponent } from './admin/pages/admin-product-review/admin-product-review.component';
 import { AdminProductBuyerComponent } from './admin/pages/admin-product-buyer/admin-product-buyer.component';
 import { AdminCategoryComponent } from './admin/pages/admin-category/admin-category.component';
+import { AdminSubCategoryComponent } from './admin/pages/admin-sub-category/admin-sub-category.component';
 import { LandingRedirectComponent } from './core/auth/landing-redirect.component';
 
 export const routes: Routes = [
@@ -52,6 +54,10 @@ export const routes: Routes = [
         component: AdminProductListComponent,
       },
       {
+        path: 'products-list/:id',
+        component: AdminProductDetailComponent,
+      },
+      {
         path: 'products-reviews',
         component: AdminProductReviewComponent,
       },
@@ -79,6 +85,7 @@ export const routes: Routes = [
       },
       { path: 'users', component: AdminUserComponent },
       { path: 'category', component: AdminCategoryComponent },
+      { path: 'sub-categories', component: AdminSubCategoryComponent },
     ],
   },
 

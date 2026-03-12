@@ -5,14 +5,44 @@
  * OpenAPI spec version: 1.0
  */
 import type { ProductAttributeResponseDtoAssignedCategoriesItem } from "./productAttributeResponseDtoAssignedCategoriesItem";
+import type { ProductAttributeResponseDtoAttributeCode } from "./productAttributeResponseDtoAttributeCode";
+import type { ProductAttributeResponseDtoAttributeType } from "./productAttributeResponseDtoAttributeType";
 import type { ProductAttributeResponseDtoCreatedBy } from "./productAttributeResponseDtoCreatedBy";
 import type { ProductAttributeResponseDtoCreatedByProfile } from "./productAttributeResponseDtoCreatedByProfile";
+import type { ProductAttributeResponseDtoDataType } from "./productAttributeResponseDtoDataType";
+import type { ProductAttributeResponseDtoHelpText } from "./productAttributeResponseDtoHelpText";
+import type { ProductAttributeResponseDtoInputType } from "./productAttributeResponseDtoInputType";
+import type { ProductAttributeResponseDtoIsFilterable } from "./productAttributeResponseDtoIsFilterable";
+import type { ProductAttributeResponseDtoIsRequiredDefault } from "./productAttributeResponseDtoIsRequiredDefault";
+import type { ProductAttributeResponseDtoIsSearchable } from "./productAttributeResponseDtoIsSearchable";
+import type { ProductAttributeResponseDtoIsVariantAxis } from "./productAttributeResponseDtoIsVariantAxis";
+import type { ProductAttributeResponseDtoIsVisibleOnPdp } from "./productAttributeResponseDtoIsVisibleOnPdp";
+import type { ProductAttributeResponseDtoIsVisibleOnPlp } from "./productAttributeResponseDtoIsVisibleOnPlp";
+import type { ProductAttributeResponseDtoPlaceholder } from "./productAttributeResponseDtoPlaceholder";
+import type { ProductAttributeResponseDtoSortOrder } from "./productAttributeResponseDtoSortOrder";
+import type { ProductAttributeResponseDtoUnitType } from "./productAttributeResponseDtoUnitType";
 import type { ProductAttributeResponseDtoUpdatedBy } from "./productAttributeResponseDtoUpdatedBy";
+import type { ProductAttributeResponseDtoValidationRules } from "./productAttributeResponseDtoValidationRules";
 import type { ProductAttributeResponseDtoValueItemsItem } from "./productAttributeResponseDtoValueItemsItem";
 
 export interface ProductAttributeResponseDto {
   attribute_id: number;
   attribute_name: string;
+  attribute_code?: ProductAttributeResponseDtoAttributeCode;
+  attribute_type?: ProductAttributeResponseDtoAttributeType;
+  input_type?: ProductAttributeResponseDtoInputType;
+  data_type?: ProductAttributeResponseDtoDataType;
+  unit_type?: ProductAttributeResponseDtoUnitType;
+  help_text?: ProductAttributeResponseDtoHelpText;
+  placeholder?: ProductAttributeResponseDtoPlaceholder;
+  validation_rules?: ProductAttributeResponseDtoValidationRules;
+  is_required_default?: ProductAttributeResponseDtoIsRequiredDefault;
+  is_filterable?: ProductAttributeResponseDtoIsFilterable;
+  is_searchable?: ProductAttributeResponseDtoIsSearchable;
+  is_variant_axis?: ProductAttributeResponseDtoIsVariantAxis;
+  is_visible_on_pdp?: ProductAttributeResponseDtoIsVisibleOnPdp;
+  is_visible_on_plp?: ProductAttributeResponseDtoIsVisibleOnPlp;
+  sort_order?: ProductAttributeResponseDtoSortOrder;
   is_active: boolean;
   is_deleted: boolean;
   /** @nullable */

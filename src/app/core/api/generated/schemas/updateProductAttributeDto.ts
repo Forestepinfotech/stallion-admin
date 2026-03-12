@@ -4,9 +4,25 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
+import type { UpdateProductAttributeDtoValidationRules } from "./updateProductAttributeDtoValidationRules";
 
 export interface UpdateProductAttributeDto {
   attribute_name?: string;
+  attribute_code?: string;
+  attribute_type?: string;
+  input_type?: string;
+  data_type?: string;
+  unit_type?: string;
+  help_text?: string;
+  placeholder?: string;
+  validation_rules?: UpdateProductAttributeDtoValidationRules;
+  is_required_default?: boolean;
+  is_filterable?: boolean;
+  is_searchable?: boolean;
+  is_variant_axis?: boolean;
+  is_visible_on_pdp?: boolean;
+  is_visible_on_plp?: boolean;
+  sort_order?: number;
   is_active?: boolean;
   is_deleted?: boolean;
   created_by?: number;

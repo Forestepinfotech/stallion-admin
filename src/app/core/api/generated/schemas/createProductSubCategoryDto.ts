@@ -8,6 +8,10 @@
 export interface CreateProductSubCategoryDto {
   category_id: number;
   sub_category: string;
-  is_active: boolean;
-  is_deleted: boolean;
+  sub_category_image?: string;
+  sub_category_code?: string;
+  slug?: string;
+  sort_order?: number;
+  is_active?: boolean;
+  is_deleted?: boolean;
 }

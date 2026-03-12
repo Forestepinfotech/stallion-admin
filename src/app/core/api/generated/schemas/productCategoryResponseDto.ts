@@ -7,8 +7,11 @@
 
 export interface ProductCategoryResponseDto {
   category_name: string;
-  category_image: string;
-  is_active: boolean;
-  is_deleted: boolean;
+  category_image?: string;
+  category_code?: string;
+  slug?: string;
+  sort_order?: number;
+  is_active?: boolean;
+  is_deleted?: boolean;
   category_id: number;
 }

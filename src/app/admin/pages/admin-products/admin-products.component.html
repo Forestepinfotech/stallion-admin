@@ -1,255 +1,607 @@
-<div class="space-y-6">
-  <!-- Top bar -->
-  <div class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <h1 class="text-2xl md:text-3xl font-semibold">Create Product</h1>
-        <p class="text-sm text-white/70 mt-1">Add Tire, Rim, or Cover products with dynamic attributes</p>
-      </div>
-
-      <div class="flex gap-2">
-        <button
-          type="button"
-          (click)="goBack()"
-          class="px-4 py-2 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/15 transition"
-        >
-          ← Return
-        </button>
-        <button
-          type="button"
-          (click)="save()"
-          class="px-4 py-2 rounded-2xl bg-white text-black font-medium hover:bg-gray-100 transition"
-        >
-          Save Product
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Form card -->
-  <div class="rounded-3xl border bg-white shadow-sm overflow-hidden">
-    <div class="px-6 py-5 border-b">
-      <div class="text-lg font-semibold text-gray-900">Product Information</div>
-      <div class="text-sm text-gray-500">Common fields + type-specific attributes</div>
+<div class="product-page">
+  <header class="product-hero">
+    <div class="product-hero__copy">
+      <span class="product-hero__eyebrow">Server-Driven Catalog</span>
+      <h1>{{ isEditMode ? "Edit Product" : "Add Product" }}</h1>
+      <p *ngIf="loadingProduct">Loading product data...</p>
     </div>
 
-    <form class="p-6 space-y-6" [formGroup]="form" (ngSubmit)="save()">
-      <!-- Row 1 -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label class="text-sm font-medium text-gray-700">Product Type</label>
-          <select
-            formControlName="productType"
-            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+    <div class="product-hero__actions">
+      <button type="button" class="ghost-button" (click)="goBack()">Return</button>
+    </div>
+  </header>
+
+  <form class="product-layout" [formGroup]="form" (ngSubmit)="save()">
+    <section class="product-main">
+      <article class="product-card">
+        <div class="product-card__header">
+          <div>
+            <h2>Catalog Context</h2>
+          </div>
+        </div>
+
+        <div class="field-grid field-grid--two">
+          <label class="field">
+            <span>Category *</span>
+            <select formControlName="categoryId" [disabled]="loadingCategories" [class.is-invalid]="hasError('categoryId')">
+              <option [ngValue]="null">Select category</option>
+              <option *ngFor="let category of categories" [ngValue]="category.category_id">
+                {{ category.category_name }}
+              </option>
+            </select>
+            <small *ngIf="loadingCategories">Loading categories from server...</small>
+            <small *ngIf="hasError('categoryId')" class="field-error">{{ getErrorMessage('categoryId', 'Category') }}</small>
+          </label>
+
+          <label class="field">
+            <span>Sub Category *</span>
+            <select formControlName="subCategoryId" [disabled]="loadingSubCategories || !form.value.categoryId" [class.is-invalid]="hasError('subCategoryId')">
+              <option [ngValue]="null">Select sub category</option>
+              <option *ngFor="let subCategory of subCategories" [ngValue]="subCategory.sub_category_id">
+                {{ subCategory.sub_category }}
+              </option>
+            </select>
+            <small *ngIf="loadingSubCategories">Loading sub categories from server...</small>
+            <small *ngIf="hasError('subCategoryId')" class="field-error">{{ getErrorMessage('subCategoryId', 'Sub category') }}</small>
+          </label>
+        </div>
+      </article>
+
+      <article class="product-card">
+        <div class="field-grid field-grid--three">
+          <label class="field">
+            <span>Status *</span>
+            <select formControlName="status" [class.is-invalid]="hasError('status')">
+              <option *ngFor="let item of statusOptions" [value]="item">{{ item }}</option>
+            </select>
+            <small *ngIf="hasError('status')" class="field-error">{{ getErrorMessage('status', 'Status') }}</small>
+          </label>
+
+          <label class="field">
+            <span>Visibility *</span>
+            <select formControlName="visibility" [class.is-invalid]="hasError('visibility')">
+              <option *ngFor="let item of visibilityOptions" [value]="item">{{ item }}</option>
+            </select>
+            <small *ngIf="hasError('visibility')" class="field-error">{{ getErrorMessage('visibility', 'Visibility') }}</small>
+          </label>
+
+          <label class="field">
+            <span>Condition *</span>
+            <select formControlName="condition" [class.is-invalid]="hasError('condition')">
+              <option *ngFor="let item of conditionOptions" [value]="item">{{ item }}</option>
+            </select>
+            <small *ngIf="hasError('condition')" class="field-error">{{ getErrorMessage('condition', 'Condition') }}</small>
+          </label>
+        </div>
+
+        <div class="field-grid field-grid--three">
+          <label class="field">
+            <span>SKU *</span>
+            <input formControlName="sku" placeholder="SKU-001" [class.is-invalid]="hasError('sku')" />
+            <small *ngIf="hasError('sku')" class="field-error">{{ getErrorMessage('sku', 'SKU') }}</small>
+          </label>
+
+          <label class="field">
+            <span>MPN</span>
+            <input formControlName="mpn" placeholder="Manufacturer part number" />
+          </label>
+
+          <label class="field">
+            <span>UPC / Barcode</span>
+            <input formControlName="upc" placeholder="GTIN / UPC / EAN" />
+          </label>
+        </div>
+
+        <div class="field-grid field-grid--two">
+          <label class="field field--wide">
+            <span>Product Title *</span>
+            <input formControlName="title" placeholder="Enter product title" [class.is-invalid]="hasError('title')" />
+            <small *ngIf="hasError('title')" class="field-error">{{ getErrorMessage('title', 'Product title') }}</small>
+          </label>
+
+          <label class="field">
+            <span>Slug</span>
+            <input formControlName="slug" placeholder="auto-generated-from-title" />
+          </label>
+        </div>
+
+        <div class="field-grid field-grid--two">
+          <div class="field field--dropdown">
+            <span>Car Brand</span>
+            <input
+              [ngModel]="brandSearch"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onBrandSearchChange($event)"
+              (focus)="showBrandDropdown = true"
+              (blur)="hideBrandDropdown()"
+              placeholder="Search brand..."
+            />
+            <div class="field-dropdown" *ngIf="showBrandDropdown">
+              <button
+                *ngFor="let brand of brands"
+                type="button"
+                class="field-dropdown__item"
+                (mousedown)="selectBrand(brand)"
+              >
+                {{ brand.car_brand_name }}
+              </button>
+              <button
+                *ngIf="brands.length === 20"
+                type="button"
+                class="field-dropdown__more"
+                (mousedown)="loadMoreBrands()"
+              >
+                {{ loadingBrands ? "Loading..." : "Load more" }}
+              </button>
+              <div *ngIf="!loadingBrands && brands.length === 0" class="field-dropdown__empty">
+                No brands found
+              </div>
+            </div>
+            <small *ngIf="selectedBrandName">Selected: {{ selectedBrandName }}</small>
+          </div>
+
+          <div class="field field--dropdown">
+            <span>Car Model</span>
+            <input
+              [ngModel]="modelSearch"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onModelSearchChange($event)"
+              (focus)="showModelDropdown = true"
+              (blur)="hideModelDropdown()"
+              [disabled]="!form.value.brandId"
+              placeholder="Search model..."
+            />
+            <div class="field-dropdown" *ngIf="showModelDropdown && form.value.brandId">
+              <button
+                *ngFor="let model of models"
+                type="button"
+                class="field-dropdown__item"
+                (mousedown)="selectModel(model)"
+              >
+                {{ model.model_name }}
+                <span *ngIf="model.model_engine">· {{ model.model_engine }}</span>
+              </button>
+              <button
+                *ngIf="models.length === 20"
+                type="button"
+                class="field-dropdown__more"
+                (mousedown)="loadMoreModels()"
+              >
+                {{ loadingModels ? "Loading..." : "Load more" }}
+              </button>
+              <div *ngIf="!loadingModels && models.length === 0" class="field-dropdown__empty">
+                No models found
+              </div>
+            </div>
+            <small *ngIf="selectedModelName">Selected: {{ selectedModelName }}</small>
+          </div>
+
+          <label class="field">
+            <span>Currency *</span>
+            <select formControlName="currency" [class.is-invalid]="hasError('currency')">
+              <option *ngFor="let item of currencyOptions" [value]="item">{{ item }}</option>
+            </select>
+            <small *ngIf="hasError('currency')" class="field-error">{{ getErrorMessage('currency', 'Currency') }}</small>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Short Description *</span>
+          <textarea
+            rows="3"
+            formControlName="shortDescription"
+            [class.is-invalid]="hasError('shortDescription')"
+            placeholder="Summary for cards, search results, and quick previews."
+          ></textarea>
+          <small *ngIf="hasError('shortDescription')" class="field-error">{{ getErrorMessage('shortDescription', 'Short description') }}</small>
+        </label>
+
+        <label class="field">
+          <span>Long Description *</span>
+          <textarea
+            rows="6"
+            formControlName="longDescription"
+            [class.is-invalid]="hasError('longDescription')"
+            placeholder="Full product description, usage notes, key benefits, and details."
+          ></textarea>
+          <small *ngIf="hasError('longDescription')" class="field-error">{{ getErrorMessage('longDescription', 'Long description') }}</small>
+        </label>
+
+        <div class="toggle-grid">
+          <label class="toggle-card">
+            <input type="checkbox" formControlName="featured" />
+            <div>
+              <strong>Featured Product</strong>
+              <span>Promote this product in curated collections.</span>
+            </div>
+          </label>
+
+          <label class="toggle-card">
+            <input type="checkbox" formControlName="universalFit" />
+            <div>
+              <strong>Universal Fit</strong>
+              <span>Use when the item is not tied to a specific fitment map.</span>
+            </div>
+          </label>
+
+          <label class="toggle-card">
+            <input type="checkbox" formControlName="requiresSerial" />
+            <div>
+              <strong>Requires Serial</strong>
+              <span>Track serial or batch details during fulfillment.</span>
+            </div>
+          </label>
+
+          <label class="toggle-card">
+            <input type="checkbox" formControlName="returnable" />
+            <div>
+              <strong>Returnable</strong>
+              <span>Allow normal return workflow after delivery.</span>
+            </div>
+          </label>
+        </div>
+      </article>
+
+      <article class="product-card">
+        <div class="product-card__header">
+          <div>
+            <h2>Pricing & Inventory</h2>
+          </div>
+        </div>
+
+        <div class="field-grid field-grid--four">
+          <label class="field">
+            <span>Selling Price *</span>
+            <input type="number" formControlName="price" [class.is-invalid]="hasError('price')" />
+            <small *ngIf="hasError('price')" class="field-error">{{ getErrorMessage('price', 'Selling price') }}</small>
+          </label>
+          <label class="field">
+            <span>Compare At</span>
+            <input type="number" formControlName="compareAtPrice" />
+          </label>
+          <label class="field">
+            <span>Unit Cost</span>
+            <input type="number" formControlName="cost" />
+          </label>
+          <label class="field">
+            <span>Supplier</span>
+            <input formControlName="supplier" />
+          </label>
+        </div>
+
+        <div class="field-grid field-grid--four">
+          <label class="field">
+            <span>Stock Status *</span>
+            <select formControlName="stockStatus" [class.is-invalid]="hasError('stockStatus')">
+              <option *ngFor="let item of stockStatusOptions" [value]="item">{{ item }}</option>
+            </select>
+            <small *ngIf="hasError('stockStatus')" class="field-error">{{ getErrorMessage('stockStatus', 'Stock status') }}</small>
+          </label>
+          <label class="field">
+            <span>On Hand Qty *</span>
+            <input type="number" formControlName="stockQty" [class.is-invalid]="hasError('stockQty')" />
+            <small *ngIf="hasError('stockQty')" class="field-error">{{ getErrorMessage('stockQty', 'On hand qty') }}</small>
+          </label>
+          <label class="field">
+            <span>Safety Stock</span>
+            <input type="number" formControlName="safetyStock" />
+          </label>
+          <label class="field">
+            <span>Lead Time (days)</span>
+            <input type="number" formControlName="leadTimeDays" />
+          </label>
+        </div>
+
+        <div class="field-grid field-grid--three">
+          <label class="field">
+            <span>Warehouse Bin</span>
+            <input formControlName="warehouseBin" />
+          </label>
+          <label class="field">
+            <span>Warranty</span>
+            <input formControlName="warranty" />
+          </label>
+          <label class="field">
+            <span>Shipping Class *</span>
+            <select formControlName="shippingClass" [class.is-invalid]="hasError('shippingClass')">
+              <option *ngFor="let item of shippingClassOptions" [value]="item">{{ item }}</option>
+            </select>
+            <small *ngIf="hasError('shippingClass')" class="field-error">{{ getErrorMessage('shippingClass', 'Shipping class') }}</small>
+          </label>
+        </div>
+      </article>
+
+      <article class="product-card">
+        <div class="product-card__header">
+          <div>
+            <h2>Dimensions & Media</h2>
+          </div>
+        </div>
+
+        <div class="field-grid field-grid--four">
+          <label class="field">
+            <span>Weight (kg)</span>
+            <input type="number" formControlName="weightKg" />
+          </label>
+          <label class="field">
+            <span>Length (cm)</span>
+            <input type="number" formControlName="lengthCm" />
+          </label>
+          <label class="field">
+            <span>Width (cm)</span>
+            <input type="number" formControlName="widthCm" />
+          </label>
+          <label class="field">
+            <span>Height (cm)</span>
+            <input type="number" formControlName="heightCm" />
+          </label>
+        </div>
+
+        <div class="media-grid">
+          <label class="field">
+            <span>Primary Image</span>
+            <input type="file" accept="image/*" (change)="onFileChange($event)" />
+            <small>Max 2MB. JPG, PNG, or WebP.</small>
+          </label>
+
+          <label class="field">
+            <span>Gallery Images</span>
+            <input type="file" accept="image/*" multiple (change)="onGalleryFilesChange($event)" />
+            <small>Upload multiple gallery images.</small>
+          </label>
+
+          <label class="field">
+            <span>Product Video</span>
+            <input type="file" accept="video/*" multiple (change)="onVideoFilesChange($event)" />
+            <small>Upload one or more videos.</small>
+          </label>
+
+          <div class="preview-card">
+            <div class="preview-card__image">
+              <ng-container *ngIf="form.value.imageUrl; else emptyProductImage">
+                <img [src]="form.value.imageUrl!" alt="Product Preview" />
+              </ng-container>
+              <ng-template #emptyProductImage>
+                <span>No Image</span>
+              </ng-template>
+            </div>
+
+            <div class="preview-card__body">
+              <strong>{{ form.value.title || "Product Preview" }}</strong>
+              <span>{{ selectedCategoryName }} • {{ selectedSubCategoryName }}</span>
+              <span>SKU: {{ form.value.sku || "-" }}</span>
+            </div>
+
+            <button
+              *ngIf="form.value.imageUrl"
+              type="button"
+              class="ghost-button ghost-button--small"
+              (click)="removeImage()"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+
+        <div class="tag-panel" *ngIf="galleryImages.length > 0">
+          <div class="tag-panel__header">
+            <strong>Gallery Images</strong>
+            <span>{{ galleryImages.length }} uploaded</span>
+          </div>
+          <div class="chip-list">
+            <span *ngFor="let image of galleryImages; let i = index" class="chip">
+              Image {{ i + 1 }}
+              <button type="button" (click)="removeGalleryImage(i)">×</button>
+            </span>
+          </div>
+        </div>
+
+        <div class="tag-panel" *ngIf="videoUrls.length > 0">
+          <div class="tag-panel__header">
+            <strong>Product Videos</strong>
+            <span>{{ videoUrls.length }} uploaded</span>
+          </div>
+          <div class="chip-list">
+            <span *ngFor="let video of videoUrls; let i = index" class="chip chip--dark">
+              Video {{ i + 1 }}
+              <button type="button" (click)="removeVideo(i)">×</button>
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <article class="product-card">
+        <div class="product-card__header">
+          <div>
+            <h2>Dynamic Attributes</h2>
+          </div>
+        </div>
+
+        <div class="suggestion-strip">
+          <button
+            *ngFor="let key of suggestedAttributeKeys"
+            type="button"
+            class="chip chip--outline"
+            (click)="addSuggestedAttribute(key)"
           >
-            <option value="tire">Tire</option>
-            <option value="rim">Rim</option>
-            <option value="cover">Cover</option>
-          </select>
+            + {{ key }}
+          </button>
         </div>
 
-        <div>
-          <label class="text-sm font-medium text-gray-700">SKU</label>
-          <input
-            formControlName="sku"
-            placeholder="e.g. TIRE-20555R16-MIC"
-            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-          />
-        </div>
-
-        <div>
-          <label class="text-sm font-medium text-gray-700">Status</label>
-          <select
-            formControlName="status"
-            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-          >
-            <option>Active</option>
-            <option>Inactive</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Row 2 -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="md:col-span-2">
-          <label class="text-sm font-medium text-gray-700">Product Name</label>
-          <input
-            formControlName="name"
-            placeholder="e.g. Michelin Pilot Sport 4"
-            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-          />
-        </div>
-
-        <div>
-          <label class="text-sm font-medium text-gray-700">Price</label>
-          <input
-            type="number"
-            formControlName="price"
-            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-          />
-        </div>
-      </div>
-
-      <!-- Tire dependent selects -->
-      <div *ngIf="productType === 'tire'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="text-sm font-medium text-gray-700">Tire Brand</label>
-          <select
-            formControlName="brandId"
-            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-          >
-            <option value="">Select brand</option>
-            <option *ngFor="let b of brands" [value]="b.id">{{ b.name }}</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="text-sm font-medium text-gray-700">Tire Model</label>
-          <select
-            formControlName="modelId"
-            [disabled]="!form.value.brandId"
-            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black disabled:bg-gray-100"
-          >
-            <option value="">Select model</option>
-            <option *ngFor="let m of availableModels" [value]="m.id">{{ m.name }}</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Description -->
-      <div>
-        <label class="text-sm font-medium text-gray-700">Description</label>
-        <textarea
-          rows="4"
-          formControlName="description"
-          placeholder="Write product details..."
-          class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-        ></textarea>
-      </div>
-
-      <!-- Image upload + preview -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-        <div>
-          <label class="text-sm font-medium text-gray-700">Product Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            (change)="onFileChange($event)"
-            class="mt-1 w-full rounded-2xl border px-4 py-2.5"
-          />
-          <p class="text-xs text-gray-500 mt-1">Max 2MB • JPG/PNG/WebP</p>
-        </div>
-
-        <div class="rounded-2xl border bg-gray-50 p-4 flex items-center gap-4">
-          <div class="w-20 h-20 rounded-2xl bg-white overflow-hidden border flex items-center justify-center">
-            <ng-container *ngIf="form.value.imageUrl; else noImg">
-              <img [src]="form.value.imageUrl!" class="w-full h-full object-cover" alt="preview" />
-            </ng-container>
-            <ng-template #noImg>
-              <span class="text-xs text-gray-400">No Image</span>
-            </ng-template>
+        <div class="attribute-table">
+          <div class="attribute-row attribute-row--header">
+            <span>Attribute Key</span>
+            <span>Value</span>
+            <span></span>
           </div>
 
-          <div class="text-sm text-gray-600">
-            <div class="font-semibold text-gray-900">{{ form.value.name || 'Product Preview' }}</div>
-            <div class="text-gray-500">{{ productType | uppercase }} • SKU: {{ form.value.sku || '-' }}</div>
+          <div *ngFor="let attribute of attributeRows; let i = index" class="attribute-row">
+            <input
+              [(ngModel)]="attribute.key"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="e.g. tire_size"
+            />
+            <input
+              [(ngModel)]="attribute.value"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="e.g. 225/45R17"
+            />
+            <button
+              type="button"
+              class="ghost-button ghost-button--small"
+              (click)="removeAttributeRow(i)"
+            >
+              Remove
+            </button>
           </div>
         </div>
-      </div>
 
-      <!-- ===== Attributes (type-based) ===== -->
-      <div class="rounded-3xl border bg-white">
-        <div class="px-5 py-4 border-b">
-          <div class="font-semibold text-gray-900">Attributes</div>
-          <div class="text-sm text-gray-500">Fields change based on product type</div>
-        </div>
-
-        <div class="p-5" formGroupName="attrs">
-          <!-- Tire attributes -->
-          <div *ngIf="productType === 'tire'" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="text-sm font-medium text-gray-700">Width</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="width" placeholder="205" />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Aspect Ratio</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="aspect" placeholder="55" />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Diameter</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="diameter" placeholder="16" />
-            </div>
-
-            <div>
-              <label class="text-sm font-medium text-gray-700">Season</label>
-              <select class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="season">
-                <option value="">Select</option>
-                <option>Summer</option>
-                <option>Winter</option>
-                <option>All-season</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Load Index</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="loadIndex" placeholder="91" />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Speed Rating</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="speedRating" placeholder="V" />
-            </div>
-          </div>
-
-          <!-- Rim attributes -->
-          <div *ngIf="productType === 'rim'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="text-sm font-medium text-gray-700">Rim Size</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="rimSize" placeholder="17x7.5" />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Bolt Pattern</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="boltPattern" placeholder="5x114.3" />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Offset</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="offset" placeholder="+35" />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Material</label>
-              <select class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="material">
-                <option value="">Select</option>
-                <option>Alloy</option>
-                <option>Steel</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Cover attributes -->
-          <div *ngIf="productType === 'cover'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="text-sm font-medium text-gray-700">Cover Size</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="coverSize" placeholder='16"' />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Material</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="coverMaterial" placeholder="ABS / Plastic" />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Color</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="color" placeholder="Black / Silver" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Submit row -->
-      <div class="flex justify-end gap-3">
-        <button type="button" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50" (click)="goBack()">
-          Return
+        <button type="button" class="ghost-button ghost-button--small" (click)="addAttributeRow()">
+          Add Attribute Row
         </button>
-        <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900">
-          Save Product
+      </article>
+
+      <article class="product-card">
+        <div class="product-card__header">
+          <div>
+            <h2>Fitment, Contents & SEO</h2>
+          </div>
+        </div>
+
+        <div class="stack-grid">
+          <div class="tag-panel">
+            <div class="tag-panel__header">
+              <strong>Vehicle Fitment</strong>
+              <span>One entry per application</span>
+            </div>
+            <div class="tag-input">
+              <input [(ngModel)]="fitmentInput" [ngModelOptions]="{standalone: true}" placeholder="2021-2024 Honda Civic 2.0L" />
+              <button type="button" class="ghost-button ghost-button--small" (click)="addFitment()">Add</button>
+            </div>
+            <div class="chip-list">
+              <span *ngFor="let fitment of fitments" class="chip">
+                {{ fitment }}
+                <button type="button" (click)="removeFitment(fitment)">×</button>
+              </span>
+            </div>
+          </div>
+
+          <div class="tag-panel">
+            <div class="tag-panel__header">
+              <strong>Package Contents</strong>
+              <span>What the customer receives</span>
+            </div>
+            <div class="tag-input">
+              <input [(ngModel)]="packageItemInput" [ngModelOptions]="{standalone: true}" placeholder="Main unit / hardware / guide" />
+              <button type="button" class="ghost-button ghost-button--small" (click)="addPackageItem()">Add</button>
+            </div>
+            <div class="chip-list">
+              <span *ngFor="let item of packageItems" class="chip">
+                {{ item }}
+                <button type="button" (click)="removePackageItem(item)">×</button>
+              </span>
+            </div>
+          </div>
+
+          <div class="tag-panel">
+            <div class="tag-panel__header">
+              <strong>Tags & Notes</strong>
+              <span>Merchandising and internal handling</span>
+            </div>
+            <div class="tag-input">
+              <input [(ngModel)]="tagInput" [ngModelOptions]="{standalone: true}" placeholder="premium / oem / summer" />
+              <button type="button" class="ghost-button ghost-button--small" (click)="addTag()">Add</button>
+            </div>
+            <div class="chip-list">
+              <span *ngFor="let tag of tags" class="chip chip--dark">
+                {{ tag }}
+                <button type="button" (click)="removeTag(tag)">×</button>
+              </span>
+            </div>
+
+            <div class="tag-input tag-input--secondary">
+              <input [(ngModel)]="noteInput" [ngModelOptions]="{standalone: true}" placeholder="Internal note for QA or purchasing" />
+              <button type="button" class="ghost-button ghost-button--small" (click)="addNote()">Add</button>
+            </div>
+            <div class="note-list">
+              <div *ngFor="let note of notes" class="note-item">
+                <span>{{ note }}</span>
+                <button type="button" (click)="removeNote(note)">Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-grid field-grid--two">
+          <label class="field">
+            <span>SEO Title</span>
+            <input formControlName="seoTitle" placeholder="Search-friendly title" />
+          </label>
+
+          <label class="field">
+            <span>SEO Description</span>
+            <textarea rows="3" formControlName="seoDescription" placeholder="Meta description for search snippets."></textarea>
+          </label>
+        </div>
+      </article>
+
+      <div class="product-form-actions">
+        <button type="button" class="ghost-button ghost-button--small" (click)="goBack()">Cancel</button>
+        <button type="submit" class="primary-button" [disabled]="saving">
+          {{
+            form.invalid && form.touched
+              ? "Fix Required Fields"
+              : (saving ? "Saving..." : (isEditMode ? "Update Product" : "Save Product"))
+          }}
         </button>
       </div>
-    </form>
-  </div>
+    </section>
+
+    <aside class="product-sidebar">
+      <article class="sidebar-card sidebar-card--summary">
+        <div class="sidebar-card__eyebrow">Launch Summary</div>
+        <h3>{{ form.value.title || "Untitled Product" }}</h3>
+        <p>{{ selectedCategoryName }} / {{ selectedSubCategoryName }}</p>
+
+        <div class="summary-grid">
+          <div>
+            <span>Brand</span>
+            <strong>{{ form.value.brandId || "Not set" }}</strong>
+          </div>
+          <div>
+            <span>Price</span>
+            <strong>{{ form.value.currency }} {{ form.value.price || 0 }}</strong>
+          </div>
+          <div>
+            <span>Margin</span>
+            <strong>{{ marginValue }}%</strong>
+          </div>
+          <div>
+            <span>Attributes</span>
+            <strong>{{ attributeCount }}</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="sidebar-card">
+        <div class="sidebar-card__title">Catalog Readiness</div>
+        <div class="checklist">
+          <div *ngFor="let item of publishChecklist" class="checklist__item">{{ item }}</div>
+          <div *ngIf="publishChecklist.length === 0" class="checklist__empty">
+            Fill the form to build a server-ready create-product payload.
+          </div>
+        </div>
+      </article>
+
+      <article class="sidebar-card">
+        <div class="sidebar-card__title">Operational Snapshot</div>
+        <div class="ops-list">
+          <div><span>Stock</span><strong>{{ form.value.stockQty || 0 }}</strong></div>
+          <div><span>Safety Stock</span><strong>{{ form.value.safetyStock || 0 }}</strong></div>
+          <div><span>Shipping</span><strong>{{ form.value.shippingClass }}</strong></div>
+          <div><span>Warehouse Bin</span><strong>{{ form.value.warehouseBin || "-" }}</strong></div>
+        </div>
+      </article>
+    </aside>
+  </form>
 </div>

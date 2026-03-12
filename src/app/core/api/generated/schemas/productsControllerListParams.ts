@@ -6,44 +6,17 @@
  */
 
 export type ProductsControllerListParams = {
-  /**
-   * Search by title or SKU
-   */
-  q?: string;
-  minPrice?: string;
-  maxPrice?: string;
-  /**
-   * Minimum average rating (1-5)
-   */
-  minRating?: string;
-  /**
-   * Order by best sellers first
-   */
-  bestSeller?: string;
-  /**
-   * Comma-separated category IDs
-   */
-  categoryIds?: string;
-  /**
-   * Comma-separated brand IDs
-   */
-  brandIds?: string;
-  /**
-   * Comma-separated model IDs
-   */
-  modelIds?: string;
-  /**
-   * Comma-separated attribute IDs
-   */
-  attributeIds?: string;
-  /**
-   * JSON string for category-specific filters (matches product_attributes JSONB)
-   */
-  attr?: string;
-  brandName?: string;
-  isActive?: string;
-  isPopular?: string;
-  inStock?: string;
-  limit?: unknown;
-  page?: unknown;
+  sort_order?: unknown;
+  sort_by?: unknown;
+  dateTo?: unknown;
+  dateFrom?: unknown;
+  max_price?: unknown;
+  min_price?: unknown;
+  is_active?: unknown;
+  status?: unknown;
+  model_id?: unknown;
+  brand_id?: unknown;
+  sub_category_id?: unknown;
+  category_id?: unknown;
+  search?: unknown;
 };

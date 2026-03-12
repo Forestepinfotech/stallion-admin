@@ -165,6 +165,33 @@
           <span class="font-medium text-gray-800">Category</span>
         </a>
         <a
+          routerLink="/admin/sub-categories"
+          (click)="close.emit()"
+          routerLinkActive="bg-gray-100"
+          class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+        >
+          <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M5 7.5A1.5 1.5 0 0 1 6.5 6h11A1.5 1.5 0 0 1 19 7.5v9A1.5 1.5 0 0 1 17.5 18h-11A1.5 1.5 0 0 1 5 16.5v-9Z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <path
+              d="M8 10h8M8 14h5"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M3 12h2M19 12h2"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span class="font-medium text-gray-800">Sub Categories</span>
+        </a>
+        <a
           routerLink="/admin/attributes"
           (click)="close.emit()"
           routerLinkActive="bg-gray-100"
@@ -179,30 +206,6 @@
             />
           </svg>
           <span class="font-medium text-gray-800">Attributes</span>
-        </a>
-        <a
-          routerLink="/admin/products"
-          (click)="close.emit()"
-          routerLinkActive="bg-gray-100"
-          class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
-        >
-          <!-- products icon -->
-          <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
-            <path d="M7 7h10v14H7V7Z" stroke="currentColor" stroke-width="2" />
-            <path
-              d="M9 7V5a3 3 0 0 1 6 0v2"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            />
-            <path
-              d="M9 12h6"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            />
-          </svg>
-          <span class="font-medium text-gray-800">Products</span>
         </a>
         <a
           routerLink="/admin/products-list"

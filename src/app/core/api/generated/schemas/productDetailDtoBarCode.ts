@@ -8,4 +8,4 @@
 /**
  * @nullable
  */
-export type ProductDetailDtoBarCode = { [key: string]: unknown } | null;
+export type ProductDetailDtoBarcode = { [key: string]: unknown } | null;

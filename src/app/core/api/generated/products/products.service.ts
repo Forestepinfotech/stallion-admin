@@ -24,7 +24,6 @@ import type {
   PaginatedProductQuestionDto,
   PaginatedProductReviewDto,
   PaginatedProductsResponseDto,
-  ProductDetailDto,
   ProductQuestionDto,
   ProductReviewDto,
   ProductSearchSuggestionDto,
@@ -34,6 +33,7 @@ import type {
   ProductsControllerVehicleCategoriesParams,
   ProductsControllerVehicleProductsParams,
   ProductsResponseDto,
+  SaveProductSpecificationsDto,
   UpdateProductReviewDto,
   UpdateProductsDto,
 } from "../schemas";
@@ -891,19 +891,105 @@ export class ProductsService {
       observe: "body",
     });
   }
-  productsControllerGet<TData = ProductDetailDto>(
+  productsControllerGetSpecifications<TData = void>(
     productId: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  productsControllerGet<TData = ProductDetailDto>(
+  productsControllerGetSpecifications<TData = void>(
     productId: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  productsControllerGet<TData = ProductDetailDto>(
+  productsControllerGetSpecifications<TData = void>(
     productId: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  productsControllerGet<TData = ProductDetailDto>(
+  productsControllerGetSpecifications<TData = void>(
+    productId: string,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/products/${productId}/specifications`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/products/${productId}/specifications`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+      });
+    }
+
+    return this.http.get<TData>(`/products/${productId}/specifications`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+    });
+  }
+  productsControllerSaveSpecifications<TData = void>(
+    productId: string,
+    saveProductSpecificationsDto: SaveProductSpecificationsDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  productsControllerSaveSpecifications<TData = void>(
+    productId: string,
+    saveProductSpecificationsDto: SaveProductSpecificationsDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  productsControllerSaveSpecifications<TData = void>(
+    productId: string,
+    saveProductSpecificationsDto: SaveProductSpecificationsDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  productsControllerSaveSpecifications<TData = void>(
+    productId: string,
+    saveProductSpecificationsDto: SaveProductSpecificationsDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.patch<TData>(
+        `/products/${productId}/specifications`,
+        saveProductSpecificationsDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.patch<TData>(
+        `/products/${productId}/specifications`,
+        saveProductSpecificationsDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.patch<TData>(
+      `/products/${productId}/specifications`,
+      saveProductSpecificationsDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
+  productsControllerGet<TData = ProductsResponseDto>(
+    productId: string,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  productsControllerGet<TData = ProductsResponseDto>(
+    productId: string,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  productsControllerGet<TData = ProductsResponseDto>(
+    productId: string,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  productsControllerGet<TData = ProductsResponseDto>(
     productId: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {

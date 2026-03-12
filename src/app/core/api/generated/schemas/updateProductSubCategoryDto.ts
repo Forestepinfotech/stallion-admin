@@ -8,6 +8,10 @@
 export interface UpdateProductSubCategoryDto {
   category_id?: number;
   sub_category?: string;
+  sub_category_image?: string;
+  sub_category_code?: string;
+  slug?: string;
+  sort_order?: number;
   is_active?: boolean;
   is_deleted?: boolean;
 }

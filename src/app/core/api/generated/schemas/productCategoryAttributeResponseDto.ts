@@ -4,17 +4,44 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
+import type { ProductCategoryAttributeResponseDtoAssignmentId } from "./productCategoryAttributeResponseDtoAssignmentId";
 import type { ProductCategoryAttributeResponseDtoAttributeIsActive } from "./productCategoryAttributeResponseDtoAttributeIsActive";
 import type { ProductCategoryAttributeResponseDtoAttributeName } from "./productCategoryAttributeResponseDtoAttributeName";
 import type { ProductCategoryAttributeResponseDtoCategoryAssignmentIsActive } from "./productCategoryAttributeResponseDtoCategoryAssignmentIsActive";
 import type { ProductCategoryAttributeResponseDtoCategoryName } from "./productCategoryAttributeResponseDtoCategoryName";
 import type { ProductCategoryAttributeResponseDtoCreatedBy } from "./productCategoryAttributeResponseDtoCreatedBy";
+import type { ProductCategoryAttributeResponseDtoDisplayGroup } from "./productCategoryAttributeResponseDtoDisplayGroup";
+import type { ProductCategoryAttributeResponseDtoIsFilterable } from "./productCategoryAttributeResponseDtoIsFilterable";
+import type { ProductCategoryAttributeResponseDtoIsRequired } from "./productCategoryAttributeResponseDtoIsRequired";
+import type { ProductCategoryAttributeResponseDtoIsSearchable } from "./productCategoryAttributeResponseDtoIsSearchable";
+import type { ProductCategoryAttributeResponseDtoIsVisibleOnPdp } from "./productCategoryAttributeResponseDtoIsVisibleOnPdp";
+import type { ProductCategoryAttributeResponseDtoIsVisibleOnPlp } from "./productCategoryAttributeResponseDtoIsVisibleOnPlp";
+import type { ProductCategoryAttributeResponseDtoSortOrder } from "./productCategoryAttributeResponseDtoSortOrder";
+import type { ProductCategoryAttributeResponseDtoSubCategoryId } from "./productCategoryAttributeResponseDtoSubCategoryId";
 import type { ProductCategoryAttributeResponseDtoUpdatedBy } from "./productCategoryAttributeResponseDtoUpdatedBy";
 import type { ProductCategoryAttributeResponseDtoValueItemsItem } from "./productCategoryAttributeResponseDtoValueItemsItem";
 
 export interface ProductCategoryAttributeResponseDto {
   category_id: number;
   attribute_id: number;
+  /** @nullable */
+  assignment_id?: ProductCategoryAttributeResponseDtoAssignmentId;
+  /** @nullable */
+  sub_category_id?: ProductCategoryAttributeResponseDtoSubCategoryId;
+  /** @nullable */
+  is_required?: ProductCategoryAttributeResponseDtoIsRequired;
+  /** @nullable */
+  is_filterable?: ProductCategoryAttributeResponseDtoIsFilterable;
+  /** @nullable */
+  is_searchable?: ProductCategoryAttributeResponseDtoIsSearchable;
+  /** @nullable */
+  is_visible_on_pdp?: ProductCategoryAttributeResponseDtoIsVisibleOnPdp;
+  /** @nullable */
+  is_visible_on_plp?: ProductCategoryAttributeResponseDtoIsVisibleOnPlp;
+  /** @nullable */
+  display_group?: ProductCategoryAttributeResponseDtoDisplayGroup;
+  /** @nullable */
+  sort_order?: ProductCategoryAttributeResponseDtoSortOrder;
   is_active: boolean;
   is_deleted: boolean;
   /** @nullable */

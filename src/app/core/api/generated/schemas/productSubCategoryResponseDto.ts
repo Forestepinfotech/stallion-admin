@@ -4,11 +4,26 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
+import type { ProductSubCategoryResponseDtoCategoryName } from "./productSubCategoryResponseDtoCategoryName";
+import type { ProductSubCategoryResponseDtoSlug } from "./productSubCategoryResponseDtoSlug";
+import type { ProductSubCategoryResponseDtoSortOrder } from "./productSubCategoryResponseDtoSortOrder";
+import type { ProductSubCategoryResponseDtoSubCategoryCode } from "./productSubCategoryResponseDtoSubCategoryCode";
+import type { ProductSubCategoryResponseDtoSubCategoryImage } from "./productSubCategoryResponseDtoSubCategoryImage";
 
 export interface ProductSubCategoryResponseDto {
+  sub_category_id: number;
   category_id: number;
   sub_category: string;
+  /** @nullable */
+  sub_category_image?: ProductSubCategoryResponseDtoSubCategoryImage;
+  /** @nullable */
+  sub_category_code?: ProductSubCategoryResponseDtoSubCategoryCode;
+  /** @nullable */
+  slug?: ProductSubCategoryResponseDtoSlug;
+  /** @nullable */
+  sort_order?: ProductSubCategoryResponseDtoSortOrder;
   is_active: boolean;
   is_deleted: boolean;
-  sub_category_id: number;
+  /** @nullable */
+  category_name?: ProductSubCategoryResponseDtoCategoryName;
 }
