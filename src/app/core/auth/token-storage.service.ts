@@ -47,10 +47,10 @@ export class TokenStorageService {
   private resolveStorage(): Storage | null {
     if (typeof window === 'undefined') return null;
     try {
-      return window.sessionStorage;
+      return window.localStorage;
     } catch {
       try {
-        return window.localStorage;
+        return window.sessionStorage;
       } catch {
         return null;
       }

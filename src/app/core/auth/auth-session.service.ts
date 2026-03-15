@@ -32,6 +32,10 @@ export class AuthSessionService {
     return this.stateSubject.value.tokens?.accessToken ?? null;
   }
 
+  get hasRefreshToken(): boolean {
+    return !!this.stateSubject.value.tokens?.refreshToken;
+  }
+
   login(payload: LoginPayload): Observable<LoginResponse> {
     return this.authApi.login(payload).pipe(
       map((res) => {
@@ -61,6 +65,11 @@ export class AuthSessionService {
     if (!current?.refreshToken) {
       this.logout('missing_refresh_token');
       return throwError(() => new Error('No refresh token available'));
+    }
+
+    if (this.isRefreshTokenExpired()) {
+      this.logout('refresh_token_expired');
+      return throwError(() => new Error('Refresh token expired'));
     }
 
     if (this.refreshInFlight$) {
@@ -94,6 +103,12 @@ export class AuthSessionService {
     return Date.now() + bufferMs >= exp;
   }
 
+  isRefreshTokenExpired(): boolean {
+    const exp = this.snapshot.tokens?.refreshTokenExpiresAt;
+    if (!exp) return false;
+    return Date.now() >= exp;
+  }
+
   handleAuthError(error: HttpErrorResponse): Observable<never> {
     if (error.status === 401) {
       this.logout('unauthorized');
@@ -114,9 +129,7 @@ export class AuthSessionService {
     const stored = this.storage.read();
     if (!stored) return { user: null, tokens: null };
 
-    const buffer = this.config.snapshot.tokenRefreshLeewaySeconds * 1000;
-
-    if (stored.accessTokenExpiresAt && Date.now() >= stored.accessTokenExpiresAt - buffer) {
+    if (stored.refreshTokenExpiresAt && Date.now() >= stored.refreshTokenExpiresAt) {
       this.storage.clear();
       return { user: null, tokens: null };
     }
