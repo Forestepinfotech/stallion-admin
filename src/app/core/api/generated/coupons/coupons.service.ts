@@ -17,8 +17,13 @@ import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
 
 import type {
+  CouponsControllerListParams,
+  CouponsControllerTargetCategoriesParams,
+  CouponsControllerTargetProductsParams,
   CouponsResponseDto,
   CreateCouponsDto,
+  PaginatedCouponTargetCategoriesResponseDto,
+  PaginatedCouponTargetProductsResponseDto,
   PaginatedCouponsResponseDto,
   UpdateCouponsDto,
 } from "../schemas";
@@ -46,25 +51,75 @@ interface HttpClientOptions {
   readonly transferCache?: { includeHeaders?: string[] } | boolean;
 }
 
+function filterParams(
+  params: Record<string, unknown>,
+  requiredNullableKeys: Set<string> = new Set(),
+): Record<
+  string,
+  string | number | boolean | Array<string | number | boolean>
+> {
+  const filteredParams: Record<
+    string,
+    string | number | boolean | null | Array<string | number | boolean>
+  > = {};
+  for (const [key, value] of Object.entries(params)) {
+    if (Array.isArray(value)) {
+      const filtered = value.filter(
+        (item) =>
+          item != null &&
+          (typeof item === "string" ||
+            typeof item === "number" ||
+            typeof item === "boolean"),
+      ) as Array<string | number | boolean>;
+      if (filtered.length) {
+        filteredParams[key] = filtered;
+      }
+    } else if (value === null && requiredNullableKeys.has(key)) {
+      filteredParams[key] = value;
+    } else if (
+      value != null &&
+      (typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean")
+    ) {
+      filteredParams[key] = value as string | number | boolean;
+    }
+  }
+  return filteredParams as Record<
+    string,
+    string | number | boolean | Array<string | number | boolean>
+  >;
+}
+
 @Injectable({ providedIn: "root" })
 export class CouponsService {
   private readonly http = inject(HttpClient);
   couponsControllerList<TData = PaginatedCouponsResponseDto>(
+    params?: CouponsControllerListParams,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
   couponsControllerList<TData = PaginatedCouponsResponseDto>(
+    params?: CouponsControllerListParams,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
   couponsControllerList<TData = PaginatedCouponsResponseDto>(
+    params?: CouponsControllerListParams,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
   couponsControllerList<TData = PaginatedCouponsResponseDto>(
+    params?: CouponsControllerListParams,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
     if (options?.observe === "events") {
       return this.http.get<TData>(`/coupons`, {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "events",
+        params: filteredParams,
       });
     }
 
@@ -72,12 +127,14 @@ export class CouponsService {
       return this.http.get<TData>(`/coupons`, {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "response",
+        params: filteredParams,
       });
     }
 
     return this.http.get<TData>(`/coupons`, {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
+      params: filteredParams,
     });
   }
   couponsControllerCreate<TData = CouponsResponseDto>(
@@ -113,6 +170,108 @@ export class CouponsService {
     return this.http.post<TData>(`/coupons`, createCouponsDto, {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
+    });
+  }
+  couponsControllerTargetProducts<
+    TData = PaginatedCouponTargetProductsResponseDto,
+  >(
+    params?: CouponsControllerTargetProductsParams,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  couponsControllerTargetProducts<
+    TData = PaginatedCouponTargetProductsResponseDto,
+  >(
+    params?: CouponsControllerTargetProductsParams,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  couponsControllerTargetProducts<
+    TData = PaginatedCouponTargetProductsResponseDto,
+  >(
+    params?: CouponsControllerTargetProductsParams,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  couponsControllerTargetProducts<
+    TData = PaginatedCouponTargetProductsResponseDto,
+  >(
+    params?: CouponsControllerTargetProductsParams,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/coupons/target-products`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+        params: filteredParams,
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/coupons/target-products`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+        params: filteredParams,
+      });
+    }
+
+    return this.http.get<TData>(`/coupons/target-products`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+      params: filteredParams,
+    });
+  }
+  couponsControllerTargetCategories<
+    TData = PaginatedCouponTargetCategoriesResponseDto,
+  >(
+    params?: CouponsControllerTargetCategoriesParams,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  couponsControllerTargetCategories<
+    TData = PaginatedCouponTargetCategoriesResponseDto,
+  >(
+    params?: CouponsControllerTargetCategoriesParams,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  couponsControllerTargetCategories<
+    TData = PaginatedCouponTargetCategoriesResponseDto,
+  >(
+    params?: CouponsControllerTargetCategoriesParams,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  couponsControllerTargetCategories<
+    TData = PaginatedCouponTargetCategoriesResponseDto,
+  >(
+    params?: CouponsControllerTargetCategoriesParams,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/coupons/target-categories`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+        params: filteredParams,
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/coupons/target-categories`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+        params: filteredParams,
+      });
+    }
+
+    return this.http.get<TData>(`/coupons/target-categories`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+      params: filteredParams,
     });
   }
   couponsControllerGet<TData = CouponsResponseDto>(

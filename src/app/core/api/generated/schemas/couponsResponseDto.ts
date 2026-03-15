@@ -4,18 +4,40 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
+import type { CouponCategoryTargetDto } from "./couponCategoryTargetDto";
+import type { CouponProductTargetDto } from "./couponProductTargetDto";
+import type { CouponsResponseDtoAppliesTo } from "./couponsResponseDtoAppliesTo";
+import type { CouponsResponseDtoCouponType } from "./couponsResponseDtoCouponType";
+import type { CouponsResponseDtoCustomerEligibility } from "./couponsResponseDtoCustomerEligibility";
+import type { CouponsResponseDtoDescription } from "./couponsResponseDtoDescription";
+import type { CouponsResponseDtoExpireAt } from "./couponsResponseDtoExpireAt";
+import type { CouponsResponseDtoStartAt } from "./couponsResponseDtoStartAt";
+import type { CouponsResponseDtoStatus } from "./couponsResponseDtoStatus";
 
 export interface CouponsResponseDto {
-  coupon_code: string;
-  coupon_type: string;
-  coupon_value: string;
-  min_order_amount: string;
-  usage_limit: string;
-  used_count: number;
-  start_at?: string;
-  expire_at?: string;
-  is_valid: boolean;
-  is_deleted: boolean;
-  created_by?: number;
   coupon_id: number;
+  coupon_code: string;
+  description?: CouponsResponseDtoDescription;
+  customer_eligibility: CouponsResponseDtoCustomerEligibility;
+  applies_to: CouponsResponseDtoAppliesTo;
+  coupon_type: CouponsResponseDtoCouponType;
+  coupon_value: number;
+  min_order_amount: number;
+  max_discount_amount: number;
+  usage_limit: number;
+  per_customer_limit: number;
+  used_count: number;
+  start_at?: CouponsResponseDtoStartAt;
+  expire_at?: CouponsResponseDtoExpireAt;
+  status: CouponsResponseDtoStatus;
+  stackable: boolean;
+  free_shipping: boolean;
+  auto_apply: boolean;
+  is_valid: boolean;
+  product_targets: CouponProductTargetDto[];
+  target_product_ids: number[];
+  category_targets: CouponCategoryTargetDto[];
+  target_category_ids: number[];
+  created_at: string;
+  updated_at: string;
 }

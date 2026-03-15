@@ -1,86 +1,63 @@
-import { Component } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
+import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  Subject,
+  switchMap,
+  tap,
+} from 'rxjs';
+import {
+  Coupon,
+  CouponEligibility,
+  CouponScope,
+  CouponStatus,
+  CouponType,
+  TargetOption,
+} from './admin-coupons.models';
+import {
+  AdminCouponsStore,
+  CouponFormValue,
+  CouponListQuery,
+} from './admin-coupons.store';
+import { ToastService } from '../../../core/notification/toast.service';
 
-type CouponType = 'Percent' | 'Fixed';
-type CouponStatus = 'Active' | 'Inactive';
-
-type Coupon = {
-  id: string;
-  code: string;
-  type: CouponType;
-  value: number; // percent or fixed amount
-  minOrder: number;
-  maxDiscount: number; // only used for percent coupons
-  usageLimit: number;
-  usedCount: number;
-  startDate: string; // ISO string (yyyy-mm-dd)
-  endDate: string; // ISO string (yyyy-mm-dd)
-  status: CouponStatus;
-  createdAt: string;
-};
 @Component({
   selector: 'app-admin-coupons',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink],
   templateUrl: './admin-coupons.component.html',
   styleUrl: './admin-coupons.component.css',
 })
-export class AdminCouponsComponent {
+export class AdminCouponsComponent implements OnInit {
+  private readonly couponsStore = inject(AdminCouponsStore);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly toastService = inject(ToastService);
+  private readonly categorySearch$ = new Subject<string>();
+  private readonly productSearch$ = new Subject<string>();
+
   // UI
   query = '';
   filterStatus: 'All' | CouponStatus = 'All';
+  filterStartDate = this.isoDateOffset(-30);
+  filterEndDate = this.isoDateOffset(30);
+  appliedQuery = '';
+  appliedStatus: 'All' | CouponStatus = 'All';
+  appliedStartDate = this.isoDateOffset(-30);
+  appliedEndDate = this.isoDateOffset(30);
+  currentPage = 1;
+  pageSize = 50;
+  readonly pageSizeOptions = [20, 50, 100];
   modalOpen = false;
   confirmOpen = false;
   mode: 'create' | 'edit' = 'create';
   selectedId: string | null = null;
-
-  // demo data (replace with backend later)
-  coupons: Coupon[] = [
-    {
-      id: crypto.randomUUID(),
-      code: 'WELCOME10',
-      type: 'Percent',
-      value: 10,
-      minOrder: 50,
-      maxDiscount: 30,
-      usageLimit: 200,
-      usedCount: 45,
-      startDate: this.isoDateOffset(-10),
-      endDate: this.isoDateOffset(30),
-      status: 'Active',
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: crypto.randomUUID(),
-      code: 'FLAT25',
-      type: 'Fixed',
-      value: 25,
-      minOrder: 100,
-      maxDiscount: 0,
-      usageLimit: 100,
-      usedCount: 70,
-      startDate: this.isoDateOffset(-3),
-      endDate: this.isoDateOffset(10),
-      status: 'Active',
-      createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    },
-    {
-      id: crypto.randomUUID(),
-      code: 'EXPIRED5',
-      type: 'Percent',
-      value: 5,
-      minOrder: 25,
-      maxDiscount: 10,
-      usageLimit: 50,
-      usedCount: 50,
-      startDate: this.isoDateOffset(-40),
-      endDate: this.isoDateOffset(-5),
-      status: 'Inactive',
-      createdAt: new Date(Date.now() - 86400000 * 20).toISOString(),
-    },
-  ];
+  categorySearch = '';
+  productSearch = '';
 
   // form created in constructor (avoids fb init error)
   form;
@@ -88,6 +65,18 @@ export class AdminCouponsComponent {
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
       code: ['', [Validators.required, Validators.minLength(3)]],
+      description: ['', [Validators.required, Validators.maxLength(180)]],
+      customerEligibility: [
+        'All Customers' as CouponEligibility,
+        Validators.required,
+      ],
+      appliesTo: ['All Products' as CouponScope, Validators.required],
+      selectedCategoryIds: [[] as string[]],
+      selectedProductIds: [[] as string[]],
+      perCustomerLimit: [1, [Validators.required, Validators.min(1)]],
+      stackable: [false, Validators.required],
+      freeShipping: [false, Validators.required],
+      autoApply: [false, Validators.required],
       type: ['Percent' as CouponType, Validators.required],
       value: [10, [Validators.required, Validators.min(1)]],
       minOrder: [0, [Validators.required, Validators.min(0)]],
@@ -102,45 +91,128 @@ export class AdminCouponsComponent {
     this.form.get('type')!.valueChanges.subscribe((t) => {
       if (t === 'Fixed') this.form.patchValue({ maxDiscount: 0 });
     });
+
+    this.form.get('appliesTo')!.valueChanges.subscribe((scope) => {
+      if (scope === 'Selected Categories') {
+        this.form.patchValue({ selectedProductIds: [] }, { emitEvent: false });
+        return;
+      }
+
+      if (scope === 'Selected Products') {
+        this.form.patchValue({ selectedCategoryIds: [] }, { emitEvent: false });
+        return;
+      }
+
+      this.form.patchValue(
+        { selectedCategoryIds: [], selectedProductIds: [] },
+        { emitEvent: false },
+      );
+    });
+  }
+
+  ngOnInit(): void {
+    this.categorySearch$
+      .pipe(
+        tap((query) => {
+          if (query.trim().length < 4) {
+            this.couponsStore.clearCategorySearchResults();
+          }
+        }),
+        filter((query) => query.trim().length >= 3),
+        debounceTime(1000),
+        distinctUntilChanged(),
+        switchMap((query) => this.couponsStore.searchCategories(query)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
+    this.productSearch$
+      .pipe(
+        tap((query) => {
+          if (query.trim().length < 4) {
+            this.couponsStore.clearProductSearchResults();
+          }
+        }),
+        filter((query) => query.trim().length >= 4),
+        debounceTime(1000),
+        distinctUntilChanged(),
+        switchMap((query) => this.couponsStore.searchProducts(query)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
+    this.reloadCoupons();
+    this.couponsStore.loadCategoryOptions();
   }
 
   // derived list
   get filtered(): Coupon[] {
-    const q = this.query.trim().toLowerCase();
     const today = this.isoDateOffset(0);
 
-    return this.coupons
+    return this.couponsStore.coupons
       .map((c) => ({
         ...c,
         // auto inactivate if expired
         status: c.endDate < today ? 'Inactive' : c.status,
       }))
-      .filter((c) => {
-        const matchesQuery =
-          !q ||
-          c.code.toLowerCase().includes(q) ||
-          c.type.toLowerCase().includes(q);
-
-        const matchesStatus =
-          this.filterStatus === 'All' ? true : c.status === this.filterStatus;
-
-        return matchesQuery && matchesStatus;
-      })
       .sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
   }
 
+  get paginatedCoupons(): Coupon[] {
+    return this.filtered;
+  }
+
+  get totalPages() {
+    return this.couponsStore.totalPages;
+  }
+
+  get pageStart() {
+    if (this.filtered.length === 0) return 0;
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  get pageEnd() {
+    if (this.filtered.length === 0) return 0;
+    return this.pageStart + this.filtered.length - 1;
+  }
+
   // stats
   get totalCount() {
-    return this.coupons.length;
+    return this.couponsStore.totalItems;
   }
+
+  get loading() {
+    return this.couponsStore.loading;
+  }
+
+  get saving() {
+    return this.couponsStore.saving;
+  }
+
+  get deleting() {
+    return this.couponsStore.deleting;
+  }
+
+  get loadError() {
+    return this.couponsStore.error;
+  }
+
+  get categoryOptions(): TargetOption[] {
+    return this.couponsStore.categoryOptions;
+  }
+
+  get productOptions(): TargetOption[] {
+    return this.couponsStore.productOptions;
+  }
+
   get activeCount() {
-    return this.coupons.filter((c) => this.isActive(c)).length;
+    return this.filtered.filter((c) => this.isActive(c)).length;
   }
   get inactiveCount() {
-    return this.coupons.filter((c) => !this.isActive(c)).length;
+    return this.filtered.filter((c) => !this.isActive(c)).length;
   }
 
   isActive(c: Coupon) {
@@ -153,11 +225,64 @@ export class AdminCouponsComponent {
     return Math.min((c.usedCount / c.usageLimit) * 100, 100);
   }
 
+  applyFilters() {
+    if (!this.filterStartDate || !this.filterEndDate) {
+      alert('Start date and end date are required to filter coupons.');
+      return;
+    }
+
+    if (this.filterStartDate > this.filterEndDate) {
+      alert('Filter start date must be before end date.');
+      return;
+    }
+
+    this.appliedQuery = this.query;
+    this.appliedStatus = this.filterStatus;
+    this.appliedStartDate = this.filterStartDate;
+    this.appliedEndDate = this.filterEndDate;
+    this.currentPage = 1;
+    this.reloadCoupons();
+  }
+
+  resetFilters() {
+    this.query = '';
+    this.filterStatus = 'All';
+    this.filterStartDate = this.isoDateOffset(-30);
+    this.filterEndDate = this.isoDateOffset(30);
+    this.applyFilters();
+  }
+
+  onPageSizeChange() {
+    this.currentPage = 1;
+    this.reloadCoupons();
+  }
+
+  goToPage(page: number) {
+    const nextPage = Math.min(Math.max(page, 1), this.totalPages);
+    if (nextPage === this.currentPage) {
+      return;
+    }
+
+    this.currentPage = nextPage;
+    this.reloadCoupons();
+  }
+
   openCreate() {
     this.mode = 'create';
     this.selectedId = null;
+    this.categorySearch = '';
+    this.productSearch = '';
     this.form.reset({
       code: '',
+      description: '',
+      customerEligibility: 'All Customers',
+      appliesTo: 'All Products',
+      selectedCategoryIds: [],
+      selectedProductIds: [],
+      perCustomerLimit: 1,
+      stackable: false,
+      freeShipping: false,
+      autoApply: false,
       type: 'Percent',
       value: 10,
       minOrder: 0,
@@ -173,8 +298,19 @@ export class AdminCouponsComponent {
   openEdit(c: Coupon) {
     this.mode = 'edit';
     this.selectedId = c.id;
+    this.categorySearch = '';
+    this.productSearch = '';
     this.form.reset({
       code: c.code,
+      description: c.description,
+      customerEligibility: c.customerEligibility,
+      appliesTo: c.appliesTo,
+      selectedCategoryIds: [...c.selectedCategoryIds],
+      selectedProductIds: [...c.selectedProductIds],
+      perCustomerLimit: c.perCustomerLimit,
+      stackable: c.stackable,
+      freeShipping: c.freeShipping,
+      autoApply: c.autoApply,
       type: c.type,
       value: c.value,
       minOrder: c.minOrder,
@@ -189,6 +325,8 @@ export class AdminCouponsComponent {
 
   closeModal() {
     this.modalOpen = false;
+    this.categorySearch = '';
+    this.productSearch = '';
   }
 
   openDelete(c: Coupon) {
@@ -203,8 +341,15 @@ export class AdminCouponsComponent {
 
   confirmDelete() {
     if (!this.selectedId) return;
-    this.coupons = this.coupons.filter((c) => c.id !== this.selectedId);
-    this.closeConfirm();
+    this.couponsStore
+      .remove(this.selectedId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.currentPage = Math.min(this.currentPage, this.totalPages);
+          this.closeConfirm();
+        },
+      });
   }
 
   save() {
@@ -217,56 +362,78 @@ export class AdminCouponsComponent {
 
     // Validate date order
     if (v.endDate! < v.startDate!) {
-      alert('End date must be after start date.');
+      this.toastService.warning('End date must be after start date.');
+      return;
+    }
+
+    if (
+      v.appliesTo === 'Selected Categories' &&
+      (!v.selectedCategoryIds || v.selectedCategoryIds.length === 0)
+    ) {
+      this.toastService.warning(
+        'Select at least one category for this coupon.',
+      );
+      return;
+    }
+
+    if (
+      v.appliesTo === 'Selected Products' &&
+      (!v.selectedProductIds || v.selectedProductIds.length === 0)
+    ) {
+      this.toastService.warning('Select at least one product for this coupon.');
       return;
     }
 
     // Normalize coupon code
     const code = String(v.code).trim().toUpperCase();
+    const payload: CouponFormValue = {
+      code,
+      description: String(v.description ?? '').trim(),
+      customerEligibility: v.customerEligibility!,
+      appliesTo: v.appliesTo!,
+      selectedCategoryIds: [...(v.selectedCategoryIds ?? [])],
+      selectedProductIds: [...(v.selectedProductIds ?? [])],
+      perCustomerLimit: Number(v.perCustomerLimit),
+      stackable: !!v.stackable,
+      freeShipping: !!v.freeShipping,
+      autoApply: !!v.autoApply,
+      type: v.type!,
+      value: Number(v.value),
+      minOrder: Number(v.minOrder),
+      maxDiscount: v.type === 'Percent' ? Number(v.maxDiscount) : 0,
+      usageLimit: Number(v.usageLimit),
+      startDate: v.startDate!,
+      endDate: v.endDate!,
+      status: v.status!,
+    };
 
     if (this.mode === 'create') {
-      // prevent duplicates
-      if (this.coupons.some((c) => c.code === code)) {
-        alert('Coupon code already exists.');
+      if (this.couponsStore.coupons.some((c) => c.code === code)) {
+        this.toastService.warning('Coupon code already exists.');
         return;
       }
 
-      const newCoupon: Coupon = {
-        id: crypto.randomUUID(),
-        code,
-        type: v.type!,
-        value: Number(v.value),
-        minOrder: Number(v.minOrder),
-        maxDiscount: v.type === 'Percent' ? Number(v.maxDiscount) : 0,
-        usageLimit: Number(v.usageLimit),
-        usedCount: 0,
-        startDate: v.startDate!,
-        endDate: v.endDate!,
-        status: v.status!,
-        createdAt: new Date().toISOString(),
-      };
-      this.coupons = [newCoupon, ...this.coupons];
-    } else {
-      const id = this.selectedId!;
-      this.coupons = this.coupons.map((c) =>
-        c.id === id
-          ? {
-              ...c,
-              code,
-              type: v.type!,
-              value: Number(v.value),
-              minOrder: Number(v.minOrder),
-              maxDiscount: v.type === 'Percent' ? Number(v.maxDiscount) : 0,
-              usageLimit: Number(v.usageLimit),
-              startDate: v.startDate!,
-              endDate: v.endDate!,
-              status: v.status!,
-            }
-          : c,
-      );
+      this.couponsStore
+        .create(payload)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.currentPage = Math.min(this.currentPage, this.totalPages);
+            this.closeModal();
+          },
+        });
+      return;
     }
 
-    this.closeModal();
+    this.couponsStore
+      .update(this.selectedId!, payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.currentPage = Math.min(this.currentPage, this.totalPages);
+          this.closeModal();
+        },
+      });
   }
 
   private isoDateOffset(days: number) {
@@ -281,5 +448,129 @@ export class AdminCouponsComponent {
   isInvalid(name: string) {
     const c = this.form.get(name);
     return !!c && c.invalid && (c.touched || c.dirty);
+  }
+
+  addSelection(
+    controlName: 'selectedCategoryIds' | 'selectedProductIds',
+    id: string,
+  ) {
+    const control = this.form.get(controlName);
+    const current = Array.isArray(control?.value) ? [...control.value] : [];
+    if (current.includes(id)) return;
+    const next = [...current, id];
+
+    control?.setValue(next);
+    control?.markAsDirty();
+    control?.markAsTouched();
+  }
+
+  removeSelection(
+    controlName: 'selectedCategoryIds' | 'selectedProductIds',
+    id: string,
+  ) {
+    const control = this.form.get(controlName);
+    const current = Array.isArray(control?.value) ? [...control.value] : [];
+    const next = current.filter((item) => item !== id);
+
+    control?.setValue(next);
+    control?.markAsDirty();
+    control?.markAsTouched();
+  }
+
+  get categorySearchResults() {
+    return this.couponsStore.categorySearchResults.filter(
+      (option) => !this.selectedCategoryIds.includes(option.id),
+    );
+  }
+
+  get productSearchResults() {
+    return this.couponsStore.productSearchResults.filter(
+      (option) => !this.selectedProductIds.includes(option.id),
+    );
+  }
+
+  get selectedCategories() {
+    return this.resolveTargets(this.selectedCategoryIds, this.categoryOptions);
+  }
+
+  get selectedProducts() {
+    return this.resolveTargets(this.selectedProductIds, this.productOptions);
+  }
+
+  get selectedCategoryIds() {
+    const value = this.form.get('selectedCategoryIds')?.value;
+    return Array.isArray(value) ? value : [];
+  }
+
+  get selectedProductIds() {
+    const value = this.form.get('selectedProductIds')?.value;
+    return Array.isArray(value) ? value : [];
+  }
+
+  selectedTargetSummary(coupon: Coupon) {
+    if (coupon.appliesTo === 'Selected Categories') {
+      return this.labelForTargets(coupon.selectedCategoryTargets);
+    }
+
+    if (coupon.appliesTo === 'Selected Products') {
+      return this.labelForTargets(coupon.selectedProductTargets);
+    }
+
+    return 'Storewide';
+  }
+
+  discountSummary(coupon: Coupon) {
+    if (coupon.type === 'Percent') {
+      return `${coupon.value}% off`;
+    }
+
+    return `$${coupon.value} off`;
+  }
+
+  onProductSearchChange(query: string) {
+    this.productSearch = query;
+    this.productSearch$.next(query);
+  }
+
+  onCategorySearchChange(query: string) {
+    this.categorySearch = query;
+    this.categorySearch$.next(query);
+  }
+
+  retryLoad() {
+    this.reloadCoupons(true);
+    this.couponsStore.loadCategoryOptions();
+  }
+
+  private reloadCoupons(force = false) {
+    this.couponsStore.loadCoupons(this.buildCouponListQuery(), force);
+  }
+
+  private buildCouponListQuery(): CouponListQuery {
+    return {
+      page: this.currentPage,
+      limit: this.pageSize,
+      search: this.appliedQuery.trim() || undefined,
+      status:
+        this.appliedStatus === 'All'
+          ? undefined
+          : (this.appliedStatus.toLowerCase() as 'active' | 'inactive'),
+      dateFrom: this.appliedStartDate || undefined,
+      dateTo: this.appliedEndDate || undefined,
+    };
+  }
+
+  private labelForTargets(targets: TargetOption[]) {
+    const labels = targets
+      .map((target) => target.name)
+      .filter((value): value is string => !!value);
+
+    return labels.length ? labels.join(', ') : 'None selected';
+  }
+
+  private resolveTargets(ids: string[], options: TargetOption[]) {
+    return ids
+      .map((id) => options.find((option) => option.id === id))
+      .filter((value): value is TargetOption => !!value);
   }
 }

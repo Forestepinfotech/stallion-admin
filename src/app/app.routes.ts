@@ -8,6 +8,7 @@ import { AdminCarbrandComponent } from './admin/pages/admin-carbrand/admin-carbr
 import { AdminCarmodelComponent } from './admin/pages/admin-carmodel/admin-carmodel.component';
 import { AdminProductsComponent } from './admin/pages/admin-products/admin-products.component';
 import { AdminCouponsComponent } from './admin/pages/admin-coupons/admin-coupons.component';
+import { AdminCouponDetailComponent } from './admin/pages/admin-coupons/admin-coupon-detail.component';
 import { AdminProfileComponent } from './admin/pages/admin-profile/admin-profile.component';
 import { AdminProductReturnComponent } from './admin/pages/admin-product-return/admin-product-return.component';
 import { AdminInventoryComponent } from './admin/pages/admin-inventory/admin-inventory.component';
@@ -68,6 +69,10 @@ export const routes: Routes = [
       {
         path: 'coupons',
         component: AdminCouponsComponent,
+      },
+      {
+        path: 'coupons/:id',
+        component: AdminCouponDetailComponent,
       },
       {
         path: 'product-return',

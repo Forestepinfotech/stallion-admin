@@ -4,17 +4,31 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
+import type { UpdateCouponsDtoAppliesTo } from "./updateCouponsDtoAppliesTo";
+import type { UpdateCouponsDtoCouponType } from "./updateCouponsDtoCouponType";
+import type { UpdateCouponsDtoCustomerEligibility } from "./updateCouponsDtoCustomerEligibility";
+import type { UpdateCouponsDtoStatus } from "./updateCouponsDtoStatus";
 
 export interface UpdateCouponsDto {
   coupon_code?: string;
-  coupon_type?: string;
-  coupon_value?: string;
-  min_order_amount?: string;
-  usage_limit?: string;
-  used_count?: number;
+  description?: string;
+  customer_eligibility?: UpdateCouponsDtoCustomerEligibility;
+  applies_to?: UpdateCouponsDtoAppliesTo;
+  /** Required when applies_to is selected_products. */
+  target_product_ids?: number[];
+  /** Required when applies_to is selected_categories. */
+  target_category_ids?: number[];
+  coupon_type?: UpdateCouponsDtoCouponType;
+  coupon_value?: number;
+  min_order_amount?: number;
+  max_discount_amount?: number;
+  usage_limit?: number;
+  per_customer_limit?: number;
   start_at?: string;
   expire_at?: string;
-  is_valid?: boolean;
-  is_deleted?: boolean;
+  status?: UpdateCouponsDtoStatus;
+  stackable?: boolean;
+  free_shipping?: boolean;
+  auto_apply?: boolean;
   created_by?: number;
 }

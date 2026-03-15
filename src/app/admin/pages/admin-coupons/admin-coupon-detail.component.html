@@ -1,0 +1,123 @@
+<div class="min-h-screen bg-slate-50">
+  <div class="mx-auto max-w-6xl p-4 sm:p-6">
+    <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-6">
+      <a
+        routerLink="/admin/coupons"
+        class="inline-flex items-center text-sm font-medium text-slate-500 transition hover:text-slate-800"
+      >
+        Back to coupons
+      </a>
+
+      <div *ngIf="loading" class="mt-4 rounded-3xl border border-slate-200 bg-slate-50 px-6 py-10 text-sm text-slate-500">
+        Loading coupon details...
+      </div>
+
+      <div *ngIf="!loading && error" class="mt-4 rounded-3xl border border-red-200 bg-red-50 px-6 py-10 text-sm text-red-700">
+        {{ error }}
+      </div>
+
+      <div *ngIf="!loading && !error && coupon as detail" class="mt-4">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h1 class="text-2xl font-semibold tracking-tight text-slate-900">{{ detail.code }}</h1>
+            <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{{ detail.description }}</p>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700">
+              {{ discountSummary(detail.value, detail.type) }}
+            </span>
+            <span
+              class="rounded-full px-3 py-1.5 text-xs font-medium"
+              [class.bg-emerald-50]="isActive(detail.startDate, detail.endDate, detail.status)"
+              [class.text-emerald-700]="isActive(detail.startDate, detail.endDate, detail.status)"
+              [class.bg-slate-100]="!isActive(detail.startDate, detail.endDate, detail.status)"
+              [class.text-slate-700]="!isActive(detail.startDate, detail.endDate, detail.status)"
+            >
+              {{ isActive(detail.startDate, detail.endDate, detail.status) ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="mt-6 grid gap-6 lg:grid-cols-2">
+          <section class="rounded-3xl bg-slate-50 p-5 ring-1 ring-slate-200">
+            <h2 class="text-lg font-semibold text-slate-900">Campaign Overview</h2>
+            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Type</div>
+                <div class="mt-1 text-sm text-slate-900">{{ detail.type }}</div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Value</div>
+                <div class="mt-1 text-sm text-slate-900">{{ discountSummary(detail.value, detail.type) }}</div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Min Order</div>
+                <div class="mt-1 text-sm text-slate-900">${{ detail.minOrder }}</div>
+              </div>
+              <div *ngIf="detail.type === 'Percent'">
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Max Discount</div>
+                <div class="mt-1 text-sm text-slate-900">${{ detail.maxDiscount }}</div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Start Date</div>
+                <div class="mt-1 text-sm text-slate-900">{{ detail.startDate }}</div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">End Date</div>
+                <div class="mt-1 text-sm text-slate-900">{{ detail.endDate }}</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="rounded-3xl bg-slate-50 p-5 ring-1 ring-slate-200">
+            <h2 class="text-lg font-semibold text-slate-900">Redemption Rules</h2>
+            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Eligibility</div>
+                <div class="mt-1 text-sm text-slate-900">{{ detail.customerEligibility }}</div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Per Customer</div>
+                <div class="mt-1 text-sm text-slate-900">{{ detail.perCustomerLimit }}</div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Usage Limit</div>
+                <div class="mt-1 text-sm text-slate-900">{{ detail.usedCount }} / {{ detail.usageLimit }}</div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Scope</div>
+                <div class="mt-1 text-sm text-slate-900">{{ detail.appliesTo }}</div>
+              </div>
+              <div class="sm:col-span-2">
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Targets</div>
+                <div class="mt-1 text-sm text-slate-900">
+                  {{ targetSummary(detail.appliesTo, detail.selectedCategoryTargets, detail.selectedProductTargets) }}
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="mt-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+          <h2 class="text-lg font-semibold text-slate-900">Checkout Behavior</h2>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700">
+              {{ detail.stackable ? 'Stackable' : 'Not stackable' }}
+            </span>
+            <span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700">
+              {{ detail.freeShipping ? 'Free shipping' : 'No free shipping' }}
+            </span>
+            <span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700">
+              {{ detail.autoApply ? 'Auto apply' : 'Manual code' }}
+            </span>
+          </div>
+        </section>
+      </div>
+
+      <div *ngIf="!loading && !error && !coupon" class="mt-6 rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center text-sm text-slate-500">
+        Coupon details are not available.
+      </div>
+    </div>
+  </div>
+</div>
