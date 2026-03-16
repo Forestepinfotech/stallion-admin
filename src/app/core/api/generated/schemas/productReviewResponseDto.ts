@@ -4,13 +4,28 @@
  * stallio-auto-parts API
  * OpenAPI spec version: 1.0
  */
+import type { ProductReviewResponseDtoCreatedAt } from "./productReviewResponseDtoCreatedAt";
+import type { ProductReviewResponseDtoCustomerEmail } from "./productReviewResponseDtoCustomerEmail";
+import type { ProductReviewResponseDtoCustomerName } from "./productReviewResponseDtoCustomerName";
+import type { ProductReviewResponseDtoProductTitle } from "./productReviewResponseDtoProductTitle";
+import type { ProductReviewResponseDtoUpdatedAt } from "./productReviewResponseDtoUpdatedAt";
 
 export interface ProductReviewResponseDto {
   user_id: number;
   product_id: number;
-  rating: string;
+  rating: number;
   review_comment: string;
   is_active: boolean;
   is_deleted: boolean;
   review_id: number;
+  /** @nullable */
+  customer_name?: ProductReviewResponseDtoCustomerName;
+  /** @nullable */
+  customer_email?: ProductReviewResponseDtoCustomerEmail;
+  /** @nullable */
+  product_title?: ProductReviewResponseDtoProductTitle;
+  /** @nullable */
+  created_at?: ProductReviewResponseDtoCreatedAt;
+  /** @nullable */
+  updated_at?: ProductReviewResponseDtoUpdatedAt;
 }

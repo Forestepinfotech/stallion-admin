@@ -8,7 +8,7 @@
 export interface UpdateProductReviewDto {
   user_id?: number;
   product_id?: number;
-  rating?: string;
+  rating?: number;
   review_comment?: string;
   is_active?: boolean;
   is_deleted?: boolean;

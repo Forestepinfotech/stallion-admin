@@ -6,6 +6,8 @@ export interface Review {
   email: string;
   rating: number; // 1..5
   comment: string;
+  product_title?: string;
+  is_active?: boolean;
 
   images?: string[]; // URLs (optional)
 
