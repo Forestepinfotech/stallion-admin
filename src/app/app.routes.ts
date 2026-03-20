@@ -14,6 +14,7 @@ import { AdminProductReturnComponent } from './admin/pages/admin-product-return/
 import { AdminReturnReasonsComponent } from './admin/pages/admin-return-reasons/admin-return-reasons.component';
 import { AdminInventoryComponent } from './admin/pages/admin-inventory/admin-inventory.component';
 import { AdminUserComponent } from './admin/pages/admin-user/admin-user.component';
+import { AdminUserDetailComponent } from './admin/pages/admin-user-detail/admin-user-detail.component';
 import { AdminAttributesComponent } from './admin/pages/admin-attributes/admin-attributes.component';
 import { AdminProductListComponent } from './admin/pages/admin-product-list/admin-product-list.component';
 import { AdminProductDetailComponent } from './admin/pages/admin-product-detail/admin-product-detail.component';
@@ -104,6 +105,7 @@ export const routes: Routes = [
         component: AdminAttributesComponent,
       },
       { path: 'users', component: AdminUserComponent },
+      { path: 'users/:id', component: AdminUserDetailComponent },
       { path: 'category', component: AdminCategoryComponent },
       { path: 'sub-categories', component: AdminSubCategoryComponent },
     ],

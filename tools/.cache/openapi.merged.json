@@ -8248,18 +8248,56 @@
         "operationId": "DashboardController_recentActivity",
         "parameters": [
           {
-            "name": "dateFrom",
-            "required": true,
+            "name": "page",
+            "required": false,
             "in": "query",
             "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 50,
+              "type": "number"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-03-01",
               "type": "string"
             }
           },
           {
             "name": "dateTo",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
+              "example": "2026-03-31",
+              "type": "string"
+            }
+          },
+          {
+            "name": "user_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 12,
+              "type": "number"
+            }
+          },
+          {
+            "name": "user_email",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ali@example.com",
               "type": "string"
             }
           }

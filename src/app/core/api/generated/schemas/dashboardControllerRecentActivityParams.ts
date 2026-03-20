@@ -6,6 +6,10 @@
  */
 
 export type DashboardControllerRecentActivityParams = {
-  dateFrom: string;
-  dateTo: string;
+  page?: number;
+  limit?: number;
+  dateFrom?: string;
+  dateTo?: string;
+  user_id?: number;
+  user_email?: string;
 };

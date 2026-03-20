@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { finalize, switchMap } from 'rxjs/operators';
 import {
@@ -45,7 +46,7 @@ type User = {
 };
 @Component({
   selector: 'app-admin-user',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SkeletonPanelComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, SkeletonPanelComponent, RouterLink],
   templateUrl: './admin-user.component.html',
   styleUrl: './admin-user.component.css',
 })
@@ -165,6 +166,12 @@ export class AdminUserComponent implements OnInit {
     });
 
     this.editOpen = true;
+  }
+
+  warnIfRestricted(u: User) {
+    if (u.status === 'Inactive') {
+      this.toast.warning('This user is restricted. Review access controls before making changes.');
+    }
   }
 
   closeEdit() {

@@ -220,19 +220,19 @@ export class AdminDashboardService {
     });
   }
   dashboardControllerRecentActivity<TData = PaginatedRecentActivityDto>(
-    params: DashboardControllerRecentActivityParams,
+    params?: DashboardControllerRecentActivityParams,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
   dashboardControllerRecentActivity<TData = PaginatedRecentActivityDto>(
-    params: DashboardControllerRecentActivityParams,
+    params?: DashboardControllerRecentActivityParams,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
   dashboardControllerRecentActivity<TData = PaginatedRecentActivityDto>(
-    params: DashboardControllerRecentActivityParams,
+    params?: DashboardControllerRecentActivityParams,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
   dashboardControllerRecentActivity<TData = PaginatedRecentActivityDto>(
-    params: DashboardControllerRecentActivityParams,
+    params?: DashboardControllerRecentActivityParams,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     const filteredParams = filterParams(

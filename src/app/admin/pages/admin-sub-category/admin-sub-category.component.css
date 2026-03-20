@@ -75,7 +75,7 @@
 .sub-category-layout {
   display: grid;
   gap: 24px;
-  grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
+  grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
   align-items: start;
 }
 
@@ -95,6 +95,7 @@
   gap: 16px;
   align-items: flex-start;
   justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 .sub-card__header--split {
@@ -115,6 +116,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .sub-card__header h2 {
@@ -150,7 +152,8 @@
 }
 
 .setup-mode {
-  min-width: 220px;
+  min-width: min(220px, 100%);
+  max-width: 100%;
   padding: 14px 16px;
   border: 1px solid #d8dde6;
   border-radius: 20px;
@@ -406,7 +409,7 @@
 .sub-filter-bar {
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
   padding: 18px;
   border: 1px solid #d8dde6;
   border-radius: 24px;
@@ -420,6 +423,7 @@
   align-content: start;
   gap: 6px;
   padding-right: 8px;
+  min-width: 0;
 }
 
 .sub-filter-bar__eyebrow {
@@ -453,6 +457,7 @@
   flex-wrap: wrap;
   gap: 14px;
   align-items: end;
+  min-width: 0;
 }
 
 .field--compact {
@@ -499,7 +504,7 @@
 
 .sub-table {
   width: 100%;
-  min-width: 820px;
+  min-width: 720px;
   border-collapse: separate;
   border-spacing: 0;
 }
@@ -611,7 +616,7 @@
   gap: 10px;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1360px) {
   .sub-category-hero,
   .sub-category-layout {
     grid-template-columns: 1fr;
@@ -631,6 +636,22 @@
   }
 }
 
+@media (max-width: 1080px) {
+  .field--compact {
+    flex-basis: calc(50% - 7px);
+  }
+
+  .field--compact:first-child,
+  .sub-toolbar__actions {
+    flex-basis: 100%;
+  }
+
+  .sub-toolbar__actions {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+}
+
 @media (max-width: 760px) {
   .sub-category-page {
     gap: 18px;
@@ -647,6 +668,10 @@
   .sub-category-hero {
     padding-top: 22px;
     padding-bottom: 22px;
+  }
+
+  .sub-category-hero__stats {
+    grid-template-columns: 1fr;
   }
 
   .sub-card__header--split,
@@ -678,6 +703,14 @@
     flex-basis: 100%;
   }
 
+  .ghost-button,
+  .primary-button,
+  .danger-button,
+  .status-action {
+    width: 100%;
+    justify-content: center;
+  }
+
   .table-summary-pills {
     justify-content: flex-start;
   }
@@ -686,14 +719,8 @@
     margin-left: 18px;
     margin-right: 18px;
   }
-}
-
-@media (max-width: 940px) {
-  .field--compact {
-    flex-basis: calc(50% - 7px);
-  }
-
-  .field--compact:first-child {
-    flex-basis: 100%;
+  
+  .sub-table {
+    min-width: 640px;
   }
 }
