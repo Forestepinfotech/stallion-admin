@@ -19,10 +19,17 @@ import { Observable } from "rxjs";
 import type {
   CustomerProfileDto,
   DashboardControllerRecentActivityParams,
-  DashboardOverviewDto,
+  DashboardControllerRevenueTrendParams,
+  DashboardControllerSalesMixParams,
+  DashboardControllerTopProductsListParams,
+  DashboardControllerTopProductsParams,
+  DashboardSummaryDto,
   DealerProfileDto,
   PaginatedRecentActivityDto,
   ProfileDto,
+  RevenueTrendDto,
+  SalesMixDto,
+  TopProductsListDto,
   UpdateAdminDashboardProfileDto,
   UpdateCustomerDashboardProfileDto,
   UpdateDashboardProfileDto,
@@ -95,16 +102,16 @@ function filterParams(
 @Injectable({ providedIn: "root" })
 export class AdminDashboardService {
   private readonly http = inject(HttpClient);
-  dashboardControllerSummary<TData = void>(
+  dashboardControllerSummary<TData = DashboardSummaryDto>(
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  dashboardControllerSummary<TData = void>(
+  dashboardControllerSummary<TData = DashboardSummaryDto>(
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  dashboardControllerSummary<TData = void>(
+  dashboardControllerSummary<TData = DashboardSummaryDto>(
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  dashboardControllerSummary<TData = void>(
+  dashboardControllerSummary<TData = DashboardSummaryDto>(
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     if (options?.observe === "events") {
@@ -126,22 +133,32 @@ export class AdminDashboardService {
       observe: "body",
     });
   }
-  dashboardControllerRevenueTrend<TData = void>(
+  dashboardControllerRevenueTrend<TData = RevenueTrendDto>(
+    params?: DashboardControllerRevenueTrendParams,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  dashboardControllerRevenueTrend<TData = void>(
+  dashboardControllerRevenueTrend<TData = RevenueTrendDto>(
+    params?: DashboardControllerRevenueTrendParams,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  dashboardControllerRevenueTrend<TData = void>(
+  dashboardControllerRevenueTrend<TData = RevenueTrendDto>(
+    params?: DashboardControllerRevenueTrendParams,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  dashboardControllerRevenueTrend<TData = void>(
+  dashboardControllerRevenueTrend<TData = RevenueTrendDto>(
+    params?: DashboardControllerRevenueTrendParams,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
     if (options?.observe === "events") {
       return this.http.get<TData>(`/dashboard/revenue-trend`, {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "events",
+        params: filteredParams,
       });
     }
 
@@ -149,30 +166,42 @@ export class AdminDashboardService {
       return this.http.get<TData>(`/dashboard/revenue-trend`, {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "response",
+        params: filteredParams,
       });
     }
 
     return this.http.get<TData>(`/dashboard/revenue-trend`, {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
+      params: filteredParams,
     });
   }
-  dashboardControllerSalesMix<TData = void>(
+  dashboardControllerSalesMix<TData = SalesMixDto>(
+    params?: DashboardControllerSalesMixParams,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  dashboardControllerSalesMix<TData = void>(
+  dashboardControllerSalesMix<TData = SalesMixDto>(
+    params?: DashboardControllerSalesMixParams,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  dashboardControllerSalesMix<TData = void>(
+  dashboardControllerSalesMix<TData = SalesMixDto>(
+    params?: DashboardControllerSalesMixParams,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  dashboardControllerSalesMix<TData = void>(
+  dashboardControllerSalesMix<TData = SalesMixDto>(
+    params?: DashboardControllerSalesMixParams,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
     if (options?.observe === "events") {
       return this.http.get<TData>(`/dashboard/sales-mix`, {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "events",
+        params: filteredParams,
       });
     }
 
@@ -180,30 +209,42 @@ export class AdminDashboardService {
       return this.http.get<TData>(`/dashboard/sales-mix`, {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "response",
+        params: filteredParams,
       });
     }
 
     return this.http.get<TData>(`/dashboard/sales-mix`, {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
+      params: filteredParams,
     });
   }
-  dashboardControllerTopProducts<TData = void>(
+  dashboardControllerTopProducts<TData = TopProductsListDto>(
+    params?: DashboardControllerTopProductsParams,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  dashboardControllerTopProducts<TData = void>(
+  dashboardControllerTopProducts<TData = TopProductsListDto>(
+    params?: DashboardControllerTopProductsParams,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  dashboardControllerTopProducts<TData = void>(
+  dashboardControllerTopProducts<TData = TopProductsListDto>(
+    params?: DashboardControllerTopProductsParams,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  dashboardControllerTopProducts<TData = void>(
+  dashboardControllerTopProducts<TData = TopProductsListDto>(
+    params?: DashboardControllerTopProductsParams,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
     if (options?.observe === "events") {
       return this.http.get<TData>(`/dashboard/top-products`, {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "events",
+        params: filteredParams,
       });
     }
 
@@ -211,12 +252,57 @@ export class AdminDashboardService {
       return this.http.get<TData>(`/dashboard/top-products`, {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "response",
+        params: filteredParams,
       });
     }
 
     return this.http.get<TData>(`/dashboard/top-products`, {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
+      params: filteredParams,
+    });
+  }
+  dashboardControllerTopProductsList<TData = TopProductsListDto>(
+    params?: DashboardControllerTopProductsListParams,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  dashboardControllerTopProductsList<TData = TopProductsListDto>(
+    params?: DashboardControllerTopProductsListParams,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  dashboardControllerTopProductsList<TData = TopProductsListDto>(
+    params?: DashboardControllerTopProductsListParams,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  dashboardControllerTopProductsList<TData = TopProductsListDto>(
+    params?: DashboardControllerTopProductsListParams,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/dashboard/top-products-list`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+        params: filteredParams,
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/dashboard/top-products-list`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+        params: filteredParams,
+      });
+    }
+
+    return this.http.get<TData>(`/dashboard/top-products-list`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+      params: filteredParams,
     });
   }
   dashboardControllerRecentActivity<TData = PaginatedRecentActivityDto>(
@@ -573,36 +659,5 @@ export class AdminDashboardService {
         observe: "body",
       },
     );
-  }
-  dashboardControllerOverview<TData = DashboardOverviewDto>(
-    options?: HttpClientOptions & { observe?: "body" },
-  ): Observable<TData>;
-  dashboardControllerOverview<TData = DashboardOverviewDto>(
-    options?: HttpClientOptions & { observe: "events" },
-  ): Observable<HttpEvent<TData>>;
-  dashboardControllerOverview<TData = DashboardOverviewDto>(
-    options?: HttpClientOptions & { observe: "response" },
-  ): Observable<AngularHttpResponse<TData>>;
-  dashboardControllerOverview<TData = DashboardOverviewDto>(
-    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
-  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === "events") {
-      return this.http.get<TData>(`/dashboard/overview`, {
-        ...(options as Omit<NonNullable<typeof options>, "observe">),
-        observe: "events",
-      });
-    }
-
-    if (options?.observe === "response") {
-      return this.http.get<TData>(`/dashboard/overview`, {
-        ...(options as Omit<NonNullable<typeof options>, "observe">),
-        observe: "response",
-      });
-    }
-
-    return this.http.get<TData>(`/dashboard/overview`, {
-      ...(options as Omit<NonNullable<typeof options>, "observe">),
-      observe: "body",
-    });
   }
 }

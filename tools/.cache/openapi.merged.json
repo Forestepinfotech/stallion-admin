@@ -8173,7 +8173,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Summary cards"
+            "description": "Summary cards",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardSummaryDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -8189,10 +8196,28 @@
     "/dashboard/revenue-trend": {
       "get": {
         "operationId": "DashboardController_revenueTrend",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "days",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 7,
+              "example": 7,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Revenue trend by day"
+            "description": "Revenue trend by day",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevenueTrendDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -8208,10 +8233,28 @@
     "/dashboard/sales-mix": {
       "get": {
         "operationId": "DashboardController_salesMix",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "days",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 7,
+              "example": 7,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Sales mix by category"
+            "description": "Sales mix by category",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesMixDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -8227,10 +8270,85 @@
     "/dashboard/top-products": {
       "get": {
         "operationId": "DashboardController_topProducts",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "days",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 7,
+              "example": 7,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 5,
+              "example": 5,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Top products by sold qty"
+            "description": "Top products by sold qty",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopProductsListDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-dashboard"
+        ]
+      }
+    },
+    "/dashboard/top-products-list": {
+      "get": {
+        "operationId": "DashboardController_topProductsList",
+        "parameters": [
+          {
+            "name": "days",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 7,
+              "example": 7,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 5,
+              "example": 5,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dedicated bottom table payload for most sold products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopProductsListDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -8549,32 +8667,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DealerProfileDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "admin-dashboard"
-        ]
-      }
-    },
-    "/dashboard/overview": {
-      "get": {
-        "operationId": "DashboardController_overview",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Full dashboard payload",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DashboardOverviewDto"
                 }
               }
             }
@@ -17384,6 +17476,154 @@
           }
         }
       },
+      "DashboardSummaryDto": {
+        "type": "object",
+        "properties": {
+          "revenue": {
+            "type": "number"
+          },
+          "soldProducts": {
+            "type": "number"
+          },
+          "activeDealers": {
+            "type": "number"
+          },
+          "totalDealers": {
+            "type": "number"
+          },
+          "totalProducts": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "revenue",
+          "soldProducts",
+          "activeDealers",
+          "totalDealers",
+          "totalProducts"
+        ]
+      },
+      "RevenuePointDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-03-01"
+          },
+          "revenue": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "revenue"
+        ]
+      },
+      "RevenueTrendDto": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RevenuePointDto"
+            }
+          },
+          "peak": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "days",
+          "peak"
+        ]
+      },
+      "SalesMixItemDto": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "sold": {
+            "type": "number"
+          },
+          "percent": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "category",
+          "sold",
+          "percent"
+        ]
+      },
+      "SalesMixDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesMixItemDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ]
+      },
+      "TopProductDto": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "category": {
+            "type": "object",
+            "nullable": true
+          },
+          "sold": {
+            "type": "number"
+          },
+          "revenue": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "product_id",
+          "title",
+          "sku",
+          "sold",
+          "revenue"
+        ]
+      },
+      "TopProductsListDto": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number",
+            "example": 3
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TopProductDto"
+            }
+          }
+        },
+        "required": [
+          "count",
+          "items"
+        ]
+      },
       "ActivityItemDto": {
         "type": "object",
         "properties": {
@@ -17894,172 +18134,6 @@
             "example": ""
           }
         }
-      },
-      "DashboardSummaryDto": {
-        "type": "object",
-        "properties": {
-          "revenue": {
-            "type": "number"
-          },
-          "soldProducts": {
-            "type": "number"
-          },
-          "activeDealers": {
-            "type": "number"
-          },
-          "totalDealers": {
-            "type": "number"
-          },
-          "totalProducts": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "revenue",
-          "soldProducts",
-          "activeDealers",
-          "totalDealers",
-          "totalProducts"
-        ]
-      },
-      "RevenuePointDto": {
-        "type": "object",
-        "properties": {
-          "date": {
-            "type": "string",
-            "example": "2026-03-01"
-          },
-          "revenue": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "date",
-          "revenue"
-        ]
-      },
-      "RevenueTrendDto": {
-        "type": "object",
-        "properties": {
-          "days": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RevenuePointDto"
-            }
-          },
-          "peak": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "days",
-          "peak"
-        ]
-      },
-      "SalesMixItemDto": {
-        "type": "object",
-        "properties": {
-          "category": {
-            "type": "string"
-          },
-          "sold": {
-            "type": "number"
-          },
-          "percent": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "category",
-          "sold",
-          "percent"
-        ]
-      },
-      "SalesMixDto": {
-        "type": "object",
-        "properties": {
-          "total": {
-            "type": "number"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SalesMixItemDto"
-            }
-          }
-        },
-        "required": [
-          "total",
-          "items"
-        ]
-      },
-      "TopProductDto": {
-        "type": "object",
-        "properties": {
-          "product_id": {
-            "type": "number"
-          },
-          "title": {
-            "type": "string"
-          },
-          "sku": {
-            "type": "string"
-          },
-          "category": {
-            "type": "object",
-            "nullable": true
-          },
-          "sold": {
-            "type": "number"
-          },
-          "revenue": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "product_id",
-          "title",
-          "sku",
-          "sold",
-          "revenue"
-        ]
-      },
-      "DashboardOverviewDto": {
-        "type": "object",
-        "properties": {
-          "summary": {
-            "$ref": "#/components/schemas/DashboardSummaryDto"
-          },
-          "revenueTrend": {
-            "$ref": "#/components/schemas/RevenueTrendDto"
-          },
-          "salesMix": {
-            "$ref": "#/components/schemas/SalesMixDto"
-          },
-          "topProducts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TopProductDto"
-            }
-          },
-          "recentActivity": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ActivityItemDto"
-            }
-          },
-          "profile": {
-            "$ref": "#/components/schemas/ProfileDto"
-          }
-        },
-        "required": [
-          "summary",
-          "revenueTrend",
-          "salesMix",
-          "topProducts",
-          "recentActivity",
-          "profile"
-        ]
       },
       "InventoryListItemDto": {
         "type": "object",

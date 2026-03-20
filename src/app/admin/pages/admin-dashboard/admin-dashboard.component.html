@@ -1,10 +1,9 @@
 <div class="space-y-6">
-  <!-- HERO -->
   <div class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
       <div>
         <h1 class="text-2xl md:text-3xl font-semibold">Dashboard</h1>
-        <p class="text-sm text-white/70 mt-1">Revenue, products, dealers and sales analytics</p>
+        <p class="text-sm text-white/70 mt-1">Live revenue, product, dealer and sales analytics for {{ adminDisplayName }}</p>
       </div>
 
       <div class="flex flex-wrap gap-3">
@@ -20,26 +19,30 @@
       </div>
     </div>
 
-    <!-- Quick progress strip (optional) -->
     <div class="mt-5">
-      <div class="text-xs text-white/70 mb-2">Sales mix (Tire / Wheel / Cover)</div>
+      <div class="flex items-center justify-between gap-3 mb-2">
+        <div class="text-xs text-white/70">Sales mix (last 30 days)</div>
+        <div *ngIf="loading" class="text-[11px] text-white/60">Refreshing</div>
+      </div>
+
       <div class="h-3 w-full bg-white/10 rounded-full overflow-hidden flex">
-        <div class="h-3 bg-white" [style.width.%]="pct(salesMix.tire)"></div>
-        <div class="h-3 bg-white/70" [style.width.%]="pct(salesMix.wheel)"></div>
-        <div class="h-3 bg-white/40" [style.width.%]="pct(salesMix.cover)"></div>
+        <div
+          *ngFor="let item of donutSegments; trackBy: trackByMixCategory"
+          class="h-3"
+          [style.background]="item.color"
+          [style.width.%]="item.percent"
+        ></div>
       </div>
     </div>
   </div>
 
-  <!-- KPI CARDS -->
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-    <!-- Revenue -->
     <div class="rounded-3xl p-5 text-white shadow-lg overflow-hidden relative bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-900">
       <div class="flex items-start justify-between">
         <div>
           <div class="text-xs text-white/80">Revenue</div>
           <div class="text-2xl font-semibold mt-2">{{ revenueTotal | currency:'USD':'symbol':'1.0-0' }}</div>
-          <div class="text-xs text-white/70 mt-1">Total revenue</div>
+          <div class="text-xs text-white/70 mt-1">Revenue overview</div>
         </div>
 
         <div class="w-11 h-11 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center">
@@ -51,7 +54,6 @@
       <div class="absolute -right-12 -bottom-12 w-40 h-40 rounded-full bg-white/10 blur-2xl"></div>
     </div>
 
-    <!-- Sold -->
     <div class="rounded-3xl p-5 text-white shadow-lg overflow-hidden relative bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-900">
       <div class="flex items-start justify-between">
         <div>
@@ -70,13 +72,12 @@
       <div class="absolute -right-12 -bottom-12 w-40 h-40 rounded-full bg-white/10 blur-2xl"></div>
     </div>
 
-    <!-- Dealers -->
     <div class="rounded-3xl p-5 text-white shadow-lg overflow-hidden relative bg-gradient-to-br from-slate-800 via-gray-900 to-black">
       <div class="flex items-start justify-between">
         <div>
           <div class="text-xs text-white/80">Dealers</div>
           <div class="text-2xl font-semibold mt-2">{{ dealersCount }}</div>
-          <div class="text-xs text-white/70 mt-1">Partners registered</div>
+          <div class="text-xs text-white/70 mt-1">{{ activeDealers }} active</div>
         </div>
 
         <div class="w-11 h-11 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center">
@@ -89,7 +90,6 @@
       <div class="absolute -right-12 -bottom-12 w-40 h-40 rounded-full bg-white/10 blur-2xl"></div>
     </div>
 
-    <!-- Total Products -->
     <div class="rounded-3xl p-5 text-white shadow-lg overflow-hidden relative bg-gradient-to-br from-amber-500 via-orange-600 to-orange-800">
       <div class="flex items-start justify-between">
         <div>
@@ -110,9 +110,7 @@
     </div>
   </div>
 
-  <!-- CHARTS -->
   <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-    <!-- Revenue Bar Chart -->
     <div class="xl:col-span-2 rounded-3xl border bg-white shadow-sm overflow-hidden">
       <div class="px-6 py-5 border-b flex items-center justify-between">
         <div>
@@ -125,90 +123,69 @@
       </div>
 
       <div class="p-6">
-        <div class="grid grid-cols-7 gap-3 items-end h-56">
-          <div *ngFor="let x of revenueTrend" class="flex flex-col items-center gap-2">
+        <div class="grid grid-cols-7 gap-3 items-end h-56" *ngIf="revenueTrend.length; else emptyTrend">
+          <div *ngFor="let x of revenueTrend; trackBy: trackByRevenueDate" class="flex flex-col items-center gap-2">
             <div class="w-full h-44 flex items-end">
               <div class="w-full rounded-2xl bg-gray-100 overflow-hidden">
                 <div
                   class="w-full rounded-2xl bg-black transition-all duration-700"
-                  [style.height.%]="barHeightPercent(x.value)"
+                  [style.height.%]="barHeightPercent(x.revenue)"
                 ></div>
               </div>
             </div>
-            <div class="text-xs text-gray-500">{{ x.label }}</div>
-            <div class="text-[11px] text-gray-700">{{ x.value | currency:'USD':'symbol':'1.0-0' }}</div>
+            <div class="text-xs text-gray-500">{{ formatTrendLabel(x.date) }}</div>
+            <div class="text-[11px] text-gray-700">{{ x.revenue | currency:'USD':'symbol':'1.0-0' }}</div>
+            <div class="text-[10px] text-gray-400">{{ formatTrendDate(x.date) }}</div>
           </div>
         </div>
-        <div class="mt-4 text-xs text-gray-500">Connect this chart to your backend revenue endpoint.</div>
+
+        <ng-template #emptyTrend>
+          <div class="h-56 flex items-center justify-center text-sm text-gray-500">No revenue trend data available.</div>
+        </ng-template>
       </div>
     </div>
 
-    <!-- Sales Mix Donut (Pie) -->
     <div class="rounded-3xl border bg-white shadow-sm overflow-hidden">
       <div class="px-6 py-5 border-b">
         <div class="text-lg font-semibold text-gray-900">Sales Mix</div>
-        <div class="text-sm text-gray-500">Share by category</div>
+        <div class="text-sm text-gray-500">Category share for the last 30 days</div>
       </div>
 
       <div class="p-6">
-        <div class="flex items-center gap-6">
-          <!-- Donut -->
+        <div class="flex items-center gap-6" *ngIf="donutSegments.length; else emptyMix">
           <div class="relative w-36 h-36 rounded-full" [ngStyle]="donutStyle">
             <div class="absolute inset-4 rounded-full bg-white"></div>
             <div class="absolute inset-0 flex items-center justify-center">
               <div class="text-center">
                 <div class="text-xs text-gray-500">Total</div>
-                <div class="text-xl font-semibold text-gray-900">{{ mixTotal | number }}</div>
+                <div class="text-xl font-semibold text-gray-900">{{ salesMixTotal | number }}</div>
               </div>
             </div>
           </div>
 
-          <!-- Legend -->
           <div class="space-y-3 flex-1">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="w-3 h-3 rounded-full bg-black"></span>
-                <span class="text-sm text-gray-700">Tire</span>
+            <div *ngFor="let item of donutSegments; trackBy: trackByMixCategory" class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-3 h-3 rounded-full" [style.background]="item.color"></span>
+                <span class="text-sm text-gray-700 truncate">{{ item.category }}</span>
               </div>
-              <div class="text-sm font-semibold text-gray-900">{{ pct(salesMix.tire) | number:'1.0-0' }}%</div>
-            </div>
-
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="w-3 h-3 rounded-full bg-gray-900"></span>
-                <span class="text-sm text-gray-700">Wheel</span>
-              </div>
-              <div class="text-sm font-semibold text-gray-900">{{ pct(salesMix.wheel) | number:'1.0-0' }}%</div>
-            </div>
-
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="w-3 h-3 rounded-full bg-gray-500"></span>
-                <span class="text-sm text-gray-700">Cover</span>
-              </div>
-              <div class="text-sm font-semibold text-gray-900">{{ pct(salesMix.cover) | number:'1.0-0' }}%</div>
+              <div class="text-sm font-semibold text-gray-900">{{ item.percent | number:'1.0-0' }}%</div>
             </div>
           </div>
         </div>
 
-        <!-- quick bars -->
-        <div class="mt-6 space-y-3">
-          <div>
-            <div class="flex justify-between text-xs text-gray-500 mb-1"><span>Tire</span><span>{{ salesMix.tire }}</span></div>
-            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div class="h-2 bg-black rounded-full" [style.width.%]="pct(salesMix.tire)"></div>
+        <ng-template #emptyMix>
+          <div class="h-36 flex items-center justify-center text-sm text-gray-500">No sales mix data available.</div>
+        </ng-template>
+
+        <div class="mt-6 space-y-3" *ngIf="donutSegments.length">
+          <div *ngFor="let item of donutSegments; trackBy: trackByMixCategory">
+            <div class="flex justify-between text-xs text-gray-500 mb-1">
+              <span>{{ item.category }}</span>
+              <span>{{ item.sold | number }}</span>
             </div>
-          </div>
-          <div>
-            <div class="flex justify-between text-xs text-gray-500 mb-1"><span>Wheel</span><span>{{ salesMix.wheel }}</span></div>
-            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div class="h-2 bg-gray-900 rounded-full" [style.width.%]="pct(salesMix.wheel)"></div>
-            </div>
-          </div>
-          <div>
-            <div class="flex justify-between text-xs text-gray-500 mb-1"><span>Cover</span><span>{{ salesMix.cover }}</span></div>
-            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div class="h-2 bg-gray-500 rounded-full" [style.width.%]="pct(salesMix.cover)"></div>
+            <div class="h-2 rounded-full overflow-hidden" [style.background]="item.trackColor">
+              <div class="h-2 rounded-full" [style.background]="item.color" [style.width.%]="item.percent"></div>
             </div>
           </div>
         </div>
@@ -216,17 +193,16 @@
     </div>
   </div>
 
-  <!-- TOP PRODUCTS TABLE -->
   <div class="rounded-3xl border bg-white shadow-sm overflow-hidden">
     <div class="px-6 py-5 border-b flex items-center justify-between">
       <div>
         <div class="text-lg font-semibold text-gray-900">Top Products</div>
-        <div class="text-sm text-gray-500">Most sold items</div>
+        <div class="text-sm text-gray-500">Top 10 products in the last 30 days</div>
       </div>
       <div class="text-sm text-gray-600">Count: <span class="font-semibold text-gray-900">{{ topProducts.length }}</span></div>
     </div>
 
-    <div class="hidden md:block">
+    <div class="hidden md:block" *ngIf="topProducts.length; else emptyProducts">
       <table class="w-full">
         <thead class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
           <tr>
@@ -238,11 +214,11 @@
           </tr>
         </thead>
         <tbody class="divide-y">
-          <tr *ngFor="let p of topProducts" class="hover:bg-gray-50 transition">
-            <td class="px-6 py-4 font-semibold text-gray-900">{{ p.name }}</td>
+          <tr *ngFor="let p of topProducts; trackBy: trackByProduct" class="hover:bg-gray-50 transition">
+            <td class="px-6 py-4 font-semibold text-gray-900">{{ p.title }}</td>
             <td class="px-6 py-4">
-              <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="typeBadge(p.type)">
-                {{ p.type }}
+              <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="typeBadge(productCategoryLabel(p))">
+                {{ productCategoryLabel(p) }}
               </span>
             </td>
             <td class="px-6 py-4 text-sm text-gray-700">{{ p.sku }}</td>
@@ -253,16 +229,15 @@
       </table>
     </div>
 
-    <!-- Mobile cards -->
-    <div class="md:hidden p-4 space-y-3">
-      <div *ngFor="let p of topProducts" class="rounded-3xl border p-4">
+    <div class="md:hidden p-4 space-y-3" *ngIf="topProducts.length">
+      <div *ngFor="let p of topProducts; trackBy: trackByProduct" class="rounded-3xl border p-4">
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0">
-            <div class="font-semibold text-gray-900 truncate">{{ p.name }}</div>
+            <div class="font-semibold text-gray-900 truncate">{{ p.title }}</div>
             <div class="text-xs text-gray-500 mt-1">{{ p.sku }}</div>
           </div>
-          <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="typeBadge(p.type)">
-            {{ p.type }}
+          <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="typeBadge(productCategoryLabel(p))">
+            {{ productCategoryLabel(p) }}
           </span>
         </div>
 
@@ -278,5 +253,33 @@
         </div>
       </div>
     </div>
+
+    <ng-template #emptyProducts>
+      <div class="p-10 text-center text-sm text-gray-500">No top products data available.</div>
+    </ng-template>
+  </div>
+
+  <div class="rounded-3xl border bg-white shadow-sm overflow-hidden">
+    <div class="px-6 py-5 border-b flex items-center justify-between">
+      <div>
+        <div class="text-lg font-semibold text-gray-900">Recent Activity</div>
+        <div class="text-sm text-gray-500">Latest platform activity</div>
+      </div>
+      <div class="text-sm text-gray-600">Latest {{ recentActivity.length }}</div>
+    </div>
+
+    <div class="divide-y" *ngIf="recentActivity.length; else emptyActivity">
+      <div *ngFor="let item of recentActivity; trackBy: trackByActivity" class="px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="min-w-0">
+          <div class="font-semibold text-gray-900">{{ formatActivityTitle(item) }}</div>
+          <div class="text-sm text-gray-500 truncate">{{ formatActivityDetails(item) }}</div>
+        </div>
+        <div class="text-sm text-gray-500 whitespace-nowrap">{{ formatActivityTime(item.created_at) }}</div>
+      </div>
+    </div>
+
+    <ng-template #emptyActivity>
+      <div class="p-10 text-center text-sm text-gray-500">No recent activity available.</div>
+    </ng-template>
   </div>
 </div>
