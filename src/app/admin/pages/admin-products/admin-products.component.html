@@ -207,6 +207,24 @@
           <small *ngIf="hasError('longDescription')" class="field-error">{{ getErrorMessage('longDescription', 'Long description') }}</small>
         </label>
 
+        <div class="inline-section-header">
+          <div class="section-title-with-help">
+            <h3>Product Options</h3>
+            <div class="section-help section-help--above section-help--start">
+              <button type="button" class="section-help__trigger" aria-label="Product options help">
+                i
+              </button>
+              <div class="section-help__tooltip">
+                <strong>Option meanings</strong>
+                <span><b>Featured Product:</b> Marks this item for extra visibility in hand-picked sections such as homepage highlights, promotional collections, staff picks, or campaign-driven product groups. It is mainly a merchandising flag used to showcase important products.</span>
+                <span><b>Universal Fit:</b> Use this when the product works across many vehicles or applications and does not depend on a strict fitment map. It helps prevent the item from being treated as compatible with only one brand, model, or year range.</span>
+                <span><b>Requires Serial:</b> Enable this when each unit must be tracked by serial number, batch number, or another unique identifier during receiving, storage, fulfillment, warranty handling, or after-sales support.</span>
+                <span><b>Returnable:</b> Indicates whether customers can send the product back through the normal returns process after delivery. Turn this off for final-sale, special-order, hazardous, installed, or otherwise non-returnable items.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="toggle-grid">
           <label class="toggle-card">
             <input type="checkbox" formControlName="featured" />
@@ -244,8 +262,133 @@
 
       <article class="product-card">
         <div class="product-card__header">
-          <div>
+          <div class="section-title-with-help">
+            <h2>Operations & Policies</h2>
+            <div class="section-help section-help--start">
+              <button type="button" class="section-help__trigger" aria-label="Operations and policies help">
+                i
+              </button>
+              <div class="section-help__tooltip">
+                <strong>Professional product operations</strong>
+                <span><b>Internal Reference Code:</b> Your company’s internal stock or sourcing code for this item. Use it for warehouse operations, catalog matching, and internal reporting.</span>
+                <span><b>Stock Strategy:</b> Tells your team whether the item is kept in stock, handled as a special order, or produced/prepared only when needed.</span>
+                <span><b>Min Order Qty:</b> The smallest quantity your company should sell or process in one order line.</span>
+                <span><b>Return Policy:</b> Professional catalogs define both eligibility and customer-facing return terms, not only a yes/no toggle.</span>
+                <span><b>Serial Tracking Note:</b> Internal instructions for capturing serial, IMEI, batch, or lot numbers during fulfillment and support.</span>
+                <span><b>Fulfillment Note:</b> Extra handling instructions for packing, dispatch, installation, hazmat checks, or warehouse coordination.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-grid field-grid--three">
+          <label class="field">
+            <span>Internal Reference Code</span>
+            <input formControlName="supplierSku" placeholder="Internal stock code / sourcing reference" />
+          </label>
+          <label class="field">
+            <span>Stock Strategy</span>
+            <select formControlName="procurementType">
+              <option *ngFor="let item of procurementTypeOptions" [value]="item.value">{{ item.label }}</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Min Order Qty</span>
+            <input type="number" formControlName="minOrderQty" [class.is-invalid]="hasError('minOrderQty')" />
+            <small *ngIf="hasError('minOrderQty')" class="field-error">{{ getErrorMessage('minOrderQty', 'Minimum order qty') }}</small>
+          </label>
+        </div>
+
+        <div class="field-grid field-grid--two">
+          <label class="field">
+            <span>Return Window (days)</span>
+            <input type="number" formControlName="returnWindowDays" [disabled]="form.value.returnable !== true" />
+            <small>Required when the product is returnable.</small>
+          </label>
+          <div class="field">
+            <span>Non-returnable Reasons</span>
+            <div class="tag-input">
+              <input
+                [(ngModel)]="nonReturnReasonInput"
+                [ngModelOptions]="{ standalone: true }"
+                [disabled]="form.value.returnable === true"
+                placeholder="Final sale / installed electrical part / special order"
+              />
+              <button
+                type="button"
+                class="ghost-button ghost-button--small"
+                [disabled]="form.value.returnable === true"
+                (click)="addNonReturnableReason()"
+              >
+                Add
+              </button>
+            </div>
+            <div class="chip-list">
+              <span *ngFor="let reason of nonReturnableReasons" class="chip">
+                {{ reason }}
+                <button type="button" (click)="removeNonReturnableReason(reason)">×</button>
+              </span>
+            </div>
+            <small>Required when returns are disabled. Saved as a list.</small>
+          </div>
+        </div>
+
+        <div class="field-grid field-grid--two">
+          <label class="field">
+            <span>Return Policy Note</span>
+            <textarea
+              rows="3"
+              formControlName="returnPolicyNote"
+              [disabled]="form.value.returnable !== true"
+              placeholder="Example: Return accepted within 30 days in unused condition with original packaging."
+            ></textarea>
+            <small>Customer-facing explanation shown to support, sales, or storefront surfaces.</small>
+          </label>
+          <label class="field">
+            <span>Serial Tracking Note</span>
+            <textarea
+              rows="3"
+              formControlName="serialTrackingNote"
+              [disabled]="form.value.requiresSerial !== true"
+              placeholder="Capture serial number before dispatch and match it to the order line."
+            ></textarea>
+            <small>Required when serial tracking is enabled.</small>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Fulfillment Note</span>
+          <textarea
+            rows="3"
+            formControlName="fulfillmentNote"
+            placeholder="Internal handling instructions such as fragile packing, hazmat checks, or supplier coordination."
+          ></textarea>
+        </label>
+      </article>
+
+      <article class="product-card">
+        <div class="product-card__header">
+          <div class="section-title-with-help">
             <h2>Pricing & Inventory</h2>
+            <div class="section-help">
+              <button type="button" class="section-help__trigger" aria-label="Pricing and inventory help">
+                i
+              </button>
+              <div class="section-help__tooltip">
+                <strong>Field meanings</strong>
+                <span><b>Selling Price:</b> The live customer-facing price.</span>
+                <span><b>Compare At:</b> The higher reference price used for discounts or strike-through pricing.</span>
+                <span><b>Unit Cost:</b> Your internal cost for one unit.</span>
+                <span><b>Inventory Source:</b> The internal warehouse, stock source, or operational origin used by your company for this item.</span>
+                <span><b>Stock Status:</b> Current availability state shown for the product.</span>
+                <span><b>On Hand Qty:</b> The actual inventory count available now.</span>
+                <span><b>Safety Stock:</b> Minimum quantity buffer before the item is considered low stock.</span>
+                <span><b>Lead Time:</b> Estimated number of days needed to restock or fulfill.</span>
+                <span><b>Warehouse Bin:</b> Internal storage location for picking the item.</span>
+                <span><b>Warranty:</b> Coverage period or warranty terms for the product.</span>
+                <span><b>Shipping Class:</b> Fulfillment/shipping category used for handling rules.</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -264,7 +407,7 @@
             <input type="number" formControlName="cost" />
           </label>
           <label class="field">
-            <span>Supplier</span>
+            <span>Inventory Source</span>
             <input formControlName="supplier" />
           </label>
         </div>
@@ -338,22 +481,40 @@
         </div>
 
         <div class="media-grid">
-          <label class="field">
+          <label
+            class="field upload-dropzone"
+            [class.upload-dropzone--active]="primaryImageDragActive"
+            (dragover)="onPrimaryImageDragOver($event)"
+            (dragleave)="onPrimaryImageDragLeave($event)"
+            (drop)="onPrimaryImageDrop($event)"
+          >
             <span>Primary Image</span>
             <input type="file" accept="image/*" (change)="onFileChange($event)" />
-            <small>Max 2MB. JPG, PNG, or WebP.</small>
+            <small>Click or drag and drop an image here. Max 2MB. JPG, PNG, or WebP.</small>
           </label>
 
-          <label class="field">
+          <label
+            class="field upload-dropzone"
+            [class.upload-dropzone--active]="galleryImagesDragActive"
+            (dragover)="onGalleryImagesDragOver($event)"
+            (dragleave)="onGalleryImagesDragLeave($event)"
+            (drop)="onGalleryImagesDrop($event)"
+          >
             <span>Gallery Images</span>
             <input type="file" accept="image/*" multiple (change)="onGalleryFilesChange($event)" />
-            <small>Upload multiple gallery images.</small>
+            <small>Click or drag and drop multiple images here.</small>
           </label>
 
-          <label class="field">
+          <label
+            class="field upload-dropzone"
+            [class.upload-dropzone--active]="videoDragActive"
+            (dragover)="onVideoDragOver($event)"
+            (dragleave)="onVideoDragLeave($event)"
+            (drop)="onVideoDrop($event)"
+          >
             <span>Product Video</span>
             <input type="file" accept="video/*" multiple (change)="onVideoFilesChange($event)" />
-            <small>Upload one or more videos.</small>
+            <small>Click or drag and drop videos here. New videos replace existing ones in edit mode.</small>
           </label>
 
           <div class="preview-card">
@@ -388,11 +549,19 @@
             <strong>Gallery Images</strong>
             <span>{{ galleryImages.length }} uploaded</span>
           </div>
-          <div class="chip-list">
-            <span *ngFor="let image of galleryImages; let i = index" class="chip">
-              Image {{ i + 1 }}
-              <button type="button" (click)="removeGalleryImage(i)">×</button>
-            </span>
+          <div class="media-preview-grid">
+            <article *ngFor="let image of galleryImages; let i = index" class="media-preview-card">
+              <button
+                type="button"
+                class="media-preview-card__delete"
+                aria-label="Delete photo"
+                (click)="removeGalleryImage(i)"
+              >
+                ×
+              </button>
+              <img [src]="image" [alt]="'Gallery image ' + (i + 1)" class="media-preview-card__image" />
+              <div class="media-preview-card__meta">Photo {{ i + 1 }}</div>
+            </article>
           </div>
         </div>
 
@@ -401,11 +570,19 @@
             <strong>Product Videos</strong>
             <span>{{ videoUrls.length }} uploaded</span>
           </div>
-          <div class="chip-list">
-            <span *ngFor="let video of videoUrls; let i = index" class="chip chip--dark">
-              Video {{ i + 1 }}
-              <button type="button" (click)="removeVideo(i)">×</button>
-            </span>
+          <div class="media-preview-grid">
+            <article *ngFor="let video of videoUrls; let i = index" class="media-preview-card media-preview-card--video">
+              <button
+                type="button"
+                class="media-preview-card__delete"
+                aria-label="Delete video"
+                (click)="removeVideo(i)"
+              >
+                ×
+              </button>
+              <video [src]="video" class="media-preview-card__video" controls preload="metadata"></video>
+              <div class="media-preview-card__meta">Video {{ i + 1 }}</div>
+            </article>
           </div>
         </div>
       </article>
@@ -428,11 +605,19 @@
           </button>
         </div>
 
+        <p class="section-hint">
+          Add a row only when needed. Any visible row must have both an attribute key and a value.
+        </p>
+
         <div class="attribute-table">
           <div class="attribute-row attribute-row--header">
             <span>Attribute Key</span>
             <span>Value</span>
             <span></span>
+          </div>
+
+          <div *ngIf="attributeRows.length === 0" class="attribute-empty-state">
+            No dynamic attributes added yet.
           </div>
 
           <div *ngFor="let attribute of attributeRows; let i = index" class="attribute-row">
@@ -456,6 +641,10 @@
           </div>
         </div>
 
+        <p *ngIf="hasIncompleteAttributeRows" class="field-error">
+          Complete both fields in each dynamic attribute row, or remove the incomplete row.
+        </p>
+
         <button type="button" class="ghost-button ghost-button--small" (click)="addAttributeRow()">
           Add Attribute Row
         </button>
@@ -463,8 +652,22 @@
 
       <article class="product-card">
         <div class="product-card__header">
-          <div>
+          <div class="section-title-with-help">
             <h2>Fitment, Contents & SEO</h2>
+            <div class="section-help">
+              <button type="button" class="section-help__trigger" aria-label="Fitment, contents, and SEO help">
+                i
+              </button>
+              <div class="section-help__tooltip">
+                <strong>Section meanings</strong>
+                <span><b>Vehicle Fitment:</b> Defines which vehicles, trims, engines, or year ranges this product is compatible with. This is important for catalog accuracy, product search, and reducing incorrect orders.</span>
+                <span><b>Package Contents:</b> Lists exactly what the buyer receives in the box, such as the main part, hardware, brackets, seals, cables, or instruction sheets.</span>
+                <span><b>Tags:</b> Short merchandising or search-oriented labels that help group products internally or surface them in promotional experiences.</span>
+                <span><b>Notes:</b> Internal-only operational notes for QA, purchasing, packing, support, or merchandising teams.</span>
+                <span><b>SEO Title:</b> Search-facing title meant to improve how the product appears in search engine results and browser tabs.</span>
+                <span><b>SEO Description:</b> Meta description summary used to improve search-result snippets and click-through quality.</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -600,6 +803,8 @@
           <div><span>Safety Stock</span><strong>{{ form.value.safetyStock || 0 }}</strong></div>
           <div><span>Shipping</span><strong>{{ form.value.shippingClass }}</strong></div>
           <div><span>Warehouse Bin</span><strong>{{ form.value.warehouseBin || "-" }}</strong></div>
+          <div><span>Stock Strategy</span><strong>{{ selectedProcurementTypeLabel }}</strong></div>
+          <div><span>Returns</span><strong>{{ form.value.returnable ? ((form.value.returnWindowDays || 0) + ' days') : 'No returns' }}</strong></div>
         </div>
       </article>
     </aside>

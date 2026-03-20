@@ -31,6 +31,22 @@ interface CategoryAttributeItem {
   values: string[];
 }
 
+const RESERVED_ATTRIBUTE_FIELDS = [
+  'fitments',
+  'package_items',
+  'notes',
+  'universal_fit',
+  'requires_serial',
+  'supplier_sku',
+  'procurement_type',
+  'min_order_qty',
+  'return_window_days',
+  'return_policy_note',
+  'non_returnable_reason',
+  'serial_tracking_note',
+  'fulfillment_note',
+] as const;
+
 @Component({
   selector: 'app-admin-products',
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
@@ -44,6 +60,12 @@ export class AdminProductsComponent implements OnInit {
   readonly shippingClassOptions = ['standard', 'oversize', 'hazmat'];
   readonly statusOptions = ['draft', 'active', 'inactive'];
   readonly currencyOptions = ['CAD', 'USD', 'EUR'];
+  readonly procurementTypeOptions = [
+    { value: 'stocked', label: 'Stocked' },
+    { value: 'special_order', label: 'Special Order' },
+    { value: 'made_to_order', label: 'Made to Order' },
+    { value: 'warehouse_transfer', label: 'Warehouse Transfer' },
+  ];
 
   loadingCategories = true;
   loadingSubCategories = false;
@@ -68,23 +90,24 @@ export class AdminProductsComponent implements OnInit {
   modelPage = 1;
   showBrandDropdown = false;
   showModelDropdown = false;
+  primaryImageDragActive = false;
+  galleryImagesDragActive = false;
+  videoDragActive = false;
 
   tagInput = '';
   fitmentInput = '';
   packageItemInput = '';
   noteInput = '';
+  nonReturnReasonInput = '';
 
   tags: string[] = [];
   fitments: string[] = [];
   packageItems: string[] = [];
   notes: string[] = [];
+  nonReturnableReasons: string[] = [];
   galleryImages: string[] = [];
   videoUrls: string[] = [];
-  attributeRows: AttributeRow[] = [
-    { key: 'material', value: '' },
-    { key: 'color', value: '' },
-    { key: 'compatibility', value: '' },
-  ];
+  attributeRows: AttributeRow[] = [];
 
   readonly form;
 
@@ -135,6 +158,13 @@ export class AdminProductsComponent implements OnInit {
       universalFit: [this.getDefaultFormValue().universalFit],
       requiresSerial: [this.getDefaultFormValue().requiresSerial],
       returnable: [this.getDefaultFormValue().returnable],
+      supplierSku: [this.getDefaultFormValue().supplierSku],
+      procurementType: [this.getDefaultFormValue().procurementType],
+      minOrderQty: [this.getDefaultFormValue().minOrderQty, [Validators.min(1)]],
+      returnWindowDays: [this.getDefaultFormValue().returnWindowDays, [Validators.min(1)]],
+      returnPolicyNote: [this.getDefaultFormValue().returnPolicyNote],
+      serialTrackingNote: [this.getDefaultFormValue().serialTrackingNote],
+      fulfillmentNote: [this.getDefaultFormValue().fulfillmentNote],
       imageUrl: [this.getDefaultFormValue().imageUrl],
       seoTitle: [this.getDefaultFormValue().seoTitle],
       seoDescription: [this.getDefaultFormValue().seoDescription],
@@ -209,6 +239,14 @@ export class AdminProductsComponent implements OnInit {
     return this.attributeRows.filter((item) => item.key.trim() && String(item.value).trim()).length;
   }
 
+  get hasIncompleteAttributeRows(): boolean {
+    return this.attributeRows.some((item) => {
+      const key = item.key.trim();
+      const value = String(item.value).trim();
+      return (key.length > 0 || value.length > 0) && (!key || !value);
+    });
+  }
+
   get publishChecklist(): string[] {
     const checklist: string[] = [];
 
@@ -220,6 +258,7 @@ export class AdminProductsComponent implements OnInit {
     if (this.form.get('imageUrl')!.value) checklist.push('Primary media attached');
     if (Number(this.form.get('price')!.value ?? 0) > 0) checklist.push('Price configured');
     if (this.attributeCount > 0) checklist.push('Attributes prepared');
+    if (this.hasReturnPolicyConfigured()) checklist.push('Return policy configured');
 
     return checklist;
   }
@@ -294,6 +333,11 @@ export class AdminProductsComponent implements OnInit {
     return this.models.find((item) => item.model_id === modelId)?.model_name ?? '';
   }
 
+  get selectedProcurementTypeLabel(): string {
+    const value = String(this.form.get('procurementType')!.value ?? '');
+    return this.procurementTypeOptions.find((item) => item.value === value)?.label ?? (value || '-');
+  }
+
   goBack(): void {
     this.router.navigateByUrl('/admin/products-list');
   }
@@ -301,8 +345,54 @@ export class AdminProductsComponent implements OnInit {
   async onFileChange(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file || !file.type.startsWith('image/') || file.size > 2 * 1024 * 1024) {
+    input.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    if (!this.isValidPrimaryImage(file)) {
       this.toastService.warning('Please choose an image file smaller than 2 MB.');
+      return;
+    }
+
+    if (!this.confirmPrimaryImageReplacement()) {
+      return;
+    }
+
+    const base64 = await this.fileToBase64(file);
+    this.form.patchValue({ imageUrl: base64 });
+  }
+
+  onPrimaryImageDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.primaryImageDragActive = true;
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  }
+
+  onPrimaryImageDragLeave(event: DragEvent): void {
+    if (event.currentTarget === event.target) {
+      this.primaryImageDragActive = false;
+    }
+  }
+
+  async onPrimaryImageDrop(event: DragEvent): Promise<void> {
+    event.preventDefault();
+    this.primaryImageDragActive = false;
+
+    const file = event.dataTransfer?.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (!this.isValidPrimaryImage(file)) {
+      this.toastService.warning('Please choose an image file smaller than 2 MB.');
+      return;
+    }
+
+    if (!this.confirmPrimaryImageReplacement()) {
       return;
     }
 
@@ -317,11 +407,13 @@ export class AdminProductsComponent implements OnInit {
   async onGalleryFilesChange(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
+    input.value = '';
+
     if (files.length === 0) {
       return;
     }
 
-    const invalidFile = files.find((file) => !file.type.startsWith('image/'));
+    const invalidFile = files.find((file) => !this.isImageFile(file));
     if (invalidFile) {
       this.toastService.warning('Gallery accepts image files only.');
       return;
@@ -329,16 +421,54 @@ export class AdminProductsComponent implements OnInit {
 
     const base64Files = await Promise.all(files.map((file) => this.fileToBase64(file)));
     this.galleryImages = [...this.galleryImages, ...base64Files];
-    input.value = '';
+  }
+
+  onGalleryImagesDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.galleryImagesDragActive = true;
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  }
+
+  onGalleryImagesDragLeave(event: DragEvent): void {
+    if (event.currentTarget === event.target) {
+      this.galleryImagesDragActive = false;
+    }
+  }
+
+  async onGalleryImagesDrop(event: DragEvent): Promise<void> {
+    event.preventDefault();
+    this.galleryImagesDragActive = false;
+
+    const files = Array.from(event.dataTransfer?.files ?? []);
+    if (files.length === 0) {
+      return;
+    }
+
+    const invalidFile = files.find((file) => !this.isImageFile(file));
+    if (invalidFile) {
+      this.toastService.warning('Gallery accepts image files only.');
+      return;
+    }
+
+    const base64Files = await Promise.all(files.map((file) => this.fileToBase64(file)));
+    this.galleryImages = [...this.galleryImages, ...base64Files];
   }
 
   removeGalleryImage(index: number): void {
+    if (!this.confirmGalleryImageDeletion()) {
+      return;
+    }
+
     this.galleryImages = this.galleryImages.filter((_, itemIndex) => itemIndex !== index);
   }
 
   async onVideoFilesChange(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
+    input.value = '';
+
     if (files.length === 0) {
       return;
     }
@@ -349,9 +479,47 @@ export class AdminProductsComponent implements OnInit {
       return;
     }
 
-    const base64Files = await Promise.all(files.map((file) => this.fileToBase64(file)));
-    this.videoUrls = [...this.videoUrls, ...base64Files];
-    input.value = '';
+    if (!this.confirmVideoReplacement()) {
+      return;
+    }
+
+    await this.applyVideoFiles(files);
+  }
+
+  onVideoDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.videoDragActive = true;
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  }
+
+  onVideoDragLeave(event: DragEvent): void {
+    if (event.currentTarget === event.target) {
+      this.videoDragActive = false;
+    }
+  }
+
+  async onVideoDrop(event: DragEvent): Promise<void> {
+    event.preventDefault();
+    this.videoDragActive = false;
+
+    const files = Array.from(event.dataTransfer?.files ?? []);
+    if (files.length === 0) {
+      return;
+    }
+
+    const invalidFile = files.find((file) => !file.type.startsWith('video/'));
+    if (invalidFile) {
+      this.toastService.warning('Video upload accepts video files only.');
+      return;
+    }
+
+    if (!this.confirmVideoReplacement()) {
+      return;
+    }
+
+    await this.applyVideoFiles(files);
   }
 
   removeVideo(index: number): void {
@@ -458,6 +626,10 @@ export class AdminProductsComponent implements OnInit {
     this.pushUniqueValue(this.noteInput, this.notes, () => (this.noteInput = ''));
   }
 
+  addNonReturnableReason(): void {
+    this.pushUniqueValue(this.nonReturnReasonInput, this.nonReturnableReasons, () => (this.nonReturnReasonInput = ''));
+  }
+
   removeTag(value: string): void {
     this.tags = this.tags.filter((item) => item !== value);
   }
@@ -474,10 +646,23 @@ export class AdminProductsComponent implements OnInit {
     this.notes = this.notes.filter((item) => item !== value);
   }
 
+  removeNonReturnableReason(value: string): void {
+    this.nonReturnableReasons = this.nonReturnableReasons.filter((item) => item !== value);
+  }
+
   save(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.toastService.warning('Fill the required product fields before saving.');
+      return;
+    }
+
+    if (this.hasIncompleteAttributeRows) {
+      this.toastService.warning('Each dynamic attribute row must have both a key and a value, or be removed.');
+      return;
+    }
+
+    if (!this.validateOperationalPolicies()) {
       return;
     }
 
@@ -689,8 +874,8 @@ export class AdminProductsComponent implements OnInit {
       });
   }
 
-  private buildAttributesObject(): Record<string, string> {
-    return this.attributeRows.reduce<Record<string, string>>((accumulator, item) => {
+  private buildAttributesObject(): Record<string, unknown> {
+    const customAttributes = this.attributeRows.reduce<Record<string, unknown>>((accumulator, item) => {
       const key = item.key.trim();
       const value = item.value.trim();
       if (!key || !value) {
@@ -700,6 +885,11 @@ export class AdminProductsComponent implements OnInit {
       accumulator[key] = value;
       return accumulator;
     }, {});
+
+    return {
+      ...customAttributes,
+      ...this.buildOperationalAttributes(),
+    };
   }
 
   private toCreatePayload(payload: ReturnType<typeof this.form.getRawValue> & {
@@ -707,7 +897,7 @@ export class AdminProductsComponent implements OnInit {
     fitments: string[];
     packageItems: string[];
     notes: string[];
-    attributes: Record<string, string>;
+    attributes: Record<string, unknown>;
   }): CreateProductsDto {
     return {
       title: payload.title ?? '',
@@ -763,7 +953,7 @@ export class AdminProductsComponent implements OnInit {
     fitments: string[];
     packageItems: string[];
     notes: string[];
-    attributes: Record<string, string>;
+    attributes: Record<string, unknown>;
   }): UpdateProductsDto {
     return {
       ...this.toCreatePayload(payload),
@@ -800,11 +990,12 @@ export class AdminProductsComponent implements OnInit {
     this.packageItems = this.extractStringArray(attributes['package_items']);
     this.notes = this.extractStringArray(attributes['notes']);
     this.fitments = this.extractFitments(detail.fitments, attributes['fitments']);
+    this.nonReturnableReasons = this.extractAttributeStringArray(detail.attributes, 'non_returnable_reason');
     this.galleryImages = Array.isArray(detail.gallery_images) ? detail.gallery_images.filter((item) => typeof item === 'string') : [];
     this.videoUrls = Array.isArray(detail.video_urls) ? detail.video_urls.filter((item) => typeof item === 'string') : [];
-    delete attributes['package_items'];
-    delete attributes['notes'];
-    delete attributes['fitments'];
+    for (const key of RESERVED_ATTRIBUTE_FIELDS) {
+      delete attributes[key];
+    }
 
     this.brandSearch = this.toText(detail.brand_name);
     this.modelSearch = this.toText(detail.model_name);
@@ -844,9 +1035,16 @@ export class AdminProductsComponent implements OnInit {
         heightCm: this.toNumberOrZero(detail.height),
         warranty: this.toText(detail.warranty) || '12 Months',
         featured: Boolean(detail.featured),
-        universalFit: false,
-        requiresSerial: false,
+        universalFit: this.toBooleanValue(detail.attributes?.['universal_fit'], false),
+        requiresSerial: this.toBooleanValue(detail.attributes?.['requires_serial'], false),
         returnable: this.toBooleanValue(detail.returnable, true),
+        supplierSku: this.toText(attributes['supplier_sku']),
+        procurementType: this.toText(attributes['procurement_type']) || 'stocked',
+        minOrderQty: this.toNumberOrZero(attributes['min_order_qty']) || 1,
+        returnWindowDays: this.toNumberOrNull(attributes['return_window_days']),
+        returnPolicyNote: this.toText(attributes['return_policy_note']),
+        serialTrackingNote: this.toText(attributes['serial_tracking_note']),
+        fulfillmentNote: this.toText(attributes['fulfillment_note']),
         imageUrl: this.toText(detail.thumbnail_image),
         seoTitle: this.toText(detail.seo_title),
         seoDescription: this.toText(detail.seo_description),
@@ -933,6 +1131,40 @@ export class AdminProductsComponent implements OnInit {
 
     collection.unshift(normalized);
     reset();
+  }
+
+  private isImageFile(file: File): boolean {
+    return file.type.startsWith('image/');
+  }
+
+  private isValidPrimaryImage(file: File): boolean {
+    return this.isImageFile(file) && file.size <= 2 * 1024 * 1024;
+  }
+
+  private confirmPrimaryImageReplacement(): boolean {
+    if (!this.form.get('imageUrl')!.value) {
+      return true;
+    }
+
+    return globalThis.confirm('Replacing the primary image will remove the current one. Continue?');
+  }
+
+  private confirmGalleryImageDeletion(): boolean {
+    return globalThis.confirm('Delete this photo from the gallery?');
+  }
+
+  private confirmVideoReplacement(): boolean {
+    if (!this.isEditMode || this.videoUrls.length === 0) {
+      return true;
+    }
+
+    return globalThis.confirm('Adding new video files will replace the existing videos. Continue?');
+  }
+
+  private async applyVideoFiles(files: File[]): Promise<void> {
+    const base64Files = await Promise.all(files.map((file) => this.fileToBase64(file)));
+    this.videoUrls =
+      this.isEditMode && this.videoUrls.length > 0 ? base64Files : [...this.videoUrls, ...base64Files];
   }
 
   private fileToBase64(file: File): Promise<string> {
@@ -1080,12 +1312,103 @@ export class AdminProductsComponent implements OnInit {
     return this.extractStringArray(attributeFitments);
   }
 
+  private extractAttributeStringArray(source: unknown, key: string): string[] {
+    if (!source || typeof source !== 'object' || Array.isArray(source)) {
+      return [];
+    }
+
+    const value = (source as Record<string, unknown>)[key];
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => (typeof item === 'string' ? item.trim() : String(item).trim()))
+        .filter(Boolean);
+    }
+
+    if (typeof value === 'string') {
+      return this.extractStringArray(value);
+    }
+
+    return [];
+  }
+
+  private buildOperationalAttributes(): Record<string, unknown> {
+    const payload = this.form.getRawValue();
+    const attributes: Record<string, unknown> = {};
+
+    if (String(payload.supplierSku ?? '').trim()) {
+      attributes['supplier_sku'] = String(payload.supplierSku).trim();
+    }
+    attributes['universal_fit'] = String(Boolean(payload.universalFit));
+    attributes['requires_serial'] = String(Boolean(payload.requiresSerial));
+    if (String(payload.procurementType ?? '').trim()) {
+      attributes['procurement_type'] = String(payload.procurementType).trim();
+    }
+    if (this.toNumberOrNull(payload.minOrderQty) !== null) {
+      attributes['min_order_qty'] = String(this.toNumberOrNull(payload.minOrderQty));
+    }
+    if (this.toNumberOrNull(payload.returnWindowDays) !== null) {
+      attributes['return_window_days'] = String(this.toNumberOrNull(payload.returnWindowDays));
+    }
+    if (String(payload.returnPolicyNote ?? '').trim()) {
+      attributes['return_policy_note'] = String(payload.returnPolicyNote).trim();
+    }
+    if (this.nonReturnableReasons.length > 0) {
+      attributes['non_returnable_reason'] = [...this.nonReturnableReasons];
+    }
+    if (String(payload.serialTrackingNote ?? '').trim()) {
+      attributes['serial_tracking_note'] = String(payload.serialTrackingNote).trim();
+    }
+    if (String(payload.fulfillmentNote ?? '').trim()) {
+      attributes['fulfillment_note'] = String(payload.fulfillmentNote).trim();
+    }
+
+    return attributes;
+  }
+
+  private hasReturnPolicyConfigured(): boolean {
+    const value = this.form.getRawValue();
+    if (value.returnable) {
+      return this.toNumberOrNull(value.returnWindowDays) !== null || String(value.returnPolicyNote ?? '').trim().length > 0;
+    }
+
+    return this.nonReturnableReasons.length > 0;
+  }
+
+  private validateOperationalPolicies(): boolean {
+    const value = this.form.getRawValue();
+
+    if (this.toNumberOrNull(value.minOrderQty) === null || Number(value.minOrderQty) < 1) {
+      this.toastService.warning('Minimum order quantity must be at least 1.');
+      return false;
+    }
+
+    if (value.returnable) {
+      if (this.toNumberOrNull(value.returnWindowDays) === null) {
+        this.toastService.warning('Set a return window in days for returnable products.');
+        return false;
+      }
+
+      if (!String(value.returnPolicyNote ?? '').trim()) {
+        this.toastService.warning('Add a return policy note for returnable products.');
+        return false;
+      }
+    }
+
+    if (!value.returnable && this.nonReturnableReasons.length === 0) {
+      this.toastService.warning('Explain why the product is non-returnable.');
+      return false;
+    }
+
+    if (value.requiresSerial && !String(value.serialTrackingNote ?? '').trim()) {
+      this.toastService.warning('Add serial or batch handling notes when serial tracking is required.');
+      return false;
+    }
+
+    return true;
+  }
+
   private getDefaultAttributeRows(): AttributeRow[] {
-    return [
-      { key: 'material', value: '' },
-      { key: 'color', value: '' },
-      { key: 'compatibility', value: '' },
-    ];
+    return [];
   }
 
   private buildGalleryImages(primaryImage: string | null | undefined): string[] {
@@ -1153,6 +1476,13 @@ export class AdminProductsComponent implements OnInit {
       universalFit: false,
       requiresSerial: false,
       returnable: true,
+      supplierSku: '',
+      procurementType: 'stocked',
+      minOrderQty: 1,
+      returnWindowDays: 30 as number | null,
+      returnPolicyNote: 'Return accepted within 30 days in unused condition with original packaging.',
+      serialTrackingNote: '',
+      fulfillmentNote: '',
       imageUrl: '',
       seoTitle: '',
       seoDescription: '',
@@ -1168,10 +1498,12 @@ export class AdminProductsComponent implements OnInit {
     this.fitmentInput = '';
     this.packageItemInput = '';
     this.noteInput = '';
+    this.nonReturnReasonInput = '';
     this.tags = [];
     this.fitments = [];
     this.packageItems = [];
     this.notes = [];
+    this.nonReturnableReasons = [];
     this.galleryImages = [];
     this.videoUrls = [];
     this.brandSearch = '';
