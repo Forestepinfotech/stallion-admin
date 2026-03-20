@@ -10,8 +10,8 @@ import {
   AbstractControl,
   ValidationErrors,
 } from '@angular/forms';
-import { UsersService } from '../../../core/api/generated/users/users.service';
-import { UsertypeService } from '../../../core/api/generated/usertype/usertype.service';
+import { AdminUsersService as UsersService } from '../../../core/api/generated/admin-users/admin-users.service';
+import { AdminUsertypeService as UsertypeService } from '../../../core/api/generated/admin-usertype/admin-usertype.service';
 import {
   CreateUsersDto,
   ManageUserPasswordDto,

@@ -1,8 +1,8 @@
 import { Injectable, signal } from '@angular/core';
 import { map, Observable, of, tap } from 'rxjs';
-import { ProductCategoryService } from '../../../core/api/generated/product-category/product-category.service';
-import { ProductsService } from '../../../core/api/generated/products/products.service';
-import { CouponsService } from '../../../core/api/generated/coupons/coupons.service';
+import { AdminProductCategoryService as ProductCategoryService } from '../../../core/api/generated/admin-product-category/admin-product-category.service';
+import { AdminProductsService as ProductsService } from '../../../core/api/generated/admin-products/admin-products.service';
+import { AdminCouponsService as CouponsService } from '../../../core/api/generated/admin-coupons/admin-coupons.service';
 import type {
   CouponsControllerListParams,
   CouponsResponseDto,

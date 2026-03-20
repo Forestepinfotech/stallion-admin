@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ProductReviewService } from '../../../core/api/generated/product-review/product-review.service';
-import { ProductsService } from '../../../core/api/generated/products/products.service';
+import { AdminProductReviewService as ProductReviewService } from '../../../core/api/generated/admin-product-review/admin-product-review.service';
+import { AdminProductsService as ProductsService } from '../../../core/api/generated/admin-products/admin-products.service';
 import type {
   PaginatedProductReviewResponseDto,
   ProductReviewControllerListParams,

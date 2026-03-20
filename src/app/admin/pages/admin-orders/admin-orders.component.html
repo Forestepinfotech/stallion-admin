@@ -1,0 +1,223 @@
+<div class="space-y-6">
+  <div class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
+    <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-semibold">Orders</h1>
+        <p class="mt-1 text-sm text-white/70">Review placed orders and open full order details.</p>
+      </div>
+
+      <button
+        type="button"
+        (click)="refresh()"
+        class="rounded-2xl bg-white text-black font-medium px-4 py-3 hover:bg-gray-100 transition"
+      >
+        Refresh List
+      </button>
+    </div>
+
+    <form class="mt-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3" [formGroup]="filterForm" (ngSubmit)="applyFilters()">
+      <div class="xl:col-span-2">
+        <div class="relative">
+          <input
+            formControlName="search"
+            placeholder="Search by order number"
+            class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 pl-11 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
+          />
+          <svg class="w-5 h-5 text-white/70 absolute left-4 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none">
+            <path d="M21 21l-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <input
+        formControlName="customerName"
+        placeholder="Customer name"
+        class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
+      />
+
+      <input
+        formControlName="customerEmail"
+        placeholder="Customer email"
+        class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
+      />
+
+      <input
+        formControlName="customerPhone"
+        placeholder="Customer phone"
+        class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
+      />
+
+      <input
+        formControlName="userId"
+        type="number"
+        min="1"
+        placeholder="User ID"
+        class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
+      />
+
+      <input
+        formControlName="productId"
+        type="number"
+        min="1"
+        placeholder="Product ID"
+        class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
+      />
+
+      <input
+        formControlName="statusId"
+        type="number"
+        min="1"
+        placeholder="Status ID"
+        class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
+      />
+
+      <select
+        formControlName="isPaid"
+        class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+      >
+        <option *ngFor="let option of booleanOptions" [value]="option.value">{{ option.label }} Paid</option>
+      </select>
+
+      <select
+        formControlName="isActive"
+        class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+      >
+        <option *ngFor="let option of booleanOptions" [value]="option.value">{{ option.label }} Active</option>
+      </select>
+
+      <input
+        formControlName="dateFrom"
+        type="date"
+        class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+      />
+
+      <input
+        formControlName="dateTo"
+        type="date"
+        class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+      />
+
+      <div class="flex gap-3 xl:col-span-4">
+        <select
+          formControlName="sortBy"
+          class="flex-1 rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+        >
+          <option value="created_at">Newest</option>
+          <option value="order_number">Order Number</option>
+          <option value="grand_total">Grand Total</option>
+          <option value="status_id">Status</option>
+        </select>
+        <button type="submit" class="flex-1 rounded-2xl bg-white text-black font-medium px-4 py-3 hover:bg-gray-100 transition">Filter</button>
+        <button type="button" (click)="resetFilters()" class="flex-1 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 font-medium text-white hover:bg-white/15 transition">Reset</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="rounded-3xl border bg-white shadow-sm overflow-hidden">
+    <div class="px-6 py-5 border-b flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <div class="text-lg font-semibold text-gray-900">Order List</div>
+        <div class="text-sm text-gray-500">Browse orders and open the full detail screen for each record.</div>
+      </div>
+
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <label class="flex items-center gap-2 text-sm text-gray-600" [formGroup]="filterForm">
+          <span>Rows</span>
+          <select formControlName="limit" (change)="onPageSizeChange()" class="rounded-xl border px-3 py-2 text-sm text-gray-900">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          </select>
+        </label>
+        <div class="text-sm text-gray-600">
+          Showing <span class="font-semibold text-gray-900">{{ showingFrom }}-{{ showingTo }}</span> of
+          <span class="font-semibold text-gray-900">{{ totalOrders }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="px-6 py-10 text-center text-sm text-gray-500">Loading orders...</div>
+
+    <ng-container *ngIf="!loading">
+      <div class="hidden md:block">
+        <table class="w-full">
+          <thead class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <tr>
+              <th class="px-6 py-3">Order</th>
+              <th class="px-6 py-3">Customer</th>
+              <th class="px-6 py-3">Products</th>
+              <th class="px-6 py-3">Qty</th>
+              <th class="px-6 py-3">Total</th>
+              <th class="px-6 py-3">Paid</th>
+              <th class="px-6 py-3">Status</th>
+              <th class="px-6 py-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            <tr *ngFor="let order of orders; trackBy: trackByOrderId" class="hover:bg-gray-50 transition">
+              <td class="px-6 py-4">
+                <div class="font-semibold text-gray-900">{{ order.order_number }}</div>
+                <div class="text-xs text-gray-500">#{{ order.order_id }}</div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="text-sm font-semibold text-gray-900">{{ order.customer_name || ('User #' + order.user_id) }}</div>
+                <div class="text-xs text-gray-500">{{ order.customer_email }}</div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="text-sm text-gray-700">{{ order.product_titles.join(', ') || '-' }}</div>
+                <div class="text-xs text-gray-500 mt-1">{{ order.items_count }} item(s)</div>
+              </td>
+              <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ order.total_qty }}</td>
+              <td class="px-6 py-4 text-sm text-gray-700">{{ order.grand_total | currency:'USD':'symbol':'1.0-2' }}</td>
+              <td class="px-6 py-4">
+                <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="order.is_paid ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'">
+                  {{ order.is_paid ? 'Paid' : 'Pending' }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-700">{{ order.status_name || ('Status #' + order.status_id) }}</td>
+              <td class="px-6 py-4 text-right">
+                <a [routerLink]="['/admin/orders', order.order_id]" class="px-3 py-2 rounded-xl border hover:bg-gray-50 text-sm inline-flex">
+                  View
+                </a>
+              </td>
+            </tr>
+            <tr *ngIf="orders.length === 0">
+              <td colspan="8" class="px-6 py-10 text-center text-sm text-gray-500">No orders found for the current filters.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="md:hidden p-4 space-y-3">
+        <div *ngFor="let order of orders; trackBy: trackByOrderId" class="rounded-3xl border p-4 shadow-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="font-semibold text-gray-900">{{ order.order_number }}</div>
+              <div class="text-xs text-gray-500">Order #{{ order.order_id }}</div>
+            </div>
+            <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="order.is_paid ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'">
+              {{ order.is_paid ? 'Paid' : 'Pending' }}
+            </span>
+          </div>
+          <div class="mt-3 text-sm text-gray-700">
+            <div>{{ order.customer_name || ('User #' + order.user_id) }}</div>
+            <div class="mt-1">{{ order.product_titles.join(', ') || '-' }}</div>
+            <div class="mt-1">Qty {{ order.total_qty }} • {{ order.grand_total | currency:'USD':'symbol':'1.0-2' }}</div>
+          </div>
+          <div class="mt-4 flex justify-end">
+            <a [routerLink]="['/admin/orders', order.order_id]" class="px-3 py-2 rounded-xl border text-sm inline-flex">View</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="text-sm text-gray-500">
+          Page <span class="font-semibold text-gray-900">{{ meta.page }}</span> of
+          <span class="font-semibold text-gray-900">{{ totalPages }}</span>
+        </div>
+        <div class="flex gap-3">
+          <button type="button" (click)="changePage(meta.page - 1)" [disabled]="!canGoPrev" class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+          <button type="button" (click)="changePage(meta.page + 1)" [disabled]="!canGoNext" class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

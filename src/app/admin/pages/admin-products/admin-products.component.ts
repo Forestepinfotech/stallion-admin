@@ -3,12 +3,12 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import { CarBrandService } from '../../../core/api/generated/car-brand/car-brand.service';
-import { CarBrandModelService } from '../../../core/api/generated/car-brand-model/car-brand-model.service';
-import { ProductCategoryService } from '../../../core/api/generated/product-category/product-category.service';
-import { ProductCategoryAttributeService } from '../../../core/api/generated/product-category-attribute/product-category-attribute.service';
-import { ProductSubCategoryService } from '../../../core/api/generated/product-sub-category/product-sub-category.service';
-import { ProductsService } from '../../../core/api/generated/products/products.service';
+import { AdminCarBrandService as CarBrandService } from '../../../core/api/generated/admin-car-brand/admin-car-brand.service';
+import { AdminCarBrandModelService as CarBrandModelService } from '../../../core/api/generated/admin-car-brand-model/admin-car-brand-model.service';
+import { AdminProductCategoryService as ProductCategoryService } from '../../../core/api/generated/admin-product-category/admin-product-category.service';
+import { AdminProductCategoryAttributeService as ProductCategoryAttributeService } from '../../../core/api/generated/admin-product-category-attribute/admin-product-category-attribute.service';
+import { AdminProductSubCategoryService as ProductSubCategoryService } from '../../../core/api/generated/admin-product-sub-category/admin-product-sub-category.service';
+import { AdminProductsService as ProductsService } from '../../../core/api/generated/admin-products/admin-products.service';
 import type {
   CarBrandModelResponseDto,
   CarBrandResponseDto,

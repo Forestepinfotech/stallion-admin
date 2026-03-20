@@ -17,7 +17,9 @@ import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
 
 import type {
+  AdminOrderDetailResponseDto,
   CreateOrdersDto,
+  OrdersControllerListParams,
   OrdersResponseDto,
   PaginatedOrdersResponseDto,
   UpdateOrdersDto,
@@ -46,25 +48,75 @@ interface HttpClientOptions {
   readonly transferCache?: { includeHeaders?: string[] } | boolean;
 }
 
+function filterParams(
+  params: Record<string, unknown>,
+  requiredNullableKeys: Set<string> = new Set(),
+): Record<
+  string,
+  string | number | boolean | Array<string | number | boolean>
+> {
+  const filteredParams: Record<
+    string,
+    string | number | boolean | null | Array<string | number | boolean>
+  > = {};
+  for (const [key, value] of Object.entries(params)) {
+    if (Array.isArray(value)) {
+      const filtered = value.filter(
+        (item) =>
+          item != null &&
+          (typeof item === "string" ||
+            typeof item === "number" ||
+            typeof item === "boolean"),
+      ) as Array<string | number | boolean>;
+      if (filtered.length) {
+        filteredParams[key] = filtered;
+      }
+    } else if (value === null && requiredNullableKeys.has(key)) {
+      filteredParams[key] = value;
+    } else if (
+      value != null &&
+      (typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean")
+    ) {
+      filteredParams[key] = value as string | number | boolean;
+    }
+  }
+  return filteredParams as Record<
+    string,
+    string | number | boolean | Array<string | number | boolean>
+  >;
+}
+
 @Injectable({ providedIn: "root" })
 export class AdminOrdersService {
   private readonly http = inject(HttpClient);
   ordersControllerList<TData = PaginatedOrdersResponseDto>(
+    params?: OrdersControllerListParams,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
   ordersControllerList<TData = PaginatedOrdersResponseDto>(
+    params?: OrdersControllerListParams,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
   ordersControllerList<TData = PaginatedOrdersResponseDto>(
+    params?: OrdersControllerListParams,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
   ordersControllerList<TData = PaginatedOrdersResponseDto>(
+    params?: OrdersControllerListParams,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
     if (options?.observe === "events") {
       return this.http.get<TData>(`/orders`, {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "events",
+        params: filteredParams,
       });
     }
 
@@ -72,12 +124,14 @@ export class AdminOrdersService {
       return this.http.get<TData>(`/orders`, {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "response",
+        params: filteredParams,
       });
     }
 
     return this.http.get<TData>(`/orders`, {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
+      params: filteredParams,
     });
   }
   ordersControllerCreate<TData = OrdersResponseDto>(
@@ -115,19 +169,19 @@ export class AdminOrdersService {
       observe: "body",
     });
   }
-  ordersControllerGet<TData = OrdersResponseDto>(
+  ordersControllerGet<TData = AdminOrderDetailResponseDto>(
     orderId: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  ordersControllerGet<TData = OrdersResponseDto>(
+  ordersControllerGet<TData = AdminOrderDetailResponseDto>(
     orderId: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  ordersControllerGet<TData = OrdersResponseDto>(
+  ordersControllerGet<TData = AdminOrderDetailResponseDto>(
     orderId: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  ordersControllerGet<TData = OrdersResponseDto>(
+  ordersControllerGet<TData = AdminOrderDetailResponseDto>(
     orderId: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {

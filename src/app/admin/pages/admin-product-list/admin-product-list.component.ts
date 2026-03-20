@@ -3,9 +3,9 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import { ProductCategoryService } from '../../../core/api/generated/product-category/product-category.service';
-import { ProductSubCategoryService } from '../../../core/api/generated/product-sub-category/product-sub-category.service';
-import { ProductsService } from '../../../core/api/generated/products/products.service';
+import { AdminProductCategoryService as ProductCategoryService } from '../../../core/api/generated/admin-product-category/admin-product-category.service';
+import { AdminProductSubCategoryService as ProductSubCategoryService } from '../../../core/api/generated/admin-product-sub-category/admin-product-sub-category.service';
+import { AdminProductsService as ProductsService } from '../../../core/api/generated/admin-products/admin-products.service';
 import type {
   CreateProductsDto,
   ProductCategoryResponseDto,

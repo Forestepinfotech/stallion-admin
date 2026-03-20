@@ -6057,7 +6057,188 @@
     "/orders": {
       "get": {
         "operationId": "OrdersController_list",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ORD-10291",
+              "type": "string"
+            }
+          },
+          {
+            "name": "order_number",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ORD-10291",
+              "type": "string"
+            }
+          },
+          {
+            "name": "customer_name",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "Ali Khan",
+              "type": "string"
+            }
+          },
+          {
+            "name": "customer_email",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ali@example.com",
+              "type": "string"
+            }
+          },
+          {
+            "name": "customer_phone",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "+1 555 123 4567",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status_name",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "Processing",
+              "type": "string"
+            }
+          },
+          {
+            "name": "user_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 12,
+              "type": "number"
+            }
+          },
+          {
+            "name": "product_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 101,
+              "type": "number"
+            }
+          },
+          {
+            "name": "country_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "address_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 4,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 2,
+              "type": "number"
+            }
+          },
+          {
+            "name": "is_paid",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "is_active",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "min_total_cost",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "max_total_cost",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1000,
+              "type": "number"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-03-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-03-31",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "order_number",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -6133,7 +6314,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrdersResponseDto"
+                  "$ref": "#/components/schemas/AdminOrderDetailResponseDto"
                 }
               }
             }
@@ -15050,6 +15231,575 @@
           }
         }
       },
+      "AdminOrderListItemDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number"
+          },
+          "order_number": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "number"
+          },
+          "customer_name": {
+            "type": "string"
+          },
+          "customer_email": {
+            "type": "string"
+          },
+          "customer_phone": {
+            "type": "string"
+          },
+          "status_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "status_name": {
+            "type": "string"
+          },
+          "is_paid": {
+            "type": "boolean"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "total_qty": {
+            "type": "number"
+          },
+          "items_count": {
+            "type": "number"
+          },
+          "grand_total": {
+            "type": "number"
+          },
+          "discount_total": {
+            "type": "number"
+          },
+          "product_titles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "order_number",
+          "user_id",
+          "customer_name",
+          "customer_email",
+          "customer_phone",
+          "status_name",
+          "is_paid",
+          "is_active",
+          "total_qty",
+          "items_count",
+          "grand_total",
+          "discount_total",
+          "product_titles",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "PaginatedOrdersResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrderListItemDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "example": {
+              "page": 1,
+              "limit": 20,
+              "total": 0,
+              "totalPages": 0
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "AdminOrderItemDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number"
+          },
+          "product_id": {
+            "type": "number"
+          },
+          "product_title": {
+            "type": "string"
+          },
+          "product_slug": {
+            "type": "object",
+            "nullable": true
+          },
+          "sku": {
+            "type": "object",
+            "nullable": true
+          },
+          "category_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "sub_category_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "qty": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "tax_amount": {
+            "type": "number"
+          },
+          "discount_amount": {
+            "type": "number"
+          },
+          "line_total": {
+            "type": "number"
+          },
+          "is_paid": {
+            "type": "boolean"
+          },
+          "status_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "status_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "product_id",
+          "product_title",
+          "qty",
+          "unit_price",
+          "tax_amount",
+          "discount_amount",
+          "line_total",
+          "is_paid",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "AdminOrderShipmentDto": {
+        "type": "object",
+        "properties": {
+          "shipment_id": {
+            "type": "number"
+          },
+          "order_id": {
+            "type": "number"
+          },
+          "carrier": {
+            "type": "object",
+            "nullable": true
+          },
+          "tracking_number": {
+            "type": "object",
+            "nullable": true
+          },
+          "shipped_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "delivered_at": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "shipment_id",
+          "order_id"
+        ]
+      },
+      "AdminOrderReturnItemDto": {
+        "type": "object",
+        "properties": {
+          "return_request_item_id": {
+            "type": "number"
+          },
+          "order_id": {
+            "type": "number"
+          },
+          "product_id": {
+            "type": "number"
+          },
+          "product_title": {
+            "type": "object",
+            "nullable": true
+          },
+          "sku": {
+            "type": "object",
+            "nullable": true
+          },
+          "requested_qty": {
+            "type": "number"
+          },
+          "approved_qty": {
+            "type": "number"
+          },
+          "reason_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "customer_description": {
+            "type": "object",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "refund_status": {
+            "type": "string"
+          },
+          "line_amount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "return_request_item_id",
+          "order_id",
+          "product_id",
+          "requested_qty",
+          "approved_qty",
+          "status",
+          "refund_status",
+          "line_amount"
+        ]
+      },
+      "AdminOrderReturnDto": {
+        "type": "object",
+        "properties": {
+          "return_request_id": {
+            "type": "number"
+          },
+          "return_number": {
+            "type": "object",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "refund_status": {
+            "type": "string"
+          },
+          "customer_note": {
+            "type": "object",
+            "nullable": true
+          },
+          "admin_note": {
+            "type": "object",
+            "nullable": true
+          },
+          "refund_eta_note": {
+            "type": "object",
+            "nullable": true
+          },
+          "requested_amount": {
+            "type": "number"
+          },
+          "refund_amount": {
+            "type": "number"
+          },
+          "requested_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "reviewed_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "approved_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "rejected_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "refunded_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrderReturnItemDto"
+            }
+          }
+        },
+        "required": [
+          "return_request_id",
+          "status",
+          "refund_status",
+          "requested_amount",
+          "refund_amount",
+          "items"
+        ]
+      },
+      "AdminOrderSummaryDto": {
+        "type": "object",
+        "properties": {
+          "items_count": {
+            "type": "number"
+          },
+          "total_qty": {
+            "type": "number"
+          },
+          "subtotal": {
+            "type": "number"
+          },
+          "tax_total": {
+            "type": "number"
+          },
+          "discount_total": {
+            "type": "number"
+          },
+          "grand_total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "items_count",
+          "total_qty",
+          "subtotal",
+          "tax_total",
+          "discount_total",
+          "grand_total"
+        ]
+      },
+      "AdminOrderDetailDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number"
+          },
+          "order_number": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "number"
+          },
+          "country_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "address_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "is_paid": {
+            "type": "boolean"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "order_note": {
+            "type": "object",
+            "nullable": true
+          },
+          "discount": {
+            "type": "number"
+          },
+          "buying_tax": {
+            "type": "number"
+          },
+          "total_cost": {
+            "type": "number"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "status_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "status_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "customer_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "customer_email": {
+            "type": "object",
+            "nullable": true
+          },
+          "customer_phone": {
+            "type": "object",
+            "nullable": true
+          },
+          "line1": {
+            "type": "object",
+            "nullable": true
+          },
+          "line2": {
+            "type": "object",
+            "nullable": true
+          },
+          "postalcode": {
+            "type": "object",
+            "nullable": true
+          },
+          "province": {
+            "type": "object",
+            "nullable": true
+          },
+          "country": {
+            "type": "object",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrderItemDto"
+            }
+          },
+          "shipments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrderShipmentDto"
+            }
+          },
+          "returns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrderReturnDto"
+            }
+          },
+          "summary": {
+            "$ref": "#/components/schemas/AdminOrderSummaryDto"
+          }
+        },
+        "required": [
+          "order_id",
+          "order_number",
+          "user_id",
+          "is_paid",
+          "is_active",
+          "discount",
+          "buying_tax",
+          "total_cost",
+          "created_at",
+          "updated_at",
+          "items",
+          "shipments",
+          "returns",
+          "summary"
+        ]
+      },
+      "AdminOrderDetailResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AdminOrderDetailDto"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "CreateOrdersDto": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "number"
+          },
+          "product_id": {
+            "type": "number"
+          },
+          "country_id": {
+            "type": "number"
+          },
+          "buying_cost": {
+            "type": "number"
+          },
+          "buying_qty": {
+            "type": "number"
+          },
+          "buying_tax": {
+            "type": "number"
+          },
+          "total_cost": {
+            "type": "number"
+          },
+          "is_paid": {
+            "type": "boolean"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "is_deleted": {
+            "type": "boolean"
+          },
+          "created_by": {
+            "type": "number"
+          },
+          "address_id": {
+            "type": "number"
+          },
+          "discount": {
+            "type": "number"
+          },
+          "order_note": {
+            "type": "string"
+          },
+          "order_number": {
+            "type": "string"
+          },
+          "status_id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "user_id",
+          "product_id",
+          "country_id",
+          "buying_cost",
+          "buying_qty",
+          "buying_tax",
+          "total_cost",
+          "is_paid",
+          "is_active",
+          "is_deleted",
+          "address_id",
+          "discount",
+          "order_note",
+          "order_number",
+          "status_id"
+        ]
+      },
       "OrdersResponseDto": {
         "type": "object",
         "properties": {
@@ -15122,100 +15872,6 @@
           "order_number",
           "status_id",
           "order_id"
-        ]
-      },
-      "PaginatedOrdersResponseDto": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OrdersResponseDto"
-            }
-          },
-          "meta": {
-            "type": "object",
-            "example": {
-              "page": 1,
-              "limit": 20,
-              "total": 0,
-              "totalPages": 0
-            }
-          }
-        },
-        "required": [
-          "data",
-          "meta"
-        ]
-      },
-      "CreateOrdersDto": {
-        "type": "object",
-        "properties": {
-          "user_id": {
-            "type": "number"
-          },
-          "product_id": {
-            "type": "number"
-          },
-          "country_id": {
-            "type": "number"
-          },
-          "buying_cost": {
-            "type": "number"
-          },
-          "buying_qty": {
-            "type": "number"
-          },
-          "buying_tax": {
-            "type": "number"
-          },
-          "total_cost": {
-            "type": "number"
-          },
-          "is_paid": {
-            "type": "boolean"
-          },
-          "is_active": {
-            "type": "boolean"
-          },
-          "is_deleted": {
-            "type": "boolean"
-          },
-          "created_by": {
-            "type": "number"
-          },
-          "address_id": {
-            "type": "number"
-          },
-          "discount": {
-            "type": "number"
-          },
-          "order_note": {
-            "type": "string"
-          },
-          "order_number": {
-            "type": "string"
-          },
-          "status_id": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "user_id",
-          "product_id",
-          "country_id",
-          "buying_cost",
-          "buying_qty",
-          "buying_tax",
-          "total_cost",
-          "is_paid",
-          "is_active",
-          "is_deleted",
-          "address_id",
-          "discount",
-          "order_note",
-          "order_number",
-          "status_id"
         ]
       },
       "UpdateOrdersDto": {

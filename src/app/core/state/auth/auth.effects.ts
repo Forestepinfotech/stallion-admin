@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, exhaustMap, map, of, withLatestFrom } from 'rxjs';
-import { DashboardService } from '../../api/generated/dashboard/dashboard.service';
+import { AdminDashboardService as DashboardService } from '../../api/generated/admin-dashboard/admin-dashboard.service';
 import { AuthActions } from './auth.actions';
 import { Store } from '@ngrx/store';
 import { selectProfile } from './auth.selectors';

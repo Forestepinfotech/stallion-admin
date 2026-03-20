@@ -4,10 +4,10 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
-import type { OrdersResponseDto } from "./ordersResponseDto";
+import type { AdminOrderListItemDto } from "./adminOrderListItemDto";
 import type { PaginatedOrdersResponseDtoMeta } from "./paginatedOrdersResponseDtoMeta";
 
 export interface PaginatedOrdersResponseDto {
-  data: OrdersResponseDto[];
+  data: AdminOrderListItemDto[];
   meta: PaginatedOrdersResponseDtoMeta;
 }

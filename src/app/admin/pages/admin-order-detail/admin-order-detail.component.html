@@ -1,0 +1,137 @@
+<div class="space-y-6">
+  <div class="flex items-center gap-3">
+    <a routerLink="/admin/orders" class="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+        <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Back to Orders
+    </a>
+  </div>
+
+  <div *ngIf="loading" class="rounded-3xl border bg-white px-6 py-10 text-center text-sm text-gray-500 shadow-sm">
+    Loading order details...
+  </div>
+
+  <ng-container *ngIf="!loading && order">
+    <div class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div class="md:col-span-2">
+          <div class="text-xs uppercase tracking-[0.24em] text-white/60">Order Detail</div>
+          <h1 class="mt-2 text-2xl md:text-3xl font-semibold">{{ order.order_number }}</h1>
+          <p class="mt-2 text-sm text-white/70">Full order information with included products and direct product navigation.</p>
+        </div>
+        <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+          <div class="text-xs text-white/70">Order Id</div>
+          <div class="text-xl font-semibold mt-1">#{{ order.order_id }}</div>
+        </div>
+          <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+            <div class="text-xs text-white/70">Total Cost</div>
+            <div class="text-xl font-semibold mt-1">{{ order.total_cost | currency:'USD':'symbol':'1.0-2' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-6">
+      <article class="rounded-3xl border bg-white shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b">
+          <div class="text-lg font-semibold text-gray-900">Order Information</div>
+          <div class="text-sm text-gray-500">Operational information returned by the orders API.</div>
+        </div>
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div class="rounded-2xl border bg-gray-50 p-4">
+            <div class="text-xs text-gray-500">User Id</div>
+            <div class="mt-1 font-semibold text-gray-900">#{{ order.user_id }}</div>
+          </div>
+          <div class="rounded-2xl border bg-gray-50 p-4">
+            <div class="text-xs text-gray-500">Address Id</div>
+            <div class="mt-1 font-semibold text-gray-900">#{{ order.address_id }}</div>
+          </div>
+          <div class="rounded-2xl border bg-gray-50 p-4">
+            <div class="text-xs text-gray-500">Country Id</div>
+            <div class="mt-1 font-semibold text-gray-900">#{{ order.country_id }}</div>
+          </div>
+          <div class="rounded-2xl border bg-gray-50 p-4">
+            <div class="text-xs text-gray-500">Status Id</div>
+            <div class="mt-1 font-semibold text-gray-900">#{{ order.status_id }}</div>
+          </div>
+          <div class="rounded-2xl border bg-gray-50 p-4">
+            <div class="text-xs text-gray-500">Buying Qty</div>
+            <div class="mt-1 font-semibold text-gray-900">{{ order.summary.total_qty }}</div>
+          </div>
+          <div class="rounded-2xl border bg-gray-50 p-4">
+            <div class="text-xs text-gray-500">Subtotal</div>
+            <div class="mt-1 font-semibold text-gray-900">{{ order.summary.subtotal | currency:'USD':'symbol':'1.0-2' }}</div>
+          </div>
+          <div class="rounded-2xl border bg-gray-50 p-4">
+            <div class="text-xs text-gray-500">Tax</div>
+            <div class="mt-1 font-semibold text-gray-900">{{ order.buying_tax | currency:'USD':'symbol':'1.0-2' }}</div>
+          </div>
+          <div class="rounded-2xl border bg-gray-50 p-4">
+            <div class="text-xs text-gray-500">Discount</div>
+            <div class="mt-1 font-semibold text-gray-900">{{ order.discount | currency:'USD':'symbol':'1.0-2' }}</div>
+          </div>
+          <div class="rounded-2xl border bg-gray-50 p-4">
+            <div class="text-xs text-gray-500">Payment</div>
+            <div class="mt-1">
+              <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="order.is_paid ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'">
+                {{ order.is_paid ? 'Paid' : 'Pending' }}
+              </span>
+            </div>
+          </div>
+          <div class="rounded-2xl border bg-gray-50 p-4">
+            <div class="text-xs text-gray-500">Record State</div>
+            <div class="mt-1 font-semibold text-gray-900">
+              {{ order.is_active ? 'Active' : 'Inactive' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="px-6 pb-6">
+          <div class="rounded-2xl border bg-gray-50 p-4">
+            <div class="text-xs text-gray-500">Order Note</div>
+            <div class="mt-1 text-sm text-gray-800">{{ order.order_note || 'No order note provided.' }}</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="rounded-3xl border bg-white shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b">
+          <div class="text-lg font-semibold text-gray-900">Included Products</div>
+          <div class="text-sm text-gray-500">Every item returned by the order detail API is listed here.</div>
+        </div>
+
+        <div class="p-6">
+          <div class="rounded-3xl border overflow-hidden">
+            <div class="hidden md:grid grid-cols-[minmax(0,1.2fr)_120px_140px_160px] gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold tracking-wider uppercase text-gray-500">
+              <div>Product</div>
+              <div>Qty</div>
+              <div>Price</div>
+              <div>Action</div>
+            </div>
+
+            <div *ngFor="let item of order.items" class="px-5 py-5 grid grid-cols-1 gap-4 border-t first:border-t-0 md:grid-cols-[minmax(0,1.2fr)_120px_140px_160px] md:items-center">
+              <div>
+                <div class="font-semibold text-gray-900">{{ item.product_title }}</div>
+                <div class="text-sm text-gray-500 mt-1">SKU: {{ item.sku || 'Not available' }}</div>
+                <div class="text-sm text-gray-500 mt-1">Product Id: #{{ item.product_id }}</div>
+              </div>
+
+              <div class="text-sm font-semibold text-gray-900">{{ item.qty }}</div>
+              <div class="text-sm text-gray-700">{{ item.unit_price | currency:'USD':'symbol':'1.0-2' }}</div>
+
+              <div>
+                <a [routerLink]="['/admin/products-list', item.product_id]" class="inline-flex items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50">
+                  Product Detail
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="order.items.length === 0" class="mt-4 rounded-2xl border bg-gray-50 p-4 text-sm text-gray-500">
+            No products were returned by the order detail API for this order.
+          </div>
+        </div>
+      </article>
+    </div>
+  </ng-container>
+</div>

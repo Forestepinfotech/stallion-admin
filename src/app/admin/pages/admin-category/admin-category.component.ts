@@ -4,7 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { CategoryModalComponent } from '../../components/category-modal/category-modal.component';
-import { ProductCategoryService } from '../../../core/api/generated/product-category/product-category.service';
+import { AdminProductCategoryService as ProductCategoryService } from '../../../core/api/generated/admin-product-category/admin-product-category.service';
 import type {
   CreateProductCategoryDto,
   ProductCategoryResponseDto,

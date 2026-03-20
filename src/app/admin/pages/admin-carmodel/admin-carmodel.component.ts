@@ -7,8 +7,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { finalize } from 'rxjs';
-import { CarBrandService } from '../../../core/api/generated/car-brand/car-brand.service';
-import { CarBrandModelService } from '../../../core/api/generated/car-brand-model/car-brand-model.service';
+import { AdminCarBrandService as CarBrandService } from '../../../core/api/generated/admin-car-brand/admin-car-brand.service';
+import { AdminCarBrandModelService as CarBrandModelService } from '../../../core/api/generated/admin-car-brand-model/admin-car-brand-model.service';
 import type {
   CarBrandModelControllerListSortBy,
   CarBrandResponseDto,

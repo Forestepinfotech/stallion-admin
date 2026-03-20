@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { ProductsService } from '../../../core/api/generated/products/products.service';
+import { AdminProductsService as ProductsService } from '../../../core/api/generated/admin-products/admin-products.service';
 import type { ProductDetailDto } from '../../../core/api/generated/schemas';
 import { ToastService } from '../../../core/notification/toast.service';
 

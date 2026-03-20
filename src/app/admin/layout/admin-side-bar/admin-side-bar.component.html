@@ -303,6 +303,28 @@
           <span class="font-medium text-gray-800">Product Return</span>
         </a>
         <a
+          routerLink="/admin/orders"
+          (click)="close.emit()"
+          routerLinkActive="bg-gray-100"
+          class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+        >
+          <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M7 6h10M7 12h10M7 18h6"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H9l-4 0a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="font-medium text-gray-800">Orders</span>
+        </a>
+        <a
           routerLink="/admin/return-reasons"
           (click)="close.emit()"
           routerLinkActive="bg-gray-100"

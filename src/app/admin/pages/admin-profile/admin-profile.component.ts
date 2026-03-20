@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { DashboardService } from '../../../core/api/generated/dashboard/dashboard.service';
-import { UsersService } from '../../../core/api/generated/users/users.service';
+import { AdminDashboardService as DashboardService } from '../../../core/api/generated/admin-dashboard/admin-dashboard.service';
+import { AdminUsersService as UsersService } from '../../../core/api/generated/admin-users/admin-users.service';
 import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import {
@@ -20,7 +19,6 @@ import { Store } from '@ngrx/store';
 import { AuthActions } from '../../../core/state/auth/auth.actions';
 import { selectProfile, selectProfileLoading } from '../../../core/state/auth/auth.selectors';
 import { SkeletonPanelComponent } from '../../../core/ui/skeleton-panel.component';
-import { ProfileApiService } from '../../../core/api/profile-api.service';
 
 type Profile = {
   name: string;
@@ -52,11 +50,9 @@ type Activity = {
 export class AdminProfileComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);
-  private readonly http = inject(HttpClient);
   private readonly store = inject(Store);
   private readonly dashboard = inject(DashboardService);
   private readonly usersApi = inject(UsersService);
-  private readonly profileApi = inject(ProfileApiService);
 
   profile: Profile = {
     name: 'Loading...',
@@ -205,8 +201,8 @@ export class AdminProfileComponent implements OnInit {
     };
 
     this.saving = true;
-    this.profileApi
-      .updateAdminProfile(payload)
+    this.dashboard
+      .dashboardControllerUpdateAdminProfile(payload)
       .pipe(finalize(() => (this.saving = false)))
       .subscribe({
         next: (updated) => {

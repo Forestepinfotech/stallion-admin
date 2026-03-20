@@ -22,6 +22,8 @@ import { AdminProductBuyerComponent } from './admin/pages/admin-product-buyer/ad
 import { AdminCategoryComponent } from './admin/pages/admin-category/admin-category.component';
 import { AdminSubCategoryComponent } from './admin/pages/admin-sub-category/admin-sub-category.component';
 import { LandingRedirectComponent } from './core/auth/landing-redirect.component';
+import { AdminOrdersComponent } from './admin/pages/admin-orders/admin-orders.component';
+import { AdminOrderDetailComponent } from './admin/pages/admin-order-detail/admin-order-detail.component';
 
 export const routes: Routes = [
   { path: '', component: LandingRedirectComponent },
@@ -78,6 +80,14 @@ export const routes: Routes = [
       {
         path: 'product-return',
         component: AdminProductReturnComponent,
+      },
+      {
+        path: 'orders',
+        component: AdminOrdersComponent,
+      },
+      {
+        path: 'orders/:id',
+        component: AdminOrderDetailComponent,
       },
       {
         path: 'return-reasons',

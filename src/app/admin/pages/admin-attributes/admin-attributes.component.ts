@@ -3,13 +3,13 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, forkJoin, of } from 'rxjs';
 import { CategoryModalComponent } from '../../components/category-modal/category-modal.component';
-import { CarBrandService } from '../../../core/api/generated/car-brand/car-brand.service';
-import { CarBrandModelService } from '../../../core/api/generated/car-brand-model/car-brand-model.service';
-import { ProductAttributeService } from '../../../core/api/generated/product-attribute/product-attribute.service';
-import { ProductAttributeValuesService } from '../../../core/api/generated/product-attribute-values/product-attribute-values.service';
-import { ProductCategoryAttributeService } from '../../../core/api/generated/product-category-attribute/product-category-attribute.service';
-import { ProductCategoryService } from '../../../core/api/generated/product-category/product-category.service';
-import { ProductsService } from '../../../core/api/generated/products/products.service';
+import { AdminCarBrandService as CarBrandService } from '../../../core/api/generated/admin-car-brand/admin-car-brand.service';
+import { AdminCarBrandModelService as CarBrandModelService } from '../../../core/api/generated/admin-car-brand-model/admin-car-brand-model.service';
+import { AdminProductAttributeService as ProductAttributeService } from '../../../core/api/generated/admin-product-attribute/admin-product-attribute.service';
+import { AdminProductAttributeValuesService as ProductAttributeValuesService } from '../../../core/api/generated/admin-product-attribute-values/admin-product-attribute-values.service';
+import { AdminProductCategoryAttributeService as ProductCategoryAttributeService } from '../../../core/api/generated/admin-product-category-attribute/admin-product-category-attribute.service';
+import { AdminProductCategoryService as ProductCategoryService } from '../../../core/api/generated/admin-product-category/admin-product-category.service';
+import { AdminProductsService as ProductsService } from '../../../core/api/generated/admin-products/admin-products.service';
 import type {
   CarBrandResponseDto,
   CarBrandModelResponseDto,

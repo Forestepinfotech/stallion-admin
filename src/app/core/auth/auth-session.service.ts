@@ -3,18 +3,21 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, defer, finalize, map, shareReplay, throwError } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { AuthActions } from '../state/auth/auth.actions';
-import { AuthApiService } from './auth.api.service';
-import { AuthState, AuthTokens, LoginPayload, LoginResponse } from './auth.types';
+import { AuthService } from '../api/generated/auth/auth.service';
+import type { AuthTokensDto, LoginDto } from '../api/generated/schemas';
+import { SKIP_AUTH_CONTEXT, TREAT_AS_REFRESH_CONTEXT } from './auth.context';
+import { AuthState, AuthTokens } from './auth.types';
 import { TokenStorageService } from './token-storage.service';
 import { RuntimeConfigService } from '../config/runtime-config.service';
 import { Role } from '../types/role.type';
+import { HttpContext } from '@angular/common/http';
 
 const ALLOWED_ROLES: Role[] = ['admin', 'manager', 'staff'];
 
 @Injectable({ providedIn: 'root' })
 export class AuthSessionService {
   private readonly storage = inject(TokenStorageService);
-  private readonly authApi = inject(AuthApiService);
+  private readonly authApi = inject(AuthService);
   private readonly config = inject(RuntimeConfigService);
   private readonly store = inject(Store);
 
@@ -36,8 +39,9 @@ export class AuthSessionService {
     return !!this.stateSubject.value.tokens?.refreshToken;
   }
 
-  login(payload: LoginPayload): Observable<LoginResponse> {
-    return this.authApi.login(payload).pipe(
+  login(payload: LoginDto): Observable<AuthTokensDto> {
+    const context = new HttpContext().set(SKIP_AUTH_CONTEXT, true);
+    return this.authApi.authControllerLogin(payload, { context }).pipe(
       map((res) => {
         const tokens = this.toTokens(res);
         const role = this.normalizeRole(tokens.role);
@@ -45,7 +49,7 @@ export class AuthSessionService {
           this.logout('role_not_allowed');
           throw new Error('Unauthorized role');
         }
-        this.updateState({ tokens: { ...tokens, role }, user: res.user ?? this.extractUser(tokens.accessToken, role) });
+        this.updateState({ tokens: { ...tokens, role }, user: this.extractUser(tokens.accessToken, role, res) });
         this.store.dispatch(AuthActions.loadProfile());
         return res;
       }),
@@ -77,20 +81,28 @@ export class AuthSessionService {
     }
 
     this.refreshInFlight$ = defer(() =>
-      this.authApi.refresh(current.refreshToken).pipe(
-        map((res) => {
-          const tokens = this.toTokens(res);
-          const role = this.normalizeRole(tokens.role);
-          if (!role || !ALLOWED_ROLES.includes(role)) {
-            this.logout('role_not_allowed');
-            throw new Error('Unauthorized role');
-          }
-          this.updateState({ tokens: { ...tokens, role }, user: res.user ?? this.snapshot.user });
-          return tokens;
-        }),
-        finalize(() => (this.refreshInFlight$ = undefined)),
-        shareReplay(1),
-      ),
+      this.authApi
+        .authControllerRefresh(
+          { refreshToken: current.refreshToken },
+          { context: new HttpContext().set(SKIP_AUTH_CONTEXT, true).set(TREAT_AS_REFRESH_CONTEXT, true) },
+        )
+        .pipe(
+          map((res) => {
+            const tokens = this.toTokens(res);
+            const role = this.normalizeRole(tokens.role);
+            if (!role || !ALLOWED_ROLES.includes(role)) {
+              this.logout('role_not_allowed');
+              throw new Error('Unauthorized role');
+            }
+            this.updateState({
+              tokens: { ...tokens, role },
+              user: this.extractUser(tokens.accessToken, role, res) ?? this.snapshot.user,
+            });
+            return tokens;
+          }),
+          finalize(() => (this.refreshInFlight$ = undefined)),
+          shareReplay(1),
+        ),
     );
 
     return this.refreshInFlight$;
@@ -141,16 +153,11 @@ export class AuthSessionService {
     return state;
   }
 
-  private toTokens(res: LoginResponse): AuthTokens {
+  private toTokens(res: AuthTokensDto): AuthTokens {
     const now = Date.now();
     const accessExp =
-      res.accessTokenExpiresAt ??
-      (res.accessTokenExpiresIn
-        ? now + res.accessTokenExpiresIn * 1000
-        : this.decodeExp(res.accessToken) ?? now + 15 * 60 * 1000);
-    const refreshExp =
-      res.refreshTokenExpiresAt ??
-      (res.refreshTokenExpiresIn ? now + res.refreshTokenExpiresIn * 1000 : undefined);
+      this.decodeExp(res.accessToken) ?? now + 15 * 60 * 1000;
+    const refreshExp = undefined;
     const role = this.normalizeRole(res.role) ?? this.extractUser(res.accessToken)?.role;
 
     return {
@@ -162,7 +169,7 @@ export class AuthSessionService {
     };
   }
 
-  private extractUser(token: string | undefined | null, roleHint?: Role | string | null) {
+  private extractUser(token: string | undefined | null, roleHint?: Role | string | null, source?: AuthTokensDto) {
     if (!token) return null;
     try {
       const [, payload] = token.split('.');
@@ -170,12 +177,14 @@ export class AuthSessionService {
       const role = this.normalizeRole(roleHint ?? decoded.role);
       if (role && !ALLOWED_ROLES.includes(role)) return null;
       return {
-        id: decoded.sub,
+        id: decoded.sub ?? source?.userId,
         email: decoded.email,
         role,
       };
     } catch {
-      return null;
+      const role = this.normalizeRole(roleHint ?? source?.role);
+      if (role && !ALLOWED_ROLES.includes(role)) return null;
+      return source ? { id: String(source.userId), email: undefined, role } : null;
     }
   }
 
