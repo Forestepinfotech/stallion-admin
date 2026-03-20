@@ -22,6 +22,8 @@ export class CategoryModalComponent implements OnChanges {
   @Output() warning = new EventEmitter<string>();
   @Output() error = new EventEmitter<string>();
 
+  imageDragActive = false;
+
   readonly categoryForm;
 
   constructor(private readonly fb: FormBuilder) {
@@ -73,6 +75,32 @@ export class CategoryModalComponent implements OnChanges {
   async onCategoryImageSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
+    input.value = '';
+    await this.applyCategoryImage(file);
+  }
+
+  onCategoryImageDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.imageDragActive = true;
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  }
+
+  onCategoryImageDragLeave(event: DragEvent): void {
+    if (event.currentTarget === event.target) {
+      this.imageDragActive = false;
+    }
+  }
+
+  async onCategoryImageDrop(event: DragEvent): Promise<void> {
+    event.preventDefault();
+    this.imageDragActive = false;
+    const file = event.dataTransfer?.files?.[0];
+    await this.applyCategoryImage(file);
+  }
+
+  private async applyCategoryImage(file: File | undefined): Promise<void> {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {

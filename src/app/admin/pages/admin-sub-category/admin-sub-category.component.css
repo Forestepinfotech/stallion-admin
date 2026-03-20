@@ -228,8 +228,10 @@
 .upload-box {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   min-height: 52px;
   border: 1px dashed #94a3b8;
   border-radius: 18px;
@@ -238,6 +240,13 @@
   color: #334155;
   font-weight: 600;
   cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.upload-box--active {
+  border-color: #0f172a;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.08);
 }
 
 .upload-box input {
@@ -245,6 +254,12 @@
   inset: 0;
   opacity: 0;
   cursor: pointer;
+}
+
+.upload-box small {
+  color: #64748b;
+  font-size: 0.74rem;
+  font-weight: 500;
 }
 
 .draft-preview {

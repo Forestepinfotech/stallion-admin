@@ -63,6 +63,7 @@ export class AdminUserComponent implements OnInit {
   deleteOpen = false;
   newPasswordVisible = false;
   confirmPasswordVisible = false;
+  avatarDragActive = false;
 
   selected: User | null = null;
   editMode: 'create' | 'edit' = 'create';
@@ -337,8 +338,40 @@ export class AdminUserComponent implements OnInit {
   async onAvatarChange(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
+    input.value = '';
+    await this.applyAvatar(file);
+  }
+
+  onAvatarDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.avatarDragActive = true;
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  }
+
+  onAvatarDragLeave(event: DragEvent): void {
+    if (event.currentTarget === event.target) {
+      this.avatarDragActive = false;
+    }
+  }
+
+  async onAvatarDrop(event: DragEvent): Promise<void> {
+    event.preventDefault();
+    this.avatarDragActive = false;
+    await this.applyAvatar(event.dataTransfer?.files?.[0]);
+  }
+
+  private async applyAvatar(file: File | undefined): Promise<void> {
     if (!file) return;
-    if (!file.type.startsWith('image/')) return;
+    if (!file.type.startsWith('image/')) {
+      this.toast.warning('Please select an image file.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      this.toast.warning('Image must be 2MB or smaller.');
+      return;
+    }
 
     const base64 = await this.fileToBase64(file);
     this.userForm.patchValue({ avatarUrl: base64 });

@@ -584,12 +584,25 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             <div>
               <label class="text-sm font-medium text-gray-700">Avatar</label>
-              <input
-                type="file"
-                accept="image/*"
-                (change)="onAvatarChange($event)"
-                class="mt-1 w-full rounded-2xl border px-4 py-2.5"
-              />
+              <label
+                class="mt-1 flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-4 py-5 text-center transition"
+                [class.border-slate-300]="!avatarDragActive"
+                [class.bg-white]="!avatarDragActive"
+                [class.border-slate-900]="avatarDragActive"
+                [class.bg-slate-50]="avatarDragActive"
+                (dragover)="onAvatarDragOver($event)"
+                (dragleave)="onAvatarDragLeave($event)"
+                (drop)="onAvatarDrop($event)"
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  (change)="onAvatarChange($event)"
+                  class="hidden"
+                />
+                <span class="text-sm font-semibold text-gray-900">Click or drag and drop an avatar</span>
+                <span class="text-xs text-gray-500">Max 2MB • JPG/PNG/WebP</span>
+              </label>
               <p class="text-xs text-gray-500 mt-1">Max 2MB • JPG/PNG/WebP</p>
             </div>
 

@@ -55,14 +55,27 @@
 
         <div>
           <label class="text-sm font-medium text-gray-700">Category Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            class="mt-2 w-full rounded-2xl border px-4 py-2.5"
-            (change)="onCategoryImageSelected($event)"
-          />
+          <label
+            class="mt-2 flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-4 py-5 text-center transition"
+            [class.border-slate-300]="!imageDragActive"
+            [class.bg-white]="!imageDragActive"
+            [class.border-slate-900]="imageDragActive"
+            [class.bg-slate-50]="imageDragActive"
+            (dragover)="onCategoryImageDragOver($event)"
+            (dragleave)="onCategoryImageDragLeave($event)"
+            (drop)="onCategoryImageDrop($event)"
+          >
+            <input
+              type="file"
+              accept="image/*"
+              class="hidden"
+              (change)="onCategoryImageSelected($event)"
+            />
+            <span class="text-sm font-semibold text-gray-900">Click or drag and drop an image</span>
+            <span class="text-xs text-gray-500">Max 2MB. Stored as base64 for the API payload.</span>
+          </label>
           <p class="mt-1 text-xs text-gray-500">
-            Max 2MB. Stored as base64 for the API payload.
+            JPG, PNG, and WebP supported.
           </p>
         </div>
 

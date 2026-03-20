@@ -55,6 +55,7 @@ export class AdminSubCategoryComponent implements OnInit {
   subCategoryName = '';
   subCategoryActive = true;
   subCategoryImage = '';
+  imageDragActive = false;
 
   constructor(
     private readonly productCategoryService: ProductCategoryService,
@@ -163,13 +164,37 @@ export class AdminSubCategoryComponent implements OnInit {
   async onSubCategoryImageSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
+    input.value = '';
+    await this.applySubCategoryImage(file);
+  }
+
+  onSubCategoryImageDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.imageDragActive = true;
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  }
+
+  onSubCategoryImageDragLeave(event: DragEvent): void {
+    if (event.currentTarget === event.target) {
+      this.imageDragActive = false;
+    }
+  }
+
+  async onSubCategoryImageDrop(event: DragEvent): Promise<void> {
+    event.preventDefault();
+    this.imageDragActive = false;
+    await this.applySubCategoryImage(event.dataTransfer?.files?.[0]);
+  }
+
+  private async applySubCategoryImage(file: File | undefined): Promise<void> {
     if (!file || !file.type.startsWith('image/') || file.size > 2 * 1024 * 1024) {
       this.toastService.warning('Please choose an image file smaller than 2 MB.');
       return;
     }
 
     this.subCategoryImage = await this.fileToBase64(file);
-    input.value = '';
   }
 
   clearDraftImage(): void {

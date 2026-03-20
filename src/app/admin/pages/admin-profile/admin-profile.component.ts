@@ -85,6 +85,7 @@ export class AdminProfileComponent implements OnInit {
   newPasswordVisible = false;
   confirmPasswordVisible = false;
   currentUserId: string | null = null;
+  avatarDragActive = false;
 
   // ======== FORMS ========
   editForm;
@@ -257,12 +258,37 @@ export class AdminProfileComponent implements OnInit {
   async onAvatarChange(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
+    input.value = '';
+    await this.applyAvatar(file);
+  }
+
+  onAvatarDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.avatarDragActive = true;
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  }
+
+  onAvatarDragLeave(event: DragEvent): void {
+    if (event.currentTarget === event.target) {
+      this.avatarDragActive = false;
+    }
+  }
+
+  async onAvatarDrop(event: DragEvent): Promise<void> {
+    event.preventDefault();
+    this.avatarDragActive = false;
+    await this.applyAvatar(event.dataTransfer?.files?.[0]);
+  }
+
+  private async applyAvatar(file: File | undefined): Promise<void> {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert('Max file size is 2MB.');
+      this.toast.warning('Max file size is 2MB.');
       return;
     }
 

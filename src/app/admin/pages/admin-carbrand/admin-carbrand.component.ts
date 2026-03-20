@@ -25,6 +25,7 @@ type BrandStatusFilter = 'All' | 'Active' | 'Inactive';
 })
 export class AdminCarbrandComponent implements OnInit {
   readonly statusOptions: BrandStatusFilter[] = ['All', 'Active', 'Inactive'];
+  imageDragActive = false;
 
   query = '';
   statusFilter: BrandStatusFilter = 'All';
@@ -246,6 +247,31 @@ export class AdminCarbrandComponent implements OnInit {
   async onImageChange(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
+    input.value = '';
+    await this.applyImage(file);
+  }
+
+  onImageDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.imageDragActive = true;
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  }
+
+  onImageDragLeave(event: DragEvent): void {
+    if (event.currentTarget === event.target) {
+      this.imageDragActive = false;
+    }
+  }
+
+  async onImageDrop(event: DragEvent): Promise<void> {
+    event.preventDefault();
+    this.imageDragActive = false;
+    await this.applyImage(event.dataTransfer?.files?.[0]);
+  }
+
+  private async applyImage(file: File | undefined): Promise<void> {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
