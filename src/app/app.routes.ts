@@ -11,6 +11,7 @@ import { AdminCouponsComponent } from './admin/pages/admin-coupons/admin-coupons
 import { AdminCouponDetailComponent } from './admin/pages/admin-coupons/admin-coupon-detail.component';
 import { AdminProfileComponent } from './admin/pages/admin-profile/admin-profile.component';
 import { AdminProductReturnComponent } from './admin/pages/admin-product-return/admin-product-return.component';
+import { AdminReturnReasonsComponent } from './admin/pages/admin-return-reasons/admin-return-reasons.component';
 import { AdminInventoryComponent } from './admin/pages/admin-inventory/admin-inventory.component';
 import { AdminUserComponent } from './admin/pages/admin-user/admin-user.component';
 import { AdminAttributesComponent } from './admin/pages/admin-attributes/admin-attributes.component';
@@ -77,6 +78,10 @@ export const routes: Routes = [
       {
         path: 'product-return',
         component: AdminProductReturnComponent,
+      },
+      {
+        path: 'return-reasons',
+        component: AdminReturnReasonsComponent,
       },
       { path: 'inventory', component: AdminInventoryComponent },
 
