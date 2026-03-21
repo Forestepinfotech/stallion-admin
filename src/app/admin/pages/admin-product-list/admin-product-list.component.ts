@@ -116,6 +116,14 @@ export class AdminProductListComponent implements OnInit {
   selectedSubCategoryId = signal<string>('all');
   dateFrom = signal('');
   dateTo = signal('');
+  appliedQ = signal('');
+  appliedShowDeleted = signal(false);
+  appliedStatusFilter = signal<'all' | 'active' | 'inactive'>('all');
+  appliedStockFilter = signal<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>('all');
+  appliedCategoryId = signal<string>('all');
+  appliedSubCategoryId = signal<string>('all');
+  appliedDateFrom = signal('');
+  appliedDateTo = signal('');
   modalOpen = signal(false);
   modalMode = signal<'create' | 'edit'>('create');
   page = signal(1);
@@ -153,40 +161,28 @@ export class AdminProductListComponent implements OnInit {
 
   onSearchChange(value: string): void {
     this.q.set(value);
-    this.page.set(1);
-    this.loadProducts();
   }
 
   onStatusChange(value: 'all' | 'active' | 'inactive'): void {
     this.statusFilter.set(value);
-    this.page.set(1);
-    this.loadProducts();
   }
 
   onStockFilterChange(value: 'all' | 'in_stock' | 'low_stock' | 'out_of_stock'): void {
     this.stockFilter.set(value);
-    this.page.set(1);
-    this.loadProducts();
   }
 
   onShowDeletedChange(checked: boolean): void {
     this.showDeleted.set(checked);
-    this.page.set(1);
-    this.loadProducts();
   }
 
   onCategoryFilterChange(value: string): void {
     this.selectedCategoryId.set(value);
     this.selectedSubCategoryId.set('all');
-    this.page.set(1);
     this.loadSubCategoriesForFilter();
-    this.loadProducts();
   }
 
   onSubCategoryFilterChange(value: string): void {
     this.selectedSubCategoryId.set(value);
-    this.page.set(1);
-    this.loadProducts();
   }
 
   onPageSizeChange(value: number): void {
@@ -197,12 +193,43 @@ export class AdminProductListComponent implements OnInit {
 
   onDateFromChange(value: string): void {
     this.dateFrom.set(value);
-    this.page.set(1);
-    this.loadProducts();
   }
 
   onDateToChange(value: string): void {
     this.dateTo.set(value);
+  }
+
+  applyFilters(): void {
+    this.appliedQ.set(this.q());
+    this.appliedShowDeleted.set(this.showDeleted());
+    this.appliedStatusFilter.set(this.statusFilter());
+    this.appliedStockFilter.set(this.stockFilter());
+    this.appliedCategoryId.set(this.selectedCategoryId());
+    this.appliedSubCategoryId.set(this.selectedSubCategoryId());
+    this.appliedDateFrom.set(this.dateFrom());
+    this.appliedDateTo.set(this.dateTo());
+    this.page.set(1);
+    this.loadProducts();
+  }
+
+  resetFilters(): void {
+    this.q.set('');
+    this.showDeleted.set(false);
+    this.statusFilter.set('all');
+    this.stockFilter.set('all');
+    this.selectedCategoryId.set('all');
+    this.selectedSubCategoryId.set('all');
+    this.dateFrom.set('');
+    this.dateTo.set('');
+    this.subCategories.set([]);
+    this.appliedQ.set('');
+    this.appliedShowDeleted.set(false);
+    this.appliedStatusFilter.set('all');
+    this.appliedStockFilter.set('all');
+    this.appliedCategoryId.set('all');
+    this.appliedSubCategoryId.set('all');
+    this.appliedDateFrom.set('');
+    this.appliedDateTo.set('');
     this.page.set(1);
     this.loadProducts();
   }
@@ -409,27 +436,27 @@ export class AdminProductListComponent implements OnInit {
 
   private buildListParams(): Record<string, string | number | boolean> {
     const params: Record<string, string | number | boolean> = {
-      search: this.q().trim(),
+      search: this.appliedQ().trim(),
     };
 
-    if (this.statusFilter() !== 'all') {
-      params['is_active'] = this.statusFilter() === 'active';
+    if (this.appliedStatusFilter() !== 'all') {
+      params['is_active'] = this.appliedStatusFilter() === 'active';
     }
 
-    if (this.selectedCategoryId() !== 'all') {
-      params['category_id'] = Number(this.selectedCategoryId());
+    if (this.appliedCategoryId() !== 'all') {
+      params['category_id'] = Number(this.appliedCategoryId());
     }
 
-    if (this.selectedSubCategoryId() !== 'all') {
-      params['sub_category_id'] = Number(this.selectedSubCategoryId());
+    if (this.appliedSubCategoryId() !== 'all') {
+      params['sub_category_id'] = Number(this.appliedSubCategoryId());
     }
 
-    if (this.dateFrom()) {
-      params['dateFrom'] = this.dateFrom();
+    if (this.appliedDateFrom()) {
+      params['dateFrom'] = this.appliedDateFrom();
     }
 
-    if (this.dateTo()) {
-      params['dateTo'] = this.dateTo();
+    if (this.appliedDateTo()) {
+      params['dateTo'] = this.appliedDateTo();
     }
 
     return params;

@@ -102,6 +102,28 @@
         </label>
       </div>
 
+      <div class="mt-4 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="text-sm text-slate-600">
+          Change filters, then click <span class="font-medium text-slate-900">Filter</span> to refresh the list.
+        </div>
+        <div class="flex gap-3">
+          <button
+            type="button"
+            (click)="resetFilters()"
+            class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            (click)="applyFilters()"
+            class="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
+          >
+            Filter
+          </button>
+        </div>
+      </div>
+
       <div class="mt-4 flex flex-col gap-3 rounded-2xl bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex flex-wrap gap-2">
           <span class="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
