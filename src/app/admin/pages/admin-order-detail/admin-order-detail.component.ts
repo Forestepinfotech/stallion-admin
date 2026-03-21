@@ -19,6 +19,8 @@ export class AdminOrderDetailComponent implements OnInit {
 
   loading = false;
   order: AdminOrderDetailDto | null = null;
+  loadError: string | null = null;
+  orderId: string | null = null;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -27,11 +29,19 @@ export class AdminOrderDetailComponent implements OnInit {
       return;
     }
 
+    this.orderId = id;
     this.loadOrder(id);
+  }
+
+  retry(): void {
+    if (!this.orderId) return;
+    this.loadOrder(this.orderId);
   }
 
   private loadOrder(id: string): void {
     this.loading = true;
+    this.loadError = null;
+    this.order = null;
     this.ordersApi
       .ordersControllerGet(id)
       .pipe(finalize(() => (this.loading = false)))
@@ -40,7 +50,8 @@ export class AdminOrderDetailComponent implements OnInit {
           this.order = response.data;
         },
         error: (error: unknown) => {
-          this.toast.error(this.getApiErrorMessage(error, 'Failed to load order details.'));
+          this.loadError = this.getApiErrorMessage(error, 'Failed to load order details.');
+          this.toast.error(this.loadError);
         },
       });
   }

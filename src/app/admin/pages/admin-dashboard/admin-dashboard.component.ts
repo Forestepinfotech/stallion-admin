@@ -17,6 +17,8 @@ type DonutSegment = SalesMixItemDto & {
   trackColor: string;
 };
 
+type DashboardSectionKey = 'summary' | 'revenueTrend' | 'salesMix' | 'topProducts' | 'recentActivity' | 'adminProfile';
+
 @Component({
   selector: 'app-admin-dashboard',
   imports: [CommonModule],
@@ -28,6 +30,7 @@ export class AdminDashboardComponent implements OnInit {
   private readonly toast = inject(ToastService);
 
   loading = false;
+  sectionErrors: Partial<Record<DashboardSectionKey, string>> = {};
 
   summary: DashboardSummaryDto = {
     revenue: 0,
@@ -69,6 +72,10 @@ export class AdminDashboardComponent implements OnInit {
 
   get totalProducts(): number {
     return this.summary.totalProducts ?? 0;
+  }
+
+  get hasLoadErrors(): boolean {
+    return Object.values(this.sectionErrors).some((value) => Boolean(value));
   }
 
   get adminDisplayName(): string {
@@ -202,25 +209,44 @@ export class AdminDashboardComponent implements OnInit {
 
   private loadDashboard(): void {
     this.loading = true;
+    this.sectionErrors = {};
 
     forkJoin({
       summary: this.dashboardApi.dashboardControllerSummary().pipe(
-        catchError(() => of(this.summary)),
+        catchError((error: unknown) => {
+          this.sectionErrors.summary = this.getApiErrorMessage(error, 'Failed to load dashboard summary.');
+          return of(this.summary);
+        }),
       ),
       revenueTrend: this.dashboardApi.dashboardControllerRevenueTrend({ days: 7 }).pipe(
-        catchError(() => of({ days: [], peak: 0 })),
+        catchError((error: unknown) => {
+          this.sectionErrors.revenueTrend = this.getApiErrorMessage(error, 'Failed to load revenue trend.');
+          return of({ days: [], peak: 0 });
+        }),
       ),
       salesMix: this.dashboardApi.dashboardControllerSalesMix({ days: 30 }).pipe(
-        catchError(() => of({ total: 0, items: [] })),
+        catchError((error: unknown) => {
+          this.sectionErrors.salesMix = this.getApiErrorMessage(error, 'Failed to load sales mix.');
+          return of({ total: 0, items: [] });
+        }),
       ),
       topProducts: this.dashboardApi.dashboardControllerTopProductsList({ limit: 10, days: 30 }).pipe(
-        catchError(() => of({ count: 0, items: [] })),
+        catchError((error: unknown) => {
+          this.sectionErrors.topProducts = this.getApiErrorMessage(error, 'Failed to load top products.');
+          return of({ count: 0, items: [] });
+        }),
       ),
       recentActivity: this.dashboardApi.dashboardControllerRecentActivity({ page: 1, limit: 10 }).pipe(
-        catchError(() => of({ data: [], meta: { page: 1, limit: 10, total: 0, totalPages: 1 } })),
+        catchError((error: unknown) => {
+          this.sectionErrors.recentActivity = this.getApiErrorMessage(error, 'Failed to load recent activity.');
+          return of({ data: [], meta: { page: 1, limit: 10, total: 0, totalPages: 1 } });
+        }),
       ),
       adminProfile: this.dashboardApi.dashboardControllerAdminProfile().pipe(
-        catchError(() => of(null)),
+        catchError((error: unknown) => {
+          this.sectionErrors.adminProfile = this.getApiErrorMessage(error, 'Failed to load admin profile.');
+          return of(null);
+        }),
       ),
     })
       .pipe(finalize(() => (this.loading = false)))
@@ -238,6 +264,11 @@ export class AdminDashboardComponent implements OnInit {
         error: (error: unknown) => {
           console.error(error);
           this.toast.error('Failed to load dashboard data.');
+        },
+        complete: () => {
+          if (this.hasLoadErrors) {
+            this.toast.error('Some dashboard sections could not be loaded.');
+          }
         },
       });
   }
@@ -267,5 +298,26 @@ export class AdminDashboardComponent implements OnInit {
     }
 
     return '';
+  }
+
+  private getApiErrorMessage(error: unknown, fallback: string): string {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'error' in error &&
+      typeof error.error === 'object' &&
+      error.error !== null &&
+      'message' in error.error
+    ) {
+      const message = error.error.message;
+      if (typeof message === 'string') return message;
+      if (Array.isArray(message) && message.length > 0) return String(message[0]);
+    }
+
+    if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string') {
+      return error.message;
+    }
+
+    return fallback;
   }
 }

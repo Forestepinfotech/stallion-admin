@@ -38,10 +38,12 @@ export class AdminUserDetailComponent implements OnInit {
   userId = '';
   user: UsersResponseDto | null = null;
   loading = false;
+  loadError: string | null = null;
   savingRestriction = false;
 
   activities: ActivityItemDto[] = [];
   activitiesLoading = false;
+  activitiesError: string | null = null;
   activityMeta: ActivityMeta = { page: 1, limit: 50, total: 0, totalPages: 1 };
   activityParams: DashboardControllerRecentActivityParams = { page: 1, limit: 50 };
 
@@ -87,6 +89,10 @@ export class AdminUserDetailComponent implements OnInit {
 
   refresh(): void {
     this.loadUser();
+  }
+
+  retryActivities(): void {
+    this.loadActivities(this.activityParams);
   }
 
   toggleRestriction(): void {
@@ -157,6 +163,7 @@ export class AdminUserDetailComponent implements OnInit {
 
   private loadUser(): void {
     this.loading = true;
+    this.loadError = null;
     this.usersApi
       .usersControllerGet(this.userId)
       .pipe(finalize(() => (this.loading = false)))
@@ -176,7 +183,8 @@ export class AdminUserDetailComponent implements OnInit {
         error: (error: unknown) => {
           this.user = null;
           this.activities = [];
-          this.toast.error(this.getApiErrorMessage(error, 'Failed to load user details.'));
+          this.loadError = this.getApiErrorMessage(error, 'Failed to load user details.');
+          this.toast.error(this.loadError);
         },
       });
   }
@@ -184,6 +192,7 @@ export class AdminUserDetailComponent implements OnInit {
   private loadActivities(params: DashboardControllerRecentActivityParams): void {
     this.activityParams = params;
     this.activitiesLoading = true;
+    this.activitiesError = null;
     this.dashboardApi
       .dashboardControllerRecentActivity(params)
       .pipe(finalize(() => (this.activitiesLoading = false)))
@@ -195,7 +204,8 @@ export class AdminUserDetailComponent implements OnInit {
         error: (error: unknown) => {
           this.activities = [];
           this.activityMeta = this.normalizeActivityMeta(undefined, params.page ?? 1, params.limit ?? 50);
-          this.toast.error(this.getApiErrorMessage(error, 'Failed to load user activity.'));
+          this.activitiesError = this.getApiErrorMessage(error, 'Failed to load user activity.');
+          this.toast.error(this.activitiesError);
         },
       });
   }

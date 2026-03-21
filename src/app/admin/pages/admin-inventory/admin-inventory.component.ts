@@ -90,6 +90,7 @@ export class AdminInventoryComponent implements OnInit {
   selectedDetail: InventoryDetailDto | null = null;
   modalOpen = false;
   loading = false;
+  loadError: string | null = null;
   detailLoading = false;
   saving = false;
 
@@ -279,6 +280,7 @@ export class AdminInventoryComponent implements OnInit {
   private loadInventory(params: InventoryControllerListParams = this.appliedParams): void {
     this.appliedParams = params;
     this.loading = true;
+    this.loadError = null;
     this.inventoryApi
       .inventoryControllerList(params)
       .pipe(finalize(() => (this.loading = false)))
@@ -292,7 +294,8 @@ export class AdminInventoryComponent implements OnInit {
           this.items = [];
           this.summary = { products: 0, available: 0, sold: 0, low_stock: 0 };
           this.meta = this.normalizeMeta(undefined, params.page ?? 1, params.limit ?? 50);
-          this.toast.error(this.getApiErrorMessage(error, 'Failed to load inventory.'));
+          this.loadError = this.getApiErrorMessage(error, 'Failed to load inventory.');
+          this.toast.error(this.loadError);
         },
       });
   }

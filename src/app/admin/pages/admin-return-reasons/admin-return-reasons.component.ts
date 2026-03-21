@@ -57,6 +57,7 @@ export class AdminReturnReasonsComponent implements OnInit {
   meta: ReasonMeta = { page: 1, limit: 50, total: 0, totalPages: 1 };
   appliedParams: AdminReturnsControllerListReasonsParams = { page: 1, limit: 50 };
   loading = false;
+  loadError: string | null = null;
   saving = false;
 
   ngOnInit(): void {
@@ -197,6 +198,7 @@ export class AdminReturnReasonsComponent implements OnInit {
 
   private loadReasons(): void {
     this.loading = true;
+    this.loadError = null;
     this.returnsApi
       .adminReturnsControllerListReasons(this.appliedParams)
       .pipe(finalize(() => (this.loading = false)))
@@ -212,7 +214,8 @@ export class AdminReturnReasonsComponent implements OnInit {
         error: (error: unknown) => {
           this.reasons = [];
           this.meta = this.normalizeMeta(undefined, this.appliedParams.page ?? 1, this.appliedParams.limit ?? 10, 0);
-          this.toast.error(this.getApiErrorMessage(error, 'Failed to load return reasons.'));
+          this.loadError = this.getApiErrorMessage(error, 'Failed to load return reasons.');
+          this.toast.error(this.loadError);
         },
       });
   }

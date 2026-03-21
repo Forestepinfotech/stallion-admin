@@ -195,6 +195,15 @@
       </div>
 
       <div class="sub-table-shell">
+        <div *ngIf="!loading && loadError" class="mx-6 mt-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+          <div class="font-semibold text-red-800">Unable to load sub categories</div>
+          <div class="mt-1">{{ loadError }}</div>
+          <button type="button" class="mt-3 ghost-button ghost-button--small" (click)="retryLoad()">
+            Try Again
+          </button>
+        </div>
+
+        <ng-container *ngIf="!loadError">
         <table class="sub-table">
           <thead>
             <tr>
@@ -263,9 +272,10 @@
             </tr>
           </tbody>
         </table>
+        </ng-container>
       </div>
 
-      <div class="sub-pagination">
+      <div class="sub-pagination" *ngIf="!loadError">
         <label class="field field--rows">
           <span>Rows per page</span>
           <select [ngModel]="pageSize" (ngModelChange)="changePageSize($event)">

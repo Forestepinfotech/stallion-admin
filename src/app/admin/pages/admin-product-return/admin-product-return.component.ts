@@ -81,6 +81,7 @@ export class AdminProductReturnComponent implements OnInit {
   appliedParams: AdminReturnsControllerListRequestsParams = { page: 1, limit: 50 };
 
   loading = false;
+  loadError: string | null = null;
   detailLoading = false;
   savingStatus = false;
   detailOpen = false;
@@ -261,6 +262,7 @@ export class AdminProductReturnComponent implements OnInit {
 
   private loadRequests(): void {
     this.loading = true;
+    this.loadError = null;
     this.returnsApi
       .adminReturnsControllerListRequests(this.appliedParams)
       .pipe(finalize(() => (this.loading = false)))
@@ -272,7 +274,8 @@ export class AdminProductReturnComponent implements OnInit {
         error: (error: unknown) => {
           this.requests = [];
           this.meta = this.normalizeMeta(undefined, this.appliedParams.page ?? 1, this.appliedParams.limit ?? 10);
-          this.toast.error(this.getApiErrorMessage(error, 'Failed to load return requests.'));
+          this.loadError = this.getApiErrorMessage(error, 'Failed to load return requests.');
+          this.toast.error(this.loadError);
         },
       });
   }

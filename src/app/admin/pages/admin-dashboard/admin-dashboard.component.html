@@ -34,6 +34,10 @@
         ></div>
       </div>
     </div>
+
+    <div *ngIf="!loading && hasLoadErrors" class="mt-5 rounded-2xl border border-red-200/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+      Some dashboard sections could not be loaded. Available data is shown below.
+    </div>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -123,6 +127,9 @@
       </div>
 
       <div class="p-6">
+        <div *ngIf="sectionErrors.revenueTrend" class="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {{ sectionErrors.revenueTrend }}
+        </div>
         <div class="grid grid-cols-7 gap-3 items-end h-56" *ngIf="revenueTrend.length; else emptyTrend">
           <div *ngFor="let x of revenueTrend; trackBy: trackByRevenueDate" class="flex flex-col items-center gap-2">
             <div class="w-full h-44 flex items-end">
@@ -152,6 +159,9 @@
       </div>
 
       <div class="p-6">
+        <div *ngIf="sectionErrors.salesMix" class="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {{ sectionErrors.salesMix }}
+        </div>
         <div class="flex items-center gap-6" *ngIf="donutSegments.length; else emptyMix">
           <div class="relative w-36 h-36 rounded-full" [ngStyle]="donutStyle">
             <div class="absolute inset-4 rounded-full bg-white"></div>
@@ -255,7 +265,9 @@
     </div>
 
     <ng-template #emptyProducts>
-      <div class="p-10 text-center text-sm text-gray-500">No top products data available.</div>
+      <div class="p-10 text-center text-sm" [ngClass]="sectionErrors.topProducts ? 'text-red-700' : 'text-gray-500'">
+        {{ sectionErrors.topProducts || 'No top products data available.' }}
+      </div>
     </ng-template>
   </div>
 
@@ -279,7 +291,9 @@
     </div>
 
     <ng-template #emptyActivity>
-      <div class="p-10 text-center text-sm text-gray-500">No recent activity available.</div>
+      <div class="p-10 text-center text-sm" [ngClass]="sectionErrors.recentActivity ? 'text-red-700' : 'text-gray-500'">
+        {{ sectionErrors.recentActivity || 'No recent activity available.' }}
+      </div>
     </ng-template>
   </div>
 </div>

@@ -55,6 +55,7 @@ export class AdminOrdersComponent implements OnInit {
   });
 
   loading = false;
+  loadError: string | null = null;
   orders: AdminOrderListItemDto[] = [];
   meta: OrdersMeta = { page: 1, limit: 50, total: 0, totalPages: 1 };
   appliedParams: OrdersControllerListParams = { page: 1, limit: 50, sortBy: 'created_at' };
@@ -143,6 +144,7 @@ export class AdminOrdersComponent implements OnInit {
   private loadOrders(params: OrdersControllerListParams = this.appliedParams): void {
     this.appliedParams = params;
     this.loading = true;
+    this.loadError = null;
     this.ordersApi
       .ordersControllerList(params)
       .pipe(finalize(() => (this.loading = false)))
@@ -154,7 +156,8 @@ export class AdminOrdersComponent implements OnInit {
         error: (error: unknown) => {
           this.orders = [];
           this.meta = this.normalizeMeta(undefined, params.page ?? 1, params.limit ?? 50);
-          this.toast.error(this.getApiErrorMessage(error, 'Failed to load orders.'));
+          this.loadError = this.getApiErrorMessage(error, 'Failed to load orders.');
+          this.toast.error(this.loadError);
         },
       });
   }

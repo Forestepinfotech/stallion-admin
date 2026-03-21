@@ -12,7 +12,15 @@
     Loading order details...
   </div>
 
-  <ng-container *ngIf="!loading && order">
+  <div *ngIf="!loading && loadError" class="rounded-3xl border border-red-200 bg-red-50 px-6 py-8 text-sm text-red-700 shadow-sm">
+    <div class="font-semibold text-red-800">Unable to load order details</div>
+    <div class="mt-1">{{ loadError }}</div>
+    <button type="button" (click)="retry()" class="mt-4 rounded-xl border border-red-200 bg-white px-4 py-2 font-medium text-red-700 transition hover:bg-red-100">
+      Try Again
+    </button>
+  </div>
+
+  <ng-container *ngIf="!loading && !loadError && order">
     <div class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
       <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
         <div class="md:col-span-2">

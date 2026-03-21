@@ -74,7 +74,9 @@ export class AdminProductDetailComponent implements OnInit {
   private readonly toastService = inject(ToastService);
 
   loading = false;
+  loadError = signal<string | null>(null);
   product = signal<ProductDetailDto | null>(null);
+  productId: string | null = null;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -83,7 +85,13 @@ export class AdminProductDetailComponent implements OnInit {
       return;
     }
 
+    this.productId = id;
     this.loadProduct(id);
+  }
+
+  retry(): void {
+    if (!this.productId) return;
+    this.loadProduct(this.productId);
   }
 
   get attributeEntries(): AttributeEntry[] {
@@ -219,6 +227,7 @@ export class AdminProductDetailComponent implements OnInit {
 
   private loadProduct(id: string): void {
     this.loading = true;
+    this.loadError.set(null);
     this.productsService
       .productsControllerGet(id)
       .pipe(finalize(() => (this.loading = false)))
@@ -228,9 +237,9 @@ export class AdminProductDetailComponent implements OnInit {
         },
         error: (error) => {
           this.product.set(null);
-          this.toastService.error(
-            this.getErrorMessage(error, 'Failed to load product details.'),
-          );
+          const message = this.getErrorMessage(error, 'Failed to load product details.');
+          this.loadError.set(message);
+          this.toastService.error(message);
         },
       });
   }

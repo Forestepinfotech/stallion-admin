@@ -50,6 +50,7 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
   selectedId: number | null = null;
 
   loading = false;
+  loadError: string | null = null;
   saving = false;
   deleting = false;
   brandsLoading = false;
@@ -326,6 +327,10 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
     return item.model_id;
   }
 
+  retryLoad(): void {
+    this.loadModels();
+  }
+
   getBrandName(brandId: number): string {
     return (
       this.brands.find((brand) => brand.car_brand_id === brandId)
@@ -352,6 +357,7 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
 
   private loadModels(): void {
     this.loading = true;
+    this.loadError = null;
     this.carBrandModelService
       .carBrandModelControllerList({
         page: 1,
@@ -372,9 +378,9 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
           this.page = Math.min(this.page, this.totalPages);
         },
         error: (error) => {
-          this.toastService.error(
-            this.getErrorMessage(error, 'Failed to load car models.'),
-          );
+          this.items = [];
+          this.loadError = this.getErrorMessage(error, 'Failed to load car models.');
+          this.toastService.error(this.loadError);
         },
       });
   }

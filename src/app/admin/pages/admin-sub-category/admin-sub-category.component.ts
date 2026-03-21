@@ -47,6 +47,7 @@ export class AdminSubCategoryComponent implements OnInit {
   totalItems = 0;
 
   loading = true;
+  loadError: string | null = null;
   saving = false;
   deletingId: number | null = null;
   togglingId: number | null = null;
@@ -351,6 +352,10 @@ export class AdminSubCategoryComponent implements OnInit {
     return item.sub_category_id;
   }
 
+  retryLoad(): void {
+    this.loadSubCategories();
+  }
+
   getTableImageSrc(item: SubCategoryListItem): string {
     return this.getImageSrc(item.sub_category_image);
   }
@@ -399,6 +404,7 @@ export class AdminSubCategoryComponent implements OnInit {
     }
 
     this.loading = true;
+    this.loadError = null;
     this.productSubCategoryService
       .productSubCategoryControllerList({
         params,
@@ -412,9 +418,8 @@ export class AdminSubCategoryComponent implements OnInit {
         error: (error) => {
           this.subCategories = [];
           this.totalItems = 0;
-          this.toastService.error(
-            this.getErrorMessage(error, 'Failed to load sub categories.'),
-          );
+          this.loadError = this.getErrorMessage(error, 'Failed to load sub categories.');
+          this.toastService.error(this.loadError);
         },
       });
   }

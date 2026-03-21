@@ -17,7 +17,7 @@ import {
 import { ToastService } from '../../../core/notification/toast.service';
 import { Store } from '@ngrx/store';
 import { AuthActions } from '../../../core/state/auth/auth.actions';
-import { selectProfile, selectProfileLoading } from '../../../core/state/auth/auth.selectors';
+import { selectProfile, selectProfileError, selectProfileLoading } from '../../../core/state/auth/auth.selectors';
 import { SkeletonPanelComponent } from '../../../core/ui/skeleton-panel.component';
 
 type Profile = {
@@ -74,11 +74,13 @@ export class AdminProfileComponent implements OnInit {
   recentActivityPageSize = 50;
   readonly recentActivityPageSizeOptions = [20, 50, 100];
   recentActivityTotal = 0;
+  recentActivityError: string | null = null;
 
   // ======== UI STATE ========
   editOpen = false;
   passwordOpen = false;
   loading = false;
+  profileLoadError: string | null = null;
   saving = false;
   savingPassword = false;
   currentPasswordVisible = false;
@@ -144,6 +146,15 @@ export class AdminProfileComponent implements OnInit {
       }
     });
     this.store.select(selectProfileLoading).subscribe((loading) => (this.loading = loading));
+    this.store.select(selectProfileError).subscribe((error) => (this.profileLoadError = error ?? null));
+  }
+
+  retryProfileLoad(): void {
+    this.store.dispatch(AuthActions.loadProfile());
+  }
+
+  retryRecentActivityLoad(): void {
+    this.loadRecentActivity();
   }
 
   // ======== MODALS ========
@@ -371,6 +382,7 @@ export class AdminProfileComponent implements OnInit {
 
   // ======== DATA LOADING ========
   private loadRecentActivity() {
+    this.recentActivityError = null;
     this.dashboard
       .dashboardControllerRecentActivity<PaginatedRecentActivityDto>({} as DashboardControllerRecentActivityParams, {
         params: {
@@ -389,6 +401,9 @@ export class AdminProfileComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
+        this.recentActivity = [];
+        this.recentActivityTotal = 0;
+        this.recentActivityError = 'Failed to load activity';
         this.toast.error('Failed to load activity');
       },
     });

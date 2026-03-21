@@ -34,6 +34,7 @@ export class AdminCategoryComponent implements OnInit {
   appliedStatusFilter: CategoryStatusFilter = 'All';
 
   loading = true;
+  loadError: string | null = null;
   saving = false;
   deleting = false;
 
@@ -217,6 +218,10 @@ export class AdminCategoryComponent implements OnInit {
     return item.category_id;
   }
 
+  retryLoad(): void {
+    this.loadCategories();
+  }
+
   private loadCategories(): void {
     const params: Record<string, string | number | boolean> = {
       page: this.page,
@@ -232,6 +237,7 @@ export class AdminCategoryComponent implements OnInit {
     }
 
     this.loading = true;
+    this.loadError = null;
     this.productCategoryService
       .productCategoryControllerList({
         params,
@@ -244,9 +250,11 @@ export class AdminCategoryComponent implements OnInit {
           this.totalItems = Number(response.meta?.['total'] ?? response.data?.length ?? 0);
         },
         error: (error) => {
-          this.toastService.error(
-            this.getErrorMessage(error, 'Failed to load categories.'),
-          );
+          this.categories = [];
+          this.filteredCategories = [];
+          this.totalItems = 0;
+          this.loadError = this.getErrorMessage(error, 'Failed to load categories.');
+          this.toastService.error(this.loadError);
         },
       });
   }

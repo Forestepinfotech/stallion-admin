@@ -36,6 +36,7 @@ export class AdminCarbrandComponent implements OnInit {
   filteredItems: CarBrandResponseDto[] = [];
 
   loading = true;
+  loadError: string | null = null;
   saving = false;
   deleting = false;
   page = 1;
@@ -305,8 +306,13 @@ export class AdminCarbrandComponent implements OnInit {
     return item.car_brand_id;
   }
 
+  retryLoad(): void {
+    this.loadBrands();
+  }
+
   private loadBrands(): void {
     this.loading = true;
+    this.loadError = null;
     this.carBrandService
       .carBrandControllerList()
       .pipe(finalize(() => (this.loading = false)))
@@ -316,9 +322,10 @@ export class AdminCarbrandComponent implements OnInit {
           this.applyFilters();
         },
         error: (error) => {
-          this.toastService.error(
-            this.getErrorMessage(error, 'Failed to load car brands.'),
-          );
+          this.items = [];
+          this.filteredItems = [];
+          this.loadError = this.getErrorMessage(error, 'Failed to load car brands.');
+          this.toastService.error(this.loadError);
         },
       });
   }
