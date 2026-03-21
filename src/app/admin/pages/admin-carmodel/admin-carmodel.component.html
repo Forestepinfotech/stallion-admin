@@ -275,7 +275,9 @@
             </td>
             <td class="px-6 py-4 text-sm text-gray-700">
               {{
-                item.updated_at || item.created_at || "-" | date: "mediumDate"
+                item.updated_at || item.created_at
+                  ? ((item.updated_at || item.created_at) | date: "mediumDate")
+                  : "-"
               }}
             </td>
             <td class="px-6 py-4">
@@ -385,7 +387,9 @@
             <div class="mt-1 text-xs text-gray-400">
               Updated
               {{
-                item.updated_at || item.created_at || "-" | date: "mediumDate"
+                item.updated_at || item.created_at
+                  ? ((item.updated_at || item.created_at) | date: "mediumDate")
+                  : "-"
               }}
             </div>
 
@@ -428,7 +432,7 @@
           [ngModel]="pageSize"
           (ngModelChange)="changePageSize($event)"
         >
-          <option *ngFor="let size of pageSizeOptions" [value]="size">
+          <option *ngFor="let size of pageSizeOptions" [ngValue]="size">
             {{ size }}
           </option>
         </select>

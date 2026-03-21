@@ -79,7 +79,7 @@
             [ngModel]="pageSize"
             (ngModelChange)="changePageSize($event)"
           >
-            <option *ngFor="let s of pageSizeOptions" [value]="s">{{ s }}</option>
+            <option *ngFor="let s of pageSizeOptions" [ngValue]="s">{{ s }}</option>
           </select>
         </div>
         <div>
@@ -244,7 +244,7 @@
           [ngModel]="pageSize"
           (ngModelChange)="changePageSize($event)"
         >
-          <option *ngFor="let s of pageSizeOptions" [value]="s">{{ s }}</option>
+          <option *ngFor="let s of pageSizeOptions" [ngValue]="s">{{ s }}</option>
         </select>
       </div>
       <div class="text-sm text-gray-600">Page {{ page }} • {{ totalPages }}</div>

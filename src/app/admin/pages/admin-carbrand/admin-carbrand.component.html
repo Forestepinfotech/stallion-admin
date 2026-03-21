@@ -330,7 +330,7 @@
           [ngModel]="pageSize"
           (ngModelChange)="changePageSize($event)"
         >
-          <option *ngFor="let size of pageSizeOptions" [value]="size">
+          <option *ngFor="let size of pageSizeOptions" [ngValue]="size">
             {{ size }}
           </option>
         </select>
