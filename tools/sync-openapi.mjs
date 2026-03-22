@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const baseUrl = (process.env.API_BASE_URL || 'http://localhost:3002').replace(/\/+$/, '');
+const baseUrl = (process.env.API_BASE_URL || 'http://127.0.0.1:3002').replace(/\/+$/, '');
 const outputPath = path.resolve('tools/.cache/openapi.merged.json');
 
 const sources = [

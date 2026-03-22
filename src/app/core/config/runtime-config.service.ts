@@ -4,7 +4,7 @@ import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { RuntimeConfig } from './runtime-config.model';
 
 const DEFAULT_CONFIG: RuntimeConfig = {
-  apiBaseUrl: 'http://localhost:3002',
+  apiBaseUrl: 'http://127.0.0.1:3002',
   tokenRefreshLeewaySeconds: 20,
 };
 

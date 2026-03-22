@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, isDevMode, provideZoneChangeDetection } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideStore } from '@ngrx/store';
@@ -20,7 +20,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideStore({ auth: authReducer }),
     provideEffects([AuthEffects]),
-    provideStoreDevtools({ maxAge: 25, logOnly: false }),
+    ...(isDevMode() ? [provideStoreDevtools({ maxAge: 25, logOnly: true })] : []),
     ...provideRuntimeConfig(),
     provideHttpClient(
       withInterceptors([

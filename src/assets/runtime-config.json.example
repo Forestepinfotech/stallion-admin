@@ -1,5 +1,5 @@
 {
-  "apiBaseUrl": "http://localhost:3002",
+  "apiBaseUrl": "http://127.0.0.1:3002",
   "tokenRefreshLeewaySeconds": 20,
   "authIssuer": "https://your-issuer.example.com/",
   "authAudience": "your-api-audience",

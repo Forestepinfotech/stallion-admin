@@ -2,6 +2,43 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.5.
 
+## Production deployment
+
+The frontend is built as a static Angular SPA and can be served on a DigitalOcean droplet with PM2.
+
+1. Copy `.env.example` to `.env` and set the real auth values.
+2. Keep `API_BASE_URL=http://127.0.0.1:3002` if your backend is running on the same droplet.
+3. Run `npm ci`.
+4. Run `npm run build`.
+5. Run `npm run pm2:start`.
+
+PM2 serves the compiled frontend on port `4200` through [ecosystem.config.cjs](/Users/mac/Desktop/NATIVE_IOS/VarinderCuApps/stallion-admin-main/ecosystem.config.cjs). Production PM2 stdout/stderr logs are disabled there.
+
+### Nginx on the droplet
+
+Nginx should be installed on the server, not in this repo. This repo now includes a ready site config at [deploy/nginx/stallionadmin.conf](/Users/mac/Desktop/NATIVE_IOS/VarinderCuApps/stallion-admin-main/deploy/nginx/stallionadmin.conf).
+
+Typical setup on Ubuntu/Debian:
+
+```bash
+sudo apt update
+sudo apt install -y nginx
+sudo cp deploy/nginx/stallionadmin.conf /etc/nginx/sites-available/stallionadmin.conf
+sudo ln -sf /etc/nginx/sites-available/stallionadmin.conf /etc/nginx/sites-enabled/stallionadmin.conf
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+That config listens on port `80` and proxies requests to the PM2 app on `127.0.0.1:4200`.
+
+If you want HTTPS, point your domain to the droplet and then run:
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com -d www.your-domain.com
+```
+
 ## Development server
 
 To start a local development server, run:

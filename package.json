@@ -4,13 +4,17 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "npm run config:gen && ng build --configuration production",
+    "build:dev": "npm run config:gen && ng build --configuration development",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "api:spec": "node tools/sync-openapi.mjs",
     "api:gen": "npm run api:spec && orval --config orval.config.cjs",
     "api:watch": "npm run api:gen",
-    "config:gen": "node tools/generate-runtime-config.mjs"
+    "config:gen": "node tools/generate-runtime-config.mjs",
+    "pm2:start": "pm2 start ecosystem.config.cjs --env production",
+    "pm2:restart": "pm2 restart ecosystem.config.cjs --env production",
+    "pm2:stop": "pm2 delete stallionadmin"
   },
   "private": true,
   "dependencies": {
