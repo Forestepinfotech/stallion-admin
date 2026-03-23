@@ -4,14 +4,16 @@ import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { RuntimeConfig } from './runtime-config.model';
 
 const DEFAULT_CONFIG: RuntimeConfig = {
-  apiBaseUrl: 'http://127.0.0.1:3002',
+  apiBaseUrl: 'http://178.128.228.186',
   tokenRefreshLeewaySeconds: 20,
 };
 
 @Injectable({ providedIn: 'root' })
 export class RuntimeConfigService {
   private readonly http = inject(HttpClient);
-  private readonly configSubject = new BehaviorSubject<RuntimeConfig>(DEFAULT_CONFIG);
+  private readonly configSubject = new BehaviorSubject<RuntimeConfig>(
+    DEFAULT_CONFIG,
+  );
 
   readonly config$ = this.configSubject.asObservable();
 

@@ -7,7 +7,7 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 The frontend is built as a static Angular SPA and can be served on a DigitalOcean droplet with PM2.
 
 1. Copy `.env.example` to `.env` and set the real auth values.
-2. Keep `API_BASE_URL=http://127.0.0.1:3002` if your backend is running on the same droplet.
+2. Keep `API_BASE_URL=http://178.128.228.186` if your backend is running on the same droplet.
 3. Run `npm ci`.
 4. Run `npm run build`.
 5. Run `npm run pm2:start`.
