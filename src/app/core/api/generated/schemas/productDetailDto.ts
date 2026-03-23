@@ -5,7 +5,6 @@
  * OpenAPI spec version: 1.0
  */
 import type { ProductDetailDtoAttributes } from "./productDetailDtoAttributes";
-import type { ProductDetailDtoBarcode } from "./productDetailDtoBarcode";
 import type { ProductDetailDtoBrandId } from "./productDetailDtoBrandId";
 import type { ProductDetailDtoBrandName } from "./productDetailDtoBrandName";
 import type { ProductDetailDtoBreadcrumbsItem } from "./productDetailDtoBreadcrumbsItem";
@@ -69,7 +68,7 @@ export interface ProductDetailDto {
   /** @nullable */
   mpn?: ProductDetailDtoMpn;
   /** @nullable */
-  barcode?: ProductDetailDtoBarcode;
+  barcode?: string | null;
   /** @nullable */
   price?: ProductDetailDtoPrice;
   /** @nullable */

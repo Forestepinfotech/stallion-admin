@@ -14090,7 +14090,7 @@
             "nullable": true
           },
           "barcode": {
-            "type": "object",
+            "type": "string",
             "nullable": true
           },
           "price": {

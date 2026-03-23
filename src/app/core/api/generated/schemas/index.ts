@@ -357,7 +357,6 @@ export * from "./productCategoryAttributeResponseDtoValueItemsItem";
 export * from "./productCategoryResponseDto";
 export * from "./productDetailDto";
 export * from "./productDetailDtoAttributes";
-export * from "./productDetailDtoBarcode";
 export * from "./productDetailDtoBrandId";
 export * from "./productDetailDtoBrandName";
 export * from "./productDetailDtoBreadcrumbsItem";
