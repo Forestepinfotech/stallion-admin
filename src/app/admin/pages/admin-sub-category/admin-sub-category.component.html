@@ -78,6 +78,7 @@
             <input type="file" accept="image/*" (change)="onSubCategoryImageSelected($event)" />
             <span>{{ hasImagePreview ? 'Replace image' : 'Upload image' }}</span>
             <small>Click or drag and drop an image here.</small>
+            <small *ngIf="imageUploadProgress !== null">Uploading {{ imageUploadProgress }}%</small>
           </label>
         </div>
       </div>

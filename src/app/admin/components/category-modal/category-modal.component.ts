@@ -5,6 +5,8 @@ import type {
   CreateProductCategoryDto,
   ProductCategoryResponseDto,
 } from '../../../core/api/generated/schemas';
+import { MediaUrlService } from '../../../core/media/media-url.service';
+import { AssetUploadService } from '../../../core/upload/asset-upload.service';
 
 @Component({
   selector: 'app-category-modal',
@@ -23,10 +25,17 @@ export class CategoryModalComponent implements OnChanges {
   @Output() error = new EventEmitter<string>();
 
   imageDragActive = false;
+  imageUploadProgress: number | null = null;
+  private pendingCategoryImageFile: File | null = null;
+  private pendingCategoryImagePreviewUrl: string | null = null;
 
   readonly categoryForm;
 
-  constructor(private readonly fb: FormBuilder) {
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly assetUploadService: AssetUploadService,
+    private readonly mediaUrlService: MediaUrlService,
+  ) {
     this.categoryForm = this.fb.group({
       category_name: ['', [Validators.required, Validators.minLength(2)]],
       is_active: [true, [Validators.required]],
@@ -57,19 +66,39 @@ export class CategoryModalComponent implements OnChanges {
     this.close.emit();
   }
 
-  submit(): void {
+  async submit(): Promise<void> {
     if (this.categoryForm.invalid || this.saving) {
       this.categoryForm.markAllAsTouched();
       return;
     }
 
-    const value = this.categoryForm.getRawValue();
-    this.save.emit({
-      category_name: String(value.category_name).trim(),
-      category_image: String(value.category_image ?? '').trim(),
-      is_active: Boolean(value.is_active),
-      is_deleted: false,
-    });
+    try {
+      let categoryImage = this.mediaUrlService.toStoredValue(this.categoryForm.get('category_image')?.value);
+
+      if (this.pendingCategoryImageFile) {
+        this.imageUploadProgress = 0;
+        const uploaded = await this.assetUploadService.uploadFile(
+          this.pendingCategoryImageFile,
+          'category',
+          (progress) => {
+            this.imageUploadProgress = progress;
+          },
+        );
+        categoryImage = uploaded.endpoint;
+      }
+
+      const value = this.categoryForm.getRawValue();
+      this.save.emit({
+        category_name: String(value.category_name).trim(),
+        category_image: categoryImage,
+        is_active: Boolean(value.is_active),
+        is_deleted: false,
+      });
+    } catch {
+      this.error.emit('Failed to upload the selected image.');
+    } finally {
+      this.imageUploadProgress = null;
+    }
   }
 
   async onCategoryImageSelected(event: Event): Promise<void> {
@@ -108,38 +137,40 @@ export class CategoryModalComponent implements OnChanges {
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      this.warning.emit('Image must be 2MB or smaller.');
+    if (file.size > 50 * 1024 * 1024) {
+      this.warning.emit('Image must be 50MB or smaller.');
       return;
     }
 
-    try {
-      const base64 = await this.fileToBase64(file);
-      this.categoryForm.patchValue({ category_image: base64 });
-    } catch {
-      this.error.emit('Failed to read the selected image.');
-    }
+    this.revokePendingCategoryImagePreview();
+    const previewUrl = URL.createObjectURL(file);
+    this.pendingCategoryImageFile = file;
+    this.pendingCategoryImagePreviewUrl = previewUrl;
+    this.categoryForm.patchValue({ category_image: previewUrl });
   }
 
   removeCategoryImage(): void {
+    this.pendingCategoryImageFile = null;
+    this.revokePendingCategoryImagePreview();
     this.categoryForm.patchValue({ category_image: '' });
   }
 
   private resetForm(): void {
+    this.pendingCategoryImageFile = null;
+    this.revokePendingCategoryImagePreview();
     this.categoryForm.reset({
       category_name: this.mode === 'edit' ? this.category?.category_name ?? '' : '',
       is_active: this.mode === 'edit' ? this.category?.is_active ?? true : true,
       category_image:
-        this.mode === 'edit' ? this.category?.category_image ?? '' : '',
+        this.mode === 'edit' ? this.mediaUrlService.resolve(this.category?.category_image) : '',
     });
   }
 
-  private fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  private revokePendingCategoryImagePreview(): void {
+    if (this.pendingCategoryImagePreviewUrl) {
+      URL.revokeObjectURL(this.pendingCategoryImagePreviewUrl);
+      this.pendingCategoryImagePreviewUrl = null;
+    }
   }
+
 }

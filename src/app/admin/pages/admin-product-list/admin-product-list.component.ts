@@ -14,6 +14,7 @@ import type {
   ProductSummaryDto,
   UpdateProductsDto,
 } from '../../../core/api/generated/schemas';
+import { MediaUrlService } from '../../../core/media/media-url.service';
 import { ToastService } from '../../../core/notification/toast.service';
 
 type ProductForm = {
@@ -107,6 +108,7 @@ export class AdminProductListComponent implements OnInit {
   private readonly productSubCategoryService = inject(ProductSubCategoryService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly mediaUrlService = inject(MediaUrlService);
 
   q = signal('');
   showDeleted = signal(false);
@@ -479,7 +481,7 @@ export class AdminProductListComponent implements OnInit {
       is_deleted: false,
       featured: Boolean(item.featured),
       returnable: false,
-      thumbnail_image: typeof item.thumbnail_image === 'string' ? item.thumbnail_image : '',
+      thumbnail_image: this.mediaUrlService.resolve(item.thumbnail_image),
       category_name: typeof item.category_name === 'string' ? item.category_name : '',
       sub_category_name: typeof item.sub_category_name === 'string' ? item.sub_category_name : '',
       status: typeof item.status === 'string' ? item.status : '',
@@ -496,7 +498,7 @@ export class AdminProductListComponent implements OnInit {
       title: item.title ?? '',
       short_description: toStringValue(item.short_description),
       description: toStringValue(item.description),
-      thumbnail_image: toStringValue(item.thumbnail_image),
+      thumbnail_image: this.mediaUrlService.resolve(item.thumbnail_image),
       compare_at_price: toNumberString(item.compare_at_price),
       price: toNumberString(item.price),
       cost_price: toNumberString(item.cost_price),
@@ -523,7 +525,7 @@ export class AdminProductListComponent implements OnInit {
       title: form.title.trim(),
       short_description: form.short_description.trim() || undefined,
       description: form.description.trim() || undefined,
-      thumbnail_image: form.thumbnail_image.trim() || undefined,
+      thumbnail_image: this.mediaUrlService.toStoredValue(form.thumbnail_image) || undefined,
       compare_at_price: toNumOrUndefined(form.compare_at_price),
       price: toNumOrUndefined(form.price),
       cost_price: toNumOrUndefined(form.cost_price),

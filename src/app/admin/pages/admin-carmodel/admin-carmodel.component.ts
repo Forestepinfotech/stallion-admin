@@ -17,6 +17,7 @@ import type {
   UpdateCarBrandModelDto,
 } from '../../../core/api/generated/schemas';
 import { ToastService } from '../../../core/notification/toast.service';
+import { AssetUploadService } from '../../../core/upload/asset-upload.service';
 
 type ModelStatusFilter = 'All' | 'Active' | 'Inactive';
 
@@ -54,6 +55,9 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
   saving = false;
   deleting = false;
   brandsLoading = false;
+  imageUploadProgress: number | null = null;
+  private pendingImageFile: File | null = null;
+  private pendingImagePreviewUrl: string | null = null;
   page = 1;
   pageSize = 50;
   readonly pageSizeOptions = [20, 50, 100];
@@ -68,6 +72,7 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
     private readonly carBrandModelService: CarBrandModelService,
     private readonly carBrandService: CarBrandService,
     private readonly toastService: ToastService,
+    private readonly assetUploadService: AssetUploadService,
   ) {
     this.form = this.fb.group({
       car_brand_id: [null as number | null, [Validators.required]],
@@ -152,6 +157,7 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
   openCreate(): void {
     this.mode = 'create';
     this.selectedId = null;
+    this.clearPendingImageState();
     this.form.reset({
       car_brand_id: null,
       model_name: '',
@@ -165,6 +171,7 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
   openEdit(item: CarBrandModelResponseDto): void {
     this.mode = 'edit';
     this.selectedId = item.model_id;
+    this.clearPendingImageState();
     this.form.reset({
       car_brand_id: item.car_brand_id,
       model_name: item.model_name,
@@ -221,9 +228,27 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
       });
   }
 
-  save(): void {
+  async save(): Promise<void> {
     if (this.form.invalid || this.saving) {
       this.form.markAllAsTouched();
+      return;
+    }
+
+    let modelImage = String(this.form.get('model_image')?.value ?? '').trim();
+
+    try {
+      if (this.pendingImageFile) {
+        this.imageUploadProgress = 0;
+        const uploaded = await this.assetUploadService.uploadFile(this.pendingImageFile, 'category', (progress) => {
+          this.imageUploadProgress = progress;
+        });
+        modelImage = uploaded.endpoint;
+      }
+    } catch (error) {
+      this.toastService.error(
+        this.getErrorMessage(error, 'Failed to upload the selected image.'),
+      );
+      this.imageUploadProgress = null;
       return;
     }
 
@@ -232,7 +257,7 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
       car_brand_id: Number(rawValue.car_brand_id),
       model_name: String(rawValue.model_name).trim(),
       model_engine: String(rawValue.model_engine).trim(),
-      model_image: rawValue.model_image?.trim() ?? '',
+      model_image: modelImage,
       is_active: Boolean(rawValue.is_active),
       is_deleted: false,
     };
@@ -249,6 +274,7 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
 
     request.pipe(finalize(() => (this.saving = false))).subscribe({
       next: () => {
+        this.clearPendingImageState();
         this.toastService.success(
           this.mode === 'create'
             ? 'Car model created successfully.'
@@ -259,6 +285,7 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
         this.loadModels();
       },
       error: (error) => {
+        this.imageUploadProgress = null;
         this.toastService.error(
           this.getErrorMessage(error, 'Failed to save car model.'),
         );
@@ -301,20 +328,20 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      this.toastService.warning('Image must be 2MB or smaller.');
+    if (file.size > 50 * 1024 * 1024) {
+      this.toastService.warning('Image must be 50MB or smaller.');
       return;
     }
 
-    try {
-      const base64 = await this.fileToBase64(file);
-      this.form.patchValue({ model_image: base64 });
-    } catch {
-      this.toastService.error('Failed to read the selected image.');
-    }
+    this.revokePendingImagePreview();
+    const previewUrl = URL.createObjectURL(file);
+    this.pendingImageFile = file;
+    this.pendingImagePreviewUrl = previewUrl;
+    this.form.patchValue({ model_image: previewUrl });
   }
 
   clearImage(): void {
+    this.clearPendingImageState();
     this.form.patchValue({ model_image: '' });
   }
 
@@ -406,13 +433,17 @@ export class AdminCarmodelComponent implements OnInit, OnDestroy {
     return value === 'Active';
   }
 
-  private fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  private clearPendingImageState(): void {
+    this.pendingImageFile = null;
+    this.imageUploadProgress = null;
+    this.revokePendingImagePreview();
+  }
+
+  private revokePendingImagePreview(): void {
+    if (this.pendingImagePreviewUrl) {
+      URL.revokeObjectURL(this.pendingImagePreviewUrl);
+      this.pendingImagePreviewUrl = null;
+    }
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

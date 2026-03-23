@@ -12,13 +12,16 @@ import { AdminProductsService as ProductsService } from '../../../core/api/gener
 import type {
   CarBrandModelResponseDto,
   CarBrandResponseDto,
+  CreateUploadUrlDtoFolder,
   CreateProductsDto,
   ProductCategoryResponseDto,
   ProductDetailDto,
   ProductSubCategoryResponseDto,
   UpdateProductsDto,
 } from '../../../core/api/generated/schemas';
+import { MediaUrlService } from '../../../core/media/media-url.service';
 import { ToastService } from '../../../core/notification/toast.service';
+import { AssetUploadService } from '../../../core/upload/asset-upload.service';
 
 interface AttributeRow {
   key: string;
@@ -29,6 +32,11 @@ interface CategoryAttributeItem {
   attribute_id: number;
   attribute_name: string;
   values: string[];
+}
+
+interface PendingAssetItem {
+  file: File;
+  previewUrl: string;
 }
 
 const RESERVED_ATTRIBUTE_FIELDS = [
@@ -93,6 +101,13 @@ export class AdminProductsComponent implements OnInit {
   primaryImageDragActive = false;
   galleryImagesDragActive = false;
   videoDragActive = false;
+  primaryImageUploadProgress: number | null = null;
+  galleryUploadProgress: number | null = null;
+  videoUploadProgress: number | null = null;
+  private pendingPrimaryImageFile: File | null = null;
+  private pendingPrimaryImagePreviewUrl: string | null = null;
+  private pendingGalleryFiles: PendingAssetItem[] = [];
+  private pendingVideoFiles: PendingAssetItem[] = [];
 
   tagInput = '';
   fitmentInput = '';
@@ -122,6 +137,8 @@ export class AdminProductsComponent implements OnInit {
     private readonly productSubCategoryService: ProductSubCategoryService,
     private readonly productsService: ProductsService,
     private readonly toastService: ToastService,
+    private readonly assetUploadService: AssetUploadService,
+    private readonly mediaUrlService: MediaUrlService,
   ) {
     this.form = this.fb.group({
       categoryId: [this.getDefaultFormValue().categoryId, Validators.required],
@@ -352,7 +369,7 @@ export class AdminProductsComponent implements OnInit {
     }
 
     if (!this.isValidPrimaryImage(file)) {
-      this.toastService.warning('Please choose an image file smaller than 2 MB.');
+      this.toastService.warning('Please choose an image file smaller than 50 MB.');
       return;
     }
 
@@ -360,8 +377,7 @@ export class AdminProductsComponent implements OnInit {
       return;
     }
 
-    const base64 = await this.fileToBase64(file);
-    this.form.patchValue({ imageUrl: base64 });
+    this.setPendingPrimaryImage(file);
   }
 
   onPrimaryImageDragOver(event: DragEvent): void {
@@ -388,7 +404,7 @@ export class AdminProductsComponent implements OnInit {
     }
 
     if (!this.isValidPrimaryImage(file)) {
-      this.toastService.warning('Please choose an image file smaller than 2 MB.');
+      this.toastService.warning('Please choose an image file smaller than 50 MB.');
       return;
     }
 
@@ -396,11 +412,11 @@ export class AdminProductsComponent implements OnInit {
       return;
     }
 
-    const base64 = await this.fileToBase64(file);
-    this.form.patchValue({ imageUrl: base64 });
+    this.setPendingPrimaryImage(file);
   }
 
   removeImage(): void {
+    this.clearPendingPrimaryImageState();
     this.form.patchValue({ imageUrl: '' });
   }
 
@@ -419,8 +435,7 @@ export class AdminProductsComponent implements OnInit {
       return;
     }
 
-    const base64Files = await Promise.all(files.map((file) => this.fileToBase64(file)));
-    this.galleryImages = [...this.galleryImages, ...base64Files];
+    this.addPendingGalleryFiles(files);
   }
 
   onGalleryImagesDragOver(event: DragEvent): void {
@@ -452,8 +467,7 @@ export class AdminProductsComponent implements OnInit {
       return;
     }
 
-    const base64Files = await Promise.all(files.map((file) => this.fileToBase64(file)));
-    this.galleryImages = [...this.galleryImages, ...base64Files];
+    this.addPendingGalleryFiles(files);
   }
 
   removeGalleryImage(index: number): void {
@@ -461,6 +475,7 @@ export class AdminProductsComponent implements OnInit {
       return;
     }
 
+    this.removePendingAssetByPreview(this.pendingGalleryFiles, this.galleryImages[index]);
     this.galleryImages = this.galleryImages.filter((_, itemIndex) => itemIndex !== index);
   }
 
@@ -483,7 +498,7 @@ export class AdminProductsComponent implements OnInit {
       return;
     }
 
-    await this.applyVideoFiles(files);
+    this.setPendingVideoFiles(files);
   }
 
   onVideoDragOver(event: DragEvent): void {
@@ -519,10 +534,11 @@ export class AdminProductsComponent implements OnInit {
       return;
     }
 
-    await this.applyVideoFiles(files);
+    this.setPendingVideoFiles(files);
   }
 
   removeVideo(index: number): void {
+    this.removePendingAssetByPreview(this.pendingVideoFiles, this.videoUrls[index]);
     this.videoUrls = this.videoUrls.filter((_, itemIndex) => itemIndex !== index);
   }
 
@@ -650,7 +666,7 @@ export class AdminProductsComponent implements OnInit {
     this.nonReturnableReasons = this.nonReturnableReasons.filter((item) => item !== value);
   }
 
-  save(): void {
+  async save(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.toastService.warning('Fill the required product fields before saving.');
@@ -675,6 +691,19 @@ export class AdminProductsComponent implements OnInit {
       attributes: this.buildAttributesObject(),
     };
 
+    try {
+      await this.uploadPendingAssetsForSave(payload);
+    } catch (error) {
+      this.toastService.error(
+        this.getApiErrorMessage(
+          error,
+          this.isEditMode ? 'Failed to upload product media.' : 'Failed to upload product media.',
+        ),
+      );
+      this.clearUploadProgress();
+      return;
+    }
+
     this.saving = true;
     const request =
       this.isEditMode && this.editingProductId !== null
@@ -688,6 +717,7 @@ export class AdminProductsComponent implements OnInit {
       .pipe(finalize(() => (this.saving = false)))
       .subscribe({
         next: (response) => {
+          this.clearPendingProductMediaState();
           this.toastService.success(
             response.message ||
               (this.isEditMode
@@ -703,6 +733,7 @@ export class AdminProductsComponent implements OnInit {
           this.resetProductForm();
         },
         error: (error) => {
+          this.clearUploadProgress();
           this.toastService.error(
             this.getApiErrorMessage(
               error,
@@ -932,9 +963,14 @@ export class AdminProductsComponent implements OnInit {
       height: Number(payload.heightCm) || 0,
       warranty: payload.warranty || undefined,
       returnable: payload.returnable ?? true,
-      thumbnail_image: payload.imageUrl || this.galleryImages[0] || undefined,
+      thumbnail_image:
+        this.mediaUrlService.toStoredValue(payload.imageUrl) ||
+        this.mediaUrlService.toStoredValue(this.galleryImages[0]) ||
+        undefined,
       gallery_images: this.buildGalleryImages(payload.imageUrl),
-      video_urls: this.videoUrls,
+      video_urls: this.videoUrls
+        .map((url) => this.mediaUrlService.toStoredValue(url))
+        .filter((url) => url.length > 0),
       media: this.buildMediaItems(payload.imageUrl),
       seo_title: payload.seoTitle || undefined,
       seo_description: payload.seoDescription || undefined,
@@ -977,6 +1013,7 @@ export class AdminProductsComponent implements OnInit {
   }
 
   private patchFormFromDetail(detail: ProductDetailDto): void {
+    this.clearPendingProductMediaState();
     const categoryId = this.toNumberOrNull(detail.category_id);
     const subCategoryId = this.toNumberOrNull(detail.sub_category_id);
     const brandId = this.toNumberOrNull(detail.brand_id);
@@ -991,8 +1028,16 @@ export class AdminProductsComponent implements OnInit {
     this.notes = this.extractStringArray(attributes['notes']);
     this.fitments = this.extractFitments(detail.fitments, attributes['fitments']);
     this.nonReturnableReasons = this.extractAttributeStringArray(detail.attributes, 'non_returnable_reason');
-    this.galleryImages = Array.isArray(detail.gallery_images) ? detail.gallery_images.filter((item) => typeof item === 'string') : [];
-    this.videoUrls = Array.isArray(detail.video_urls) ? detail.video_urls.filter((item) => typeof item === 'string') : [];
+    this.galleryImages = Array.isArray(detail.gallery_images)
+      ? detail.gallery_images
+          .filter((item) => typeof item === 'string')
+          .map((item) => this.mediaUrlService.resolve(item))
+      : [];
+    this.videoUrls = Array.isArray(detail.video_urls)
+      ? detail.video_urls
+          .filter((item) => typeof item === 'string')
+          .map((item) => this.mediaUrlService.resolve(item))
+      : [];
     for (const key of RESERVED_ATTRIBUTE_FIELDS) {
       delete attributes[key];
     }
@@ -1045,7 +1090,7 @@ export class AdminProductsComponent implements OnInit {
         returnPolicyNote: this.toText(attributes['return_policy_note']),
         serialTrackingNote: this.toText(attributes['serial_tracking_note']),
         fulfillmentNote: this.toText(attributes['fulfillment_note']),
-        imageUrl: this.toText(detail.thumbnail_image),
+        imageUrl: this.mediaUrlService.resolve(detail.thumbnail_image),
         seoTitle: this.toText(detail.seo_title),
         seoDescription: this.toText(detail.seo_description),
       },
@@ -1138,7 +1183,7 @@ export class AdminProductsComponent implements OnInit {
   }
 
   private isValidPrimaryImage(file: File): boolean {
-    return this.isImageFile(file) && file.size <= 2 * 1024 * 1024;
+    return this.isImageFile(file) && file.size <= 50 * 1024 * 1024;
   }
 
   private confirmPrimaryImageReplacement(): boolean {
@@ -1161,19 +1206,145 @@ export class AdminProductsComponent implements OnInit {
     return globalThis.confirm('Adding new video files will replace the existing videos. Continue?');
   }
 
-  private async applyVideoFiles(files: File[]): Promise<void> {
-    const base64Files = await Promise.all(files.map((file) => this.fileToBase64(file)));
-    this.videoUrls =
-      this.isEditMode && this.videoUrls.length > 0 ? base64Files : [...this.videoUrls, ...base64Files];
+  private async uploadFilesSequentially(
+    files: File[],
+    folder: CreateUploadUrlDtoFolder,
+    onProgress: (progress: number) => void,
+  ): Promise<string[]> {
+    const uploadedUrls: string[] = [];
+
+    for (const [index, file] of files.entries()) {
+      const uploaded = await this.assetUploadService.uploadFile(file, folder, (fileProgress) => {
+        const overallProgress = Math.round(((index + fileProgress / 100) / files.length) * 100);
+        onProgress(overallProgress);
+      });
+      uploadedUrls.push(uploaded.endpoint);
+    }
+
+    onProgress(100);
+    return uploadedUrls;
   }
 
-  private fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  private setPendingPrimaryImage(file: File): void {
+    this.clearPendingPrimaryImageState();
+    const previewUrl = URL.createObjectURL(file);
+    this.pendingPrimaryImageFile = file;
+    this.pendingPrimaryImagePreviewUrl = previewUrl;
+    this.form.patchValue({ imageUrl: previewUrl });
+  }
+
+  private addPendingGalleryFiles(files: File[]): void {
+    const pendingItems = files.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }));
+    this.pendingGalleryFiles = [...this.pendingGalleryFiles, ...pendingItems];
+    this.galleryImages = [...this.galleryImages, ...pendingItems.map((item) => item.previewUrl)];
+  }
+
+  private setPendingVideoFiles(files: File[]): void {
+    this.clearPendingAssetCollection(this.pendingVideoFiles);
+    const pendingItems = files.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }));
+    this.pendingVideoFiles = pendingItems;
+    this.videoUrls =
+      this.isEditMode && this.videoUrls.length > 0
+        ? pendingItems.map((item) => item.previewUrl)
+        : [...this.videoUrls, ...pendingItems.map((item) => item.previewUrl)];
+  }
+
+  private async uploadPendingAssetsForSave(payload: {
+    imageUrl: string | null;
+    [key: string]: unknown;
+  }): Promise<void> {
+    if (this.pendingPrimaryImageFile) {
+      this.primaryImageUploadProgress = 0;
+      const uploaded = await this.assetUploadService.uploadFile(this.pendingPrimaryImageFile, 'product/image', (progress) => {
+        this.primaryImageUploadProgress = progress;
+      });
+      payload.imageUrl = uploaded.endpoint;
+      this.form.patchValue({ imageUrl: this.mediaUrlService.resolve(uploaded.endpoint) }, { emitEvent: false });
+    }
+
+    if (this.pendingGalleryFiles.length > 0) {
+      this.galleryUploadProgress = 0;
+      const uploadedUrls = await this.uploadFilesSequentially(
+        this.pendingGalleryFiles.map((item) => item.file),
+        'product/image',
+        (progress) => {
+          this.galleryUploadProgress = progress;
+        },
+      );
+      const existingUrls = this.galleryImages.filter(
+        (url) => !this.pendingGalleryFiles.some((item) => item.previewUrl === url),
+      );
+      this.galleryImages = [...existingUrls, ...uploadedUrls];
+    }
+
+    if (this.pendingVideoFiles.length > 0) {
+      this.videoUploadProgress = 0;
+      const uploadedUrls = await this.uploadFilesSequentially(
+        this.pendingVideoFiles.map((item) => item.file),
+        'product/video',
+        (progress) => {
+          this.videoUploadProgress = progress;
+        },
+      );
+      const existingUrls = this.videoUrls.filter(
+        (url) => !this.pendingVideoFiles.some((item) => item.previewUrl === url),
+      );
+      this.videoUrls =
+        this.isEditMode && existingUrls.length > 0 ? uploadedUrls : [...existingUrls, ...uploadedUrls];
+    }
+  }
+
+  private clearPendingProductMediaState(): void {
+    this.clearPendingPrimaryImageState();
+    this.clearPendingAssetCollection(this.pendingGalleryFiles);
+    this.pendingGalleryFiles = [];
+    this.clearPendingAssetCollection(this.pendingVideoFiles);
+    this.pendingVideoFiles = [];
+    this.clearUploadProgress();
+  }
+
+  private clearPendingPrimaryImageState(): void {
+    this.pendingPrimaryImageFile = null;
+    if (this.pendingPrimaryImagePreviewUrl) {
+      URL.revokeObjectURL(this.pendingPrimaryImagePreviewUrl);
+      this.pendingPrimaryImagePreviewUrl = null;
+    }
+  }
+
+  private clearPendingAssetCollection(items: PendingAssetItem[]): void {
+    for (const item of items) {
+      URL.revokeObjectURL(item.previewUrl);
+    }
+  }
+
+  private removePendingAssetByPreview(items: PendingAssetItem[], previewUrl: string | undefined): void {
+    if (!previewUrl) {
+      return;
+    }
+
+    const index = items.findIndex((item) => item.previewUrl === previewUrl);
+    if (index === -1) {
+      return;
+    }
+
+    URL.revokeObjectURL(items[index].previewUrl);
+    items.splice(index, 1);
+  }
+
+  private clearUploadProgress(): void {
+    this.primaryImageUploadProgress = null;
+    this.galleryUploadProgress = null;
+    this.videoUploadProgress = null;
+  }
+
+  getMediaPreviewSrc(value: string): string {
+    return this.mediaUrlService.resolve(value);
   }
 
   private getApiErrorMessage(error: unknown, fallback: string): string {
@@ -1414,15 +1585,18 @@ export class AdminProductsComponent implements OnInit {
   private buildGalleryImages(primaryImage: string | null | undefined): string[] {
     return Array.from(
       new Set(
-        [primaryImage, ...this.galleryImages].filter(
-          (item): item is string => typeof item === 'string' && item.trim().length > 0,
-        ),
+        [primaryImage, ...this.galleryImages]
+          .map((item) => this.mediaUrlService.toStoredValue(item))
+          .filter((item): item is string => typeof item === 'string' && item.trim().length > 0),
       ),
     );
   }
 
   private buildMediaItems(primaryImage: string | null | undefined) {
     const images = this.buildGalleryImages(primaryImage);
+    const videos = this.videoUrls
+      .map((url) => this.mediaUrlService.toStoredValue(url))
+      .filter((url) => url.length > 0);
 
     return [
       ...images.map((url, index) => ({
@@ -1431,7 +1605,7 @@ export class AdminProductsComponent implements OnInit {
         is_primary: index === 0,
         sort_order: index,
       })),
-      ...this.videoUrls.map((url, index) => ({
+      ...videos.map((url, index) => ({
         type: 'video',
         url,
         is_primary: false,
@@ -1490,6 +1664,7 @@ export class AdminProductsComponent implements OnInit {
   }
 
   private resetProductForm(): void {
+    this.clearPendingProductMediaState();
     const firstCategoryId = this.categories[0]?.category_id ?? null;
     this.pendingCategoryId = null;
     this.pendingSubCategoryId = null;

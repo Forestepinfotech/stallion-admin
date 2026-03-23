@@ -162,7 +162,7 @@
                 >
                   <ng-container *ngIf="category.category_image; else noImage">
                     <img
-                      [src]="category.category_image"
+                      [src]="getCategoryImageSrc(category)"
                       [alt]="category.category_name"
                       class="h-full w-full object-cover"
                     />
@@ -243,7 +243,7 @@
             >
               <ng-container *ngIf="category.category_image; else noImageMobile">
                 <img
-                  [src]="category.category_image"
+                  [src]="getCategoryImageSrc(category)"
                   [alt]="category.category_name"
                   class="h-full w-full object-cover"
                 />

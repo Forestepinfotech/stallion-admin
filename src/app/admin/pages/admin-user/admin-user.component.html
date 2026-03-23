@@ -364,7 +364,10 @@
                   class="hidden"
                 />
                 <span class="text-sm font-semibold text-gray-900">Click or drag and drop an avatar</span>
-                <span class="text-xs text-gray-500">Optional • PNG/JPG/WebP • Max 2MB</span>
+                <span class="text-xs text-gray-500">Optional • PNG/JPG/WebP • Max 50MB</span>
+                <span *ngIf="avatarUploadProgress !== null" class="text-xs font-semibold text-slate-700">
+                  Uploading {{ avatarUploadProgress }}%
+                </span>
               </label>
               <p class="text-xs text-gray-500 mt-1">Optional • PNG/JPG/WebP</p>
             </div>

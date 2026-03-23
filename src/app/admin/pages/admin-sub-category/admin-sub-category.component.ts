@@ -10,7 +10,9 @@ import type {
   ProductSubCategoryResponseDto,
   UpdateProductSubCategoryDto,
 } from '../../../core/api/generated/schemas';
+import { MediaUrlService } from '../../../core/media/media-url.service';
 import { ToastService } from '../../../core/notification/toast.service';
+import { AssetUploadService } from '../../../core/upload/asset-upload.service';
 
 type StatusFilter = 'all' | 'active' | 'inactive';
 type SubCategoryListItem = ProductSubCategoryResponseDto & {
@@ -57,11 +59,16 @@ export class AdminSubCategoryComponent implements OnInit {
   subCategoryActive = true;
   subCategoryImage = '';
   imageDragActive = false;
+  imageUploadProgress: number | null = null;
+  private pendingImageFile: File | null = null;
+  private pendingImagePreviewUrl: string | null = null;
 
   constructor(
     private readonly productCategoryService: ProductCategoryService,
     private readonly productSubCategoryService: ProductSubCategoryService,
     private readonly toastService: ToastService,
+    private readonly assetUploadService: AssetUploadService,
+    private readonly mediaUrlService: MediaUrlService,
   ) {}
 
   ngOnInit(): void {
@@ -190,15 +197,20 @@ export class AdminSubCategoryComponent implements OnInit {
   }
 
   private async applySubCategoryImage(file: File | undefined): Promise<void> {
-    if (!file || !file.type.startsWith('image/') || file.size > 2 * 1024 * 1024) {
-      this.toastService.warning('Please choose an image file smaller than 2 MB.');
+    if (!file || !file.type.startsWith('image/') || file.size > 50 * 1024 * 1024) {
+      this.toastService.warning('Please choose an image file smaller than 50 MB.');
       return;
     }
 
-    this.subCategoryImage = await this.fileToBase64(file);
+    this.revokePendingImagePreview();
+    const previewUrl = URL.createObjectURL(file);
+    this.pendingImageFile = file;
+    this.pendingImagePreviewUrl = previewUrl;
+    this.subCategoryImage = previewUrl;
   }
 
   clearDraftImage(): void {
+    this.clearPendingImageState();
     this.subCategoryImage = '';
   }
 
@@ -227,7 +239,7 @@ export class AdminSubCategoryComponent implements OnInit {
     this.loadSubCategories();
   }
 
-  saveSubCategory(): void {
+  async saveSubCategory(): Promise<void> {
     const name = this.subCategoryName.trim();
     if (!name || this.selectedCategoryId === null || this.saving) {
       return;
@@ -244,10 +256,26 @@ export class AdminSubCategoryComponent implements OnInit {
       return;
     }
 
+    let subCategoryImage = this.mediaUrlService.toStoredValue(this.subCategoryImage) || undefined;
+
+    try {
+      if (this.pendingImageFile) {
+        this.imageUploadProgress = 0;
+        const uploaded = await this.assetUploadService.uploadFile(this.pendingImageFile, 'category', (progress) => {
+          this.imageUploadProgress = progress;
+        });
+        subCategoryImage = uploaded.endpoint;
+      }
+    } catch (error) {
+      this.toastService.error(this.getErrorMessage(error, 'Failed to upload image.'));
+      this.imageUploadProgress = null;
+      return;
+    }
+
     const createPayload: CreateProductSubCategoryDto = {
       category_id: this.selectedCategoryId,
       sub_category: name,
-      sub_category_image: this.subCategoryImage || undefined,
+      sub_category_image: subCategoryImage,
       is_active: this.subCategoryActive,
       is_deleted: false,
     };
@@ -263,6 +291,7 @@ export class AdminSubCategoryComponent implements OnInit {
     this.saving = true;
     request.pipe(finalize(() => (this.saving = false))).subscribe({
       next: () => {
+        this.clearPendingImageState();
         this.toastService.success(
           this.isEditing ? 'Sub category updated successfully.' : 'Sub category created successfully.',
         );
@@ -270,6 +299,7 @@ export class AdminSubCategoryComponent implements OnInit {
         this.loadSubCategories();
       },
       error: (error) => {
+        this.imageUploadProgress = null;
         this.toastService.error(
           this.getErrorMessage(error, 'Failed to save sub category.'),
         );
@@ -278,6 +308,7 @@ export class AdminSubCategoryComponent implements OnInit {
   }
 
   startEdit(item: SubCategoryListItem): void {
+    this.clearPendingImageState();
     this.editingSubCategoryId = item.sub_category_id;
     this.selectedCategoryId = item.category_id;
     this.subCategoryName = item.sub_category;
@@ -425,6 +456,7 @@ export class AdminSubCategoryComponent implements OnInit {
   }
 
   private resetDraft(): void {
+    this.clearPendingImageState();
     this.editingSubCategoryId = null;
     this.subCategoryName = '';
     this.subCategoryActive = true;
@@ -443,17 +475,21 @@ export class AdminSubCategoryComponent implements OnInit {
     };
   }
 
-  private fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  private getImageSrc(image: ProductSubCategoryResponseDto['sub_category_image']): string {
+    return this.mediaUrlService.resolve(image);
   }
 
-  private getImageSrc(image: ProductSubCategoryResponseDto['sub_category_image']): string {
-    return typeof image === 'string' ? image : '';
+  private clearPendingImageState(): void {
+    this.pendingImageFile = null;
+    this.imageUploadProgress = null;
+    this.revokePendingImagePreview();
+  }
+
+  private revokePendingImagePreview(): void {
+    if (this.pendingImagePreviewUrl) {
+      URL.revokeObjectURL(this.pendingImagePreviewUrl);
+      this.pendingImagePreviewUrl = null;
+    }
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AdminProductsService as ProductsService } from '../../../core/api/generated/admin-products/admin-products.service';
 import type { ProductDetailDto } from '../../../core/api/generated/schemas';
+import { MediaUrlService } from '../../../core/media/media-url.service';
 import { ToastService } from '../../../core/notification/toast.service';
 
 type AttributeEntry = {
@@ -72,6 +73,7 @@ export class AdminProductDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly productsService = inject(ProductsService);
   private readonly toastService = inject(ToastService);
+  private readonly mediaUrlService = inject(MediaUrlService);
 
   loading = false;
   loadError = signal<string | null>(null);
@@ -150,11 +152,13 @@ export class AdminProductDetailComponent implements OnInit {
     const mediaImages = (detail.media ?? [])
       .map((item) => item as Record<string, unknown>)
       .filter((item) => toDisplayString(item['type']).toLowerCase() === 'image')
-      .map((item) => toDisplayString(item['url']))
+      .map((item) => this.mediaUrlService.resolve(item['url']))
       .filter(Boolean);
 
     const galleryImages = Array.isArray(detail.gallery_images)
-      ? detail.gallery_images.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+      ? detail.gallery_images
+          .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+          .map((item) => this.mediaUrlService.resolve(item))
       : [];
 
     return Array.from(new Set([...mediaImages, ...galleryImages]));
@@ -169,14 +173,20 @@ export class AdminProductDetailComponent implements OnInit {
     const mediaVideos = (detail.media ?? [])
       .map((item) => item as Record<string, unknown>)
       .filter((item) => toDisplayString(item['type']).toLowerCase() === 'video')
-      .map((item) => toDisplayString(item['url']))
+      .map((item) => this.mediaUrlService.resolve(item['url']))
       .filter(Boolean);
 
     const videoUrls = Array.isArray(detail.video_urls)
-      ? detail.video_urls.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+      ? detail.video_urls
+          .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+          .map((item) => this.mediaUrlService.resolve(item))
       : [];
 
     return Array.from(new Set([...mediaVideos, ...videoUrls]));
+  }
+
+  get thumbnailImageSrc(): string {
+    return this.mediaUrlService.resolve(this.product()?.thumbnail_image);
   }
 
   formatMoney(value: unknown, currency: unknown): string {

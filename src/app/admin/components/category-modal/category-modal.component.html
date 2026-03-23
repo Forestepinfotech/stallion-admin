@@ -72,7 +72,10 @@
               (change)="onCategoryImageSelected($event)"
             />
             <span class="text-sm font-semibold text-gray-900">Click or drag and drop an image</span>
-            <span class="text-xs text-gray-500">Max 2MB. Stored as base64 for the API payload.</span>
+            <span class="text-xs text-gray-500">Max 50MB. Uploaded to your server before save.</span>
+            <span *ngIf="imageUploadProgress !== null" class="text-xs font-semibold text-slate-700">
+              Uploading {{ imageUploadProgress }}%
+            </span>
           </label>
           <p class="mt-1 text-xs text-gray-500">
             JPG, PNG, and WebP supported.

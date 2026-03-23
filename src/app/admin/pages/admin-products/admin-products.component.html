@@ -490,7 +490,8 @@
           >
             <span>Primary Image</span>
             <input type="file" accept="image/*" (change)="onFileChange($event)" />
-            <small>Click or drag and drop an image here. Max 2MB. JPG, PNG, or WebP.</small>
+            <small>Click or drag and drop an image here. Max 50MB. JPG, PNG, or WebP.</small>
+            <small *ngIf="primaryImageUploadProgress !== null">Uploading {{ primaryImageUploadProgress }}%</small>
           </label>
 
           <label
@@ -503,6 +504,7 @@
             <span>Gallery Images</span>
             <input type="file" accept="image/*" multiple (change)="onGalleryFilesChange($event)" />
             <small>Click or drag and drop multiple images here.</small>
+            <small *ngIf="galleryUploadProgress !== null">Uploading {{ galleryUploadProgress }}%</small>
           </label>
 
           <label
@@ -515,6 +517,7 @@
             <span>Product Video</span>
             <input type="file" accept="video/*" multiple (change)="onVideoFilesChange($event)" />
             <small>Click or drag and drop videos here. New videos replace existing ones in edit mode.</small>
+            <small *ngIf="videoUploadProgress !== null">Uploading {{ videoUploadProgress }}%</small>
           </label>
 
           <div class="preview-card">
@@ -559,7 +562,7 @@
               >
                 ×
               </button>
-              <img [src]="image" [alt]="'Gallery image ' + (i + 1)" class="media-preview-card__image" />
+              <img [src]="getMediaPreviewSrc(image)" [alt]="'Gallery image ' + (i + 1)" class="media-preview-card__image" />
               <div class="media-preview-card__meta">Photo {{ i + 1 }}</div>
             </article>
           </div>
@@ -580,7 +583,7 @@
               >
                 ×
               </button>
-              <video [src]="video" class="media-preview-card__video" controls preload="metadata"></video>
+              <video [src]="getMediaPreviewSrc(video)" class="media-preview-card__video" controls preload="metadata"></video>
               <div class="media-preview-card__meta">Video {{ i + 1 }}</div>
             </article>
           </div>

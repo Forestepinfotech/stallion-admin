@@ -151,7 +151,7 @@
                 >
                   <ng-container *ngIf="item.brand_image; else noBrandImg">
                     <img
-                      [src]="item.brand_image"
+                      [src]="getBrandImageSrc(item.brand_image)"
                       alt="brand"
                       class="h-full w-full object-cover"
                     />
@@ -247,7 +247,7 @@
             >
               <ng-container *ngIf="item.brand_image; else noBrandImgMobile">
                 <img
-                  [src]="item.brand_image"
+                  [src]="getBrandImageSrc(item.brand_image)"
                   alt="brand"
                   class="h-full w-full object-cover"
                 />
@@ -456,7 +456,10 @@
                   class="hidden"
                 />
                 <span class="text-sm font-semibold text-gray-900">Click or drag and drop a brand image</span>
-                <span class="text-xs text-gray-500">Max 2MB. Stored as base64 for the API payload.</span>
+                <span class="text-xs text-gray-500">Max 50MB. Uploaded to your server before save.</span>
+                <span *ngIf="imageUploadProgress !== null" class="text-xs font-semibold text-slate-700">
+                  Uploading {{ imageUploadProgress }}%
+                </span>
               </label>
               <p class="mt-1 text-xs text-gray-500">
                 JPG, PNG, and WebP supported.

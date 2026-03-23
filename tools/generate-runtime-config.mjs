@@ -18,6 +18,7 @@ const must = (name) => {
 
 const config = {
   apiBaseUrl: must('API_BASE_URL'),
+  mediaBaseUrl: process.env.MEDIA_BASE_URL || process.env.API_BASE_URL,
   openApiSchemaUrl: must('OPENAPI_SCHEMA_URL'),
   tokenRefreshLeewaySeconds: Number(process.env.TOKEN_REFRESH_LEEWAY_SECONDS ?? 20),
   authIssuer: process.env.AUTH_ISSUER ?? '',

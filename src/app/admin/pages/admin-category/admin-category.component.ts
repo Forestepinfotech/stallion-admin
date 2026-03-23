@@ -10,6 +10,7 @@ import type {
   ProductCategoryResponseDto,
   UpdateProductCategoryDto,
 } from '../../../core/api/generated/schemas';
+import { MediaUrlService } from '../../../core/media/media-url.service';
 import { ToastService } from '../../../core/notification/toast.service';
 
 type CategoryStatusFilter = 'All' | 'Active' | 'Inactive';
@@ -52,6 +53,7 @@ export class AdminCategoryComponent implements OnInit {
 
   constructor(
     private readonly productCategoryService: ProductCategoryService,
+    private readonly mediaUrlService: MediaUrlService,
     private readonly toastService: ToastService,
   ) {}
 
@@ -216,6 +218,10 @@ export class AdminCategoryComponent implements OnInit {
 
   trackByCategoryId(_: number, item: ProductCategoryResponseDto): number {
     return item.category_id;
+  }
+
+  getCategoryImageSrc(category: ProductCategoryResponseDto): string {
+    return this.mediaUrlService.resolve(category.category_image);
   }
 
   retryLoad(): void {

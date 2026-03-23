@@ -18,7 +18,9 @@ import { ToastService } from '../../../core/notification/toast.service';
 import { Store } from '@ngrx/store';
 import { AuthActions } from '../../../core/state/auth/auth.actions';
 import { selectProfile, selectProfileError, selectProfileLoading } from '../../../core/state/auth/auth.selectors';
+import { MediaUrlService } from '../../../core/media/media-url.service';
 import { SkeletonPanelComponent } from '../../../core/ui/skeleton-panel.component';
+import { AssetUploadService } from '../../../core/upload/asset-upload.service';
 
 type Profile = {
   name: string;
@@ -53,6 +55,8 @@ export class AdminProfileComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly dashboard = inject(DashboardService);
   private readonly usersApi = inject(UsersService);
+  private readonly assetUploadService = inject(AssetUploadService);
+  private readonly mediaUrlService = inject(MediaUrlService);
 
   profile: Profile = {
     name: 'Loading...',
@@ -88,6 +92,9 @@ export class AdminProfileComponent implements OnInit {
   confirmPasswordVisible = false;
   currentUserId: string | null = null;
   avatarDragActive = false;
+  avatarUploadProgress: number | null = null;
+  private pendingAvatarFile: File | null = null;
+  private pendingAvatarPreviewUrl: string | null = null;
 
   // ======== FORMS ========
   editForm;
@@ -159,6 +166,7 @@ export class AdminProfileComponent implements OnInit {
 
   // ======== MODALS ========
   openEdit() {
+    this.clearPendingAvatarState();
     this.editForm.reset({
       name: this.profile.name,
       email: this.profile.email,
@@ -173,6 +181,7 @@ export class AdminProfileComponent implements OnInit {
   }
 
   closeEdit() {
+    this.clearPendingAvatarState();
     this.editOpen = false;
   }
 
@@ -193,13 +202,28 @@ export class AdminProfileComponent implements OnInit {
   }
 
   // ======== ACTIONS ========
-  saveProfile() {
+  async saveProfile() {
     if (this.editForm.invalid) {
       this.editForm.markAllAsTouched();
       return;
     }
 
     const v = this.editForm.getRawValue();
+    let avatarUrl = this.mediaUrlService.toStoredValue(v.avatarUrl);
+
+    try {
+      if (this.pendingAvatarFile) {
+        this.avatarUploadProgress = 0;
+        const uploaded = await this.assetUploadService.uploadFile(this.pendingAvatarFile, 'userimage', (progress) => {
+          this.avatarUploadProgress = progress;
+        });
+        avatarUrl = uploaded.endpoint;
+      }
+    } catch (error) {
+      this.toast.error(this.extractErrorMessage(error, 'Failed to upload avatar'));
+      this.avatarUploadProgress = null;
+      return;
+    }
 
     const payload: UpdateAdminDashboardProfileDto = {
       name: v.name,
@@ -209,7 +233,7 @@ export class AdminProfileComponent implements OnInit {
       postalcode: v.postalCode || undefined,
       province: v.province || undefined,
       country: v.country || undefined,
-      avatarUrl: v.avatarUrl ?? '',
+      avatarUrl: this.mediaUrlService.toStoredValue(avatarUrl),
     };
 
     this.saving = true;
@@ -218,6 +242,7 @@ export class AdminProfileComponent implements OnInit {
       .pipe(finalize(() => (this.saving = false)))
       .subscribe({
         next: (updated) => {
+          this.clearPendingAvatarState();
           this.toast.success('Profile updated');
           this.applyProfile(updated);
           this.applyStats(updated.stats);
@@ -226,6 +251,7 @@ export class AdminProfileComponent implements OnInit {
           this.closeEdit();
         },
         error: (err) => {
+          this.avatarUploadProgress = null;
           console.error(err);
           this.toast.error('Profile update failed');
         },
@@ -298,22 +324,16 @@ export class AdminProfileComponent implements OnInit {
 
     if (!file.type.startsWith('image/')) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      this.toast.warning('Max file size is 2MB.');
+    if (file.size > 50 * 1024 * 1024) {
+      this.toast.warning('Max file size is 50MB.');
       return;
     }
 
-    const base64 = await this.fileToBase64(file);
-    this.editForm.patchValue({ avatarUrl: base64 });
-  }
-
-  private fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(String(r.result));
-      r.onerror = reject;
-      r.readAsDataURL(file);
-    });
+    this.revokePendingAvatarPreview();
+    const previewUrl = URL.createObjectURL(file);
+    this.pendingAvatarFile = file;
+    this.pendingAvatarPreviewUrl = previewUrl;
+    this.editForm.patchValue({ avatarUrl: previewUrl });
   }
 
   // ======== VALIDATION ========
@@ -363,6 +383,19 @@ export class AdminProfileComponent implements OnInit {
         return 'bg-gradient-to-br from-sky-500 to-sky-700 text-white border-sky-200';
       default:
         return 'bg-gradient-to-br from-gray-700 to-black text-white border-gray-200';
+    }
+  }
+
+  private clearPendingAvatarState(): void {
+    this.pendingAvatarFile = null;
+    this.avatarUploadProgress = null;
+    this.revokePendingAvatarPreview();
+  }
+
+  private revokePendingAvatarPreview(): void {
+    if (this.pendingAvatarPreviewUrl) {
+      URL.revokeObjectURL(this.pendingAvatarPreviewUrl);
+      this.pendingAvatarPreviewUrl = null;
     }
   }
 
@@ -425,7 +458,7 @@ export class AdminProfileComponent implements OnInit {
       province: this.addrPart(addr?.province),
       country: this.addrPart(addr?.country),
       joined,
-      avatarUrl: typeof user?.user_pic === 'string' ? (user.user_pic as string) : '',
+      avatarUrl: this.mediaUrlService.resolve(user?.user_pic),
     };
 
     this.editForm.patchValue({

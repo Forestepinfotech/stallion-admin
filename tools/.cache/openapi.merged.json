@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:3002"
+      "url": "http://178.128.228.186"
     }
   ],
   "tags": [],
@@ -180,6 +180,42 @@
         ],
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/uploads/presign": {
+      "post": {
+        "operationId": "UploadsController_createPresignedUpload",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUploadUrlDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Short-lived direct upload URL for DigitalOcean Spaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateUploadUrlResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "uploads"
         ]
       }
     },
@@ -9325,6 +9361,22 @@
             }
           },
           {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sub_category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "brand",
             "required": false,
             "in": "query",
@@ -9552,6 +9604,22 @@
             }
           },
           {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sub_category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "brand",
             "required": false,
             "in": "query",
@@ -9666,6 +9734,22 @@
         "parameters": [
           {
             "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sub_category",
             "required": false,
             "in": "query",
             "schema": {
@@ -11181,6 +11265,97 @@
         "required": [
           "token",
           "newPassword"
+        ]
+      },
+      "CreateUploadUrlDto": {
+        "type": "object",
+        "properties": {
+          "folder": {
+            "type": "string",
+            "enum": [
+              "category",
+              "product/image",
+              "product/video",
+              "userimage",
+              "banner"
+            ],
+            "example": "product/image",
+            "description": "Destination folder inside DigitalOcean Spaces"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "brake-pad.png",
+            "description": "Original filename from the frontend"
+          },
+          "contentType": {
+            "type": "string",
+            "example": "image/png",
+            "description": "MIME type that the frontend will upload with"
+          },
+          "expiresIn": {
+            "type": "number",
+            "example": 900,
+            "description": "Presigned URL lifetime in seconds, max 3600"
+          }
+        },
+        "required": [
+          "folder",
+          "fileName"
+        ]
+      },
+      "CreateUploadUrlResponseDto": {
+        "type": "object",
+        "properties": {
+          "bucket": {
+            "type": "string",
+            "example": "stallio-public"
+          },
+          "key": {
+            "type": "string",
+            "example": "product/image/12/20260322-abc123-brake-pad.png"
+          },
+          "endpoint": {
+            "type": "string",
+            "example": "/product/image/12/20260322-abc123-brake-pad.png"
+          },
+          "contentType": {
+            "type": "string",
+            "example": "image/png"
+          },
+          "folder": {
+            "type": "string",
+            "example": "product/image"
+          },
+          "uploadUrl": {
+            "type": "string",
+            "example": "https://stallio-public.tor1.digitaloceanspaces.com/product/image/12/20260322-abc123-brake-pad.png?X-Amz-Algorithm=AWS4-HMAC-SHA256"
+          },
+          "method": {
+            "type": "string",
+            "example": "PUT"
+          },
+          "headers": {
+            "type": "object",
+            "example": {
+              "Content-Type": "image/png",
+              "x-amz-acl": "public-read"
+            }
+          },
+          "expiresIn": {
+            "type": "number",
+            "example": 900
+          }
+        },
+        "required": [
+          "bucket",
+          "key",
+          "endpoint",
+          "contentType",
+          "folder",
+          "uploadUrl",
+          "method",
+          "headers",
+          "expiresIn"
         ]
       },
       "UsersResponseDto": {
