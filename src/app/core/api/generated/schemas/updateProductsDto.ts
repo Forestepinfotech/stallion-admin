@@ -4,6 +4,7 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
+import type { ProductCrossSellItemDto } from "./productCrossSellItemDto";
 import type { ProductMediaItemDto } from "./productMediaItemDto";
 import type { UpdateProductsDtoAttributes } from "./updateProductsDtoAttributes";
 import type { UpdateProductsDtoNotesItem } from "./updateProductsDtoNotesItem";
@@ -57,6 +58,7 @@ export interface UpdateProductsDto {
   gallery_images?: string[];
   video_urls?: string[];
   media?: ProductMediaItemDto[];
+  cross_sells?: ProductCrossSellItemDto[];
   seo_title?: string;
   seo_description?: string;
   tags?: string[];

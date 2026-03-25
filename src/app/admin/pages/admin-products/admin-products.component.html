@@ -739,6 +739,111 @@
         </div>
       </article>
 
+      <article class="product-card">
+        <div class="product-card__header">
+          <div class="section-title-with-help">
+            <h2>Cross-sell Products</h2>
+            <div class="section-help section-help--start">
+              <button type="button" class="section-help__trigger" aria-label="Cross-sell help">
+                i
+              </button>
+              <div class="section-help__tooltip">
+                <strong>Attach recommended products</strong>
+                <span>Search by title or SKU, add multiple products, control order, and decide whether each recommendation is active.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cross-sell-panel">
+          <label class="field">
+            <span>Search Products</span>
+            <input
+              [ngModel]="crossSellSearch"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onCrossSellSearchChange($event)"
+              placeholder="Search by title or SKU"
+            />
+            <small *ngIf="loadingCrossSells">Loading existing cross-sell products...</small>
+            <small *ngIf="crossSellSearchLoading">Searching catalog...</small>
+            <small *ngIf="crossSellSearchError" class="field-error">{{ crossSellSearchError }}</small>
+            <small *ngIf="crossSellHydrationError" class="field-error">{{ crossSellHydrationError }}</small>
+            <small *ngIf="crossSellValidationError" class="field-error">{{ crossSellValidationError }}</small>
+          </label>
+
+          <div class="cross-sell-search-results" *ngIf="crossSellSearchLoading || crossSellSearchResults.length > 0 || (hasCrossSellSearchTerm && !crossSellSearchLoading)">
+            <button
+              *ngFor="let option of crossSellSearchResults"
+              type="button"
+              class="cross-sell-search-item"
+              (click)="addCrossSell(option)"
+            >
+              <div class="cross-sell-search-item__copy">
+                <strong>{{ option.title }}</strong>
+                <span>{{ option.sku || ('Product #' + option.id) }}</span>
+              </div>
+              <span class="cross-sell-search-item__action">Add</span>
+            </button>
+
+            <div *ngIf="!crossSellSearchLoading && crossSellSearchResults.length === 0 && hasCrossSellSearchTerm" class="cross-sell-empty">
+              No matching products are available to add.
+            </div>
+          </div>
+
+          <div class="cross-sell-list" *ngIf="crossSellItems.length > 0; else crossSellEmptyState">
+            <article
+              *ngFor="let item of crossSellItems; let index = index; trackBy: trackCrossSellByProductId"
+              class="cross-sell-item"
+            >
+              <div class="cross-sell-item__media" [class.cross-sell-item__media--placeholder]="!item.thumbnail_image">
+                <img *ngIf="item.thumbnail_image" [src]="getMediaPreviewSrc(item.thumbnail_image)" [alt]="item.title" />
+                <span *ngIf="!item.thumbnail_image">No image</span>
+              </div>
+
+              <div class="cross-sell-item__copy">
+                <div class="cross-sell-item__heading">
+                  <strong>{{ item.title }}</strong>
+                  <span>#{{ item.recommended_product_id }}</span>
+                </div>
+                <div class="cross-sell-item__meta">
+                  <span>{{ item.sku || 'SKU unavailable' }}</span>
+                  <span *ngIf="item.price !== null">{{ item.currency || form.value.currency }} {{ item.price }}</span>
+                </div>
+              </div>
+
+              <label class="cross-sell-toggle">
+                <input type="checkbox" [(ngModel)]="item.is_active" [ngModelOptions]="{ standalone: true }" />
+                <span>Active</span>
+              </label>
+
+              <div class="cross-sell-order">
+                <button type="button" class="ghost-button ghost-button--small" (click)="moveCrossSell(index, -1)" [disabled]="index === 0">
+                  Up
+                </button>
+                <button
+                  type="button"
+                  class="ghost-button ghost-button--small"
+                  (click)="moveCrossSell(index, 1)"
+                  [disabled]="index === crossSellItems.length - 1"
+                >
+                  Down
+                </button>
+              </div>
+
+              <button type="button" class="ghost-button ghost-button--small cross-sell-remove" (click)="removeCrossSell(index)">
+                Remove
+              </button>
+            </article>
+          </div>
+
+          <ng-template #crossSellEmptyState>
+            <div class="cross-sell-empty">
+              No cross-sell products selected yet.
+            </div>
+          </ng-template>
+        </div>
+      </article>
+
       <div class="product-form-actions">
         <button type="button" class="ghost-button ghost-button--small" (click)="goBack()">Cancel</button>
         <button type="submit" class="primary-button" [disabled]="saving">

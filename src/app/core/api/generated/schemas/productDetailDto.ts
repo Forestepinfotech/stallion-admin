@@ -4,6 +4,7 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
+import type { ProductCrossSellDto } from "./productCrossSellDto";
 import type { ProductDetailDtoAttributes } from "./productDetailDtoAttributes";
 import type { ProductDetailDtoBrandId } from "./productDetailDtoBrandId";
 import type { ProductDetailDtoBrandName } from "./productDetailDtoBrandName";
@@ -178,4 +179,5 @@ export interface ProductDetailDto {
   breadcrumbs: ProductDetailDtoBreadcrumbsItem[];
   specifications: ProductDetailDtoSpecificationsItem[];
   fitments: ProductDetailDtoFitmentsItem[];
+  cross_sells?: ProductCrossSellDto[];
 }

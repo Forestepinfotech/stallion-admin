@@ -140,20 +140,40 @@
                 <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Stock Status</div>
                 <div class="mt-1 text-base text-slate-900">{{ formatText(detail.stock_status) }}</div>
               </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Minimum Order Qty</div>
+                <div class="mt-1 text-base text-slate-900">{{ formatNumber(detail.min_order_qty) }}</div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Currency</div>
+                <div class="mt-1 text-base text-slate-900">{{ formatText(detail.currency) }}</div>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
           <h2 class="text-lg font-semibold text-slate-900">Product Information</h2>
-          <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Product ID</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatNumber(detail.product_id) }}</div>
+            </div>
             <div>
               <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Category</div>
               <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.category_name) }}</div>
             </div>
             <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Slug</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.slug) }}</div>
+            </div>
+            <div>
               <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Barcode</div>
               <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.barcode) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">MPN</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.mpn) }}</div>
             </div>
             <div>
               <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Brand</div>
@@ -178,6 +198,22 @@
             <div>
               <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Lead Time</div>
               <div class="mt-1 text-sm text-slate-900">{{ formatNumber(detail.lead_time_days) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Condition</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.condition) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Inventory Source</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.inventory_source) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Internal Reference</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.internal_reference_code) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Stock Strategy</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.stock_strategy) }}</div>
             </div>
           </div>
 
@@ -218,6 +254,95 @@
             <div>
               <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Returnable</div>
               <div class="mt-1 text-sm text-slate-900">{{ isTruthy(detail.returnable) ? "Yes" : "No" }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Return Window</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatNumber(detail.return_window_days) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Universal Fit</div>
+              <div class="mt-1 text-sm text-slate-900">{{ isTruthy(detail.universal_fit) ? "Yes" : "No" }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Requires Serial</div>
+              <div class="mt-1 text-sm text-slate-900">{{ isTruthy(detail.requires_serial) ? "Yes" : "No" }}</div>
+            </div>
+          </div>
+
+          <div class="mt-6 grid gap-6 lg:grid-cols-2">
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Return Policy Note</div>
+              <p class="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{{ formatText(detail.return_policy_note) }}</p>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Serial Tracking Note</div>
+              <p class="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{{ formatText(detail.serial_tracking_note) }}</p>
+            </div>
+            <div class="lg:col-span-2">
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Fulfillment Note</div>
+              <p class="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{{ formatText(detail.fulfillment_note) }}</p>
+            </div>
+          </div>
+
+          <div class="mt-6 border-t border-slate-200 pt-6" *ngIf="nonReturnableReasons.length > 0">
+            <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Non-returnable Reasons</div>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <span
+                *ngFor="let item of nonReturnableReasons"
+                class="rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700 ring-1 ring-rose-200"
+              >
+                {{ item }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-6 xl:grid-cols-2">
+          <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200" *ngIf="fitmentEntries.length > 0">
+            <h2 class="text-lg font-semibold text-slate-900">Fitment</h2>
+            <div class="mt-4 space-y-3">
+              <div
+                *ngFor="let item of fitmentEntries"
+                class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-900"
+              >
+                {{ item }}
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200" *ngIf="packageContents.length > 0">
+            <h2 class="text-lg font-semibold text-slate-900">Package Contents</h2>
+            <div class="mt-4 space-y-3">
+              <div
+                *ngFor="let item of packageContents"
+                class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-900"
+              >
+                {{ item }}
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200" *ngIf="notesList.length > 0">
+            <h2 class="text-lg font-semibold text-slate-900">Notes</h2>
+            <div class="mt-4 space-y-3">
+              <div
+                *ngFor="let item of notesList"
+                class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-900"
+              >
+                {{ item }}
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200" *ngIf="tagsList.length > 0">
+            <h2 class="text-lg font-semibold text-slate-900">Tags</h2>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span
+                *ngFor="let item of tagsList"
+                class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+              >
+                {{ item }}
+              </span>
             </div>
           </div>
         </div>

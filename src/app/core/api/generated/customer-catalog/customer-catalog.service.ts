@@ -427,4 +427,39 @@ export class CustomerCatalogService {
       observe: "body",
     });
   }
+  customerCatalogControllerProductCrossSells<TData = CustomerObjectListDto>(
+    slug: string,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  customerCatalogControllerProductCrossSells<TData = CustomerObjectListDto>(
+    slug: string,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  customerCatalogControllerProductCrossSells<TData = CustomerObjectListDto>(
+    slug: string,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  customerCatalogControllerProductCrossSells<TData = CustomerObjectListDto>(
+    slug: string,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/customer/products/${slug}/cross-sells`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/customer/products/${slug}/cross-sells`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+      });
+    }
+
+    return this.http.get<TData>(`/customer/products/${slug}/cross-sells`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+    });
+  }
 }

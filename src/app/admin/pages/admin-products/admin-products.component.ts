@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -14,6 +14,9 @@ import type {
   CreateUploadUrlDtoFolder,
   CreateProductsDto,
   ProductCategoryResponseDto,
+  ProductCrossSellDto,
+  ProductCrossSellItemDto,
+  ProductSearchSuggestionDto,
   ProductDetailDto,
   UpdateProductsDto,
 } from '../../../core/api/generated/schemas';
@@ -37,6 +40,23 @@ interface PendingAssetItem {
   previewUrl: string;
 }
 
+interface CrossSellFormItem extends ProductCrossSellItemDto {
+  title: string;
+  sku: string;
+  thumbnail_image?: string | null;
+  currency?: string | null;
+  price?: number | null;
+}
+
+interface CrossSellSearchOption {
+  id: number;
+  title: string;
+  sku: string;
+  thumbnail_image?: string | null;
+  currency?: string | null;
+  price?: number | null;
+}
+
 const RESERVED_ATTRIBUTE_FIELDS = [
   'fitments',
   'package_items',
@@ -53,13 +73,15 @@ const RESERVED_ATTRIBUTE_FIELDS = [
   'fulfillment_note',
 ] as const;
 
+const CROSS_SELL_SEARCH_DEBOUNCE_MS = 2000;
+
 @Component({
   selector: 'app-admin-products',
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './admin-products.component.html',
   styleUrl: './admin-products.component.css',
 })
-export class AdminProductsComponent implements OnInit {
+export class AdminProductsComponent implements OnInit, OnDestroy {
   readonly conditionOptions = ['new', 'refurbished', 'open_box'];
   readonly visibilityOptions = ['catalog_search', 'catalog_only', 'draft'];
   readonly stockStatusOptions = ['in_stock', 'backorder', 'preorder'];
@@ -78,6 +100,7 @@ export class AdminProductsComponent implements OnInit {
   loadingBrands = false;
   loadingModels = false;
   loadingProduct = false;
+  loadingCrossSells = false;
   saving = false;
   editingProductId: number | null = null;
   pendingCategoryId: number | null = null;
@@ -99,10 +122,18 @@ export class AdminProductsComponent implements OnInit {
   primaryImageUploadProgress: number | null = null;
   galleryUploadProgress: number | null = null;
   videoUploadProgress: number | null = null;
+  crossSellSearch = '';
+  crossSellSearchLoading = false;
+  crossSellSearchError = '';
+  crossSellHydrationError = '';
+  crossSellValidationError = '';
+  crossSellSearchResults: CrossSellSearchOption[] = [];
+  crossSellItems: CrossSellFormItem[] = [];
   private pendingPrimaryImageFile: File | null = null;
   private pendingPrimaryImagePreviewUrl: string | null = null;
   private pendingGalleryFiles: PendingAssetItem[] = [];
   private pendingVideoFiles: PendingAssetItem[] = [];
+  private crossSellSearchHandle: ReturnType<typeof setTimeout> | null = null;
 
   tagInput = '';
   fitmentInput = '';
@@ -224,6 +255,13 @@ export class AdminProductsComponent implements OnInit {
     this.loadBrands();
   }
 
+  ngOnDestroy(): void {
+    if (this.crossSellSearchHandle) {
+      clearTimeout(this.crossSellSearchHandle);
+      this.crossSellSearchHandle = null;
+    }
+  }
+
   get isEditMode(): boolean {
     return this.editingProductId !== null;
   }
@@ -261,6 +299,7 @@ export class AdminProductsComponent implements OnInit {
     if (this.form.get('imageUrl')!.value) checklist.push('Primary media attached');
     if (Number(this.form.get('price')!.value ?? 0) > 0) checklist.push('Price configured');
     if (this.attributeCount > 0) checklist.push('Attributes prepared');
+    if (this.crossSellItems.length > 0) checklist.push(`${this.crossSellItems.length} cross-sell products linked`);
     if (this.hasReturnPolicyConfigured()) checklist.push('Return policy configured');
 
     return checklist;
@@ -338,6 +377,10 @@ export class AdminProductsComponent implements OnInit {
   get selectedProcurementTypeLabel(): string {
     const value = String(this.form.get('procurementType')!.value ?? '');
     return this.procurementTypeOptions.find((item) => item.value === value)?.label ?? (value || '-');
+  }
+
+  get hasCrossSellSearchTerm(): boolean {
+    return this.crossSellSearch.trim().length > 0;
   }
 
   goBack(): void {
@@ -651,6 +694,99 @@ export class AdminProductsComponent implements OnInit {
     this.nonReturnableReasons = this.nonReturnableReasons.filter((item) => item !== value);
   }
 
+  onCrossSellSearchChange(value: string): void {
+    this.crossSellSearch = value;
+    this.crossSellSearchError = '';
+
+    if (this.crossSellSearchHandle) {
+      clearTimeout(this.crossSellSearchHandle);
+      this.crossSellSearchHandle = null;
+    }
+
+    const term = value.trim();
+    if (!term) {
+      this.crossSellSearchLoading = false;
+      this.crossSellSearchResults = [];
+      return;
+    }
+
+    this.crossSellSearchHandle = setTimeout(() => {
+      this.crossSellSearchLoading = true;
+      this.productsService
+        .productsControllerSearchSuggestions({ term, limit: 8 })
+        .subscribe({
+          next: (response) => {
+            this.crossSellSearchLoading = false;
+            this.crossSellSearchResults = response
+              .filter((item: ProductSearchSuggestionDto) => item.type === 'product')
+              .map((item: ProductSearchSuggestionDto) => this.mapCrossSellSuggestion(item))
+              .filter((item): item is CrossSellSearchOption => item !== null)
+              .filter((item) => !this.isCurrentProductCrossSell(item.id) && !this.hasCrossSellProduct(item.id));
+          },
+          error: () => {
+            this.crossSellSearchLoading = false;
+            this.crossSellSearchResults = [];
+            this.crossSellSearchError = 'Unable to search products right now.';
+          },
+        });
+    }, CROSS_SELL_SEARCH_DEBOUNCE_MS);
+  }
+
+  addCrossSell(option: CrossSellSearchOption): void {
+    if (this.isCurrentProductCrossSell(option.id)) {
+      this.crossSellValidationError = 'A product cannot be assigned as its own cross-sell.';
+      return;
+    }
+
+    if (this.hasCrossSellProduct(option.id)) {
+      this.crossSellValidationError = 'This product is already selected as a cross-sell.';
+      return;
+    }
+
+    this.crossSellValidationError = '';
+    this.crossSellItems = [
+      ...this.crossSellItems,
+      {
+        recommended_product_id: option.id,
+        sort_order: this.crossSellItems.length,
+        is_active: true,
+        title: option.title,
+        sku: option.sku,
+        thumbnail_image: option.thumbnail_image ?? null,
+        currency: option.currency ?? null,
+        price: option.price ?? null,
+      },
+    ];
+    this.crossSellSearch = '';
+    this.crossSellSearchResults = [];
+  }
+
+  removeCrossSell(index: number): void {
+    this.crossSellValidationError = '';
+    this.crossSellItems = this.crossSellItems
+      .filter((_, itemIndex) => itemIndex !== index)
+      .map((item, itemIndex) => ({ ...item, sort_order: itemIndex }));
+  }
+
+  moveCrossSell(index: number, direction: -1 | 1): void {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= this.crossSellItems.length) {
+      return;
+    }
+
+    const items = [...this.crossSellItems];
+    const [movedItem] = items.splice(index, 1);
+    items.splice(targetIndex, 0, movedItem);
+    this.crossSellItems = items.map((item, itemIndex) => ({
+      ...item,
+      sort_order: itemIndex,
+    }));
+  }
+
+  trackCrossSellByProductId(_: number, item: CrossSellFormItem): number {
+    return item.recommended_product_id;
+  }
+
   async save(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -664,6 +800,10 @@ export class AdminProductsComponent implements OnInit {
     }
 
     if (!this.validateOperationalPolicies()) {
+      return;
+    }
+
+    if (!this.validateCrossSells()) {
       return;
     }
 
@@ -924,6 +1064,7 @@ export class AdminProductsComponent implements OnInit {
         .map((url) => this.mediaUrlService.toStoredValue(url))
         .filter((url) => url.length > 0),
       media: this.buildMediaItems(payload.imageUrl),
+      cross_sells: this.buildCrossSellPayload(),
       seo_title: payload.seoTitle || undefined,
       seo_description: payload.seoDescription || undefined,
       tags: payload.tags,
@@ -950,12 +1091,14 @@ export class AdminProductsComponent implements OnInit {
 
   private loadProductForEdit(productId: number): void {
     this.loadingProduct = true;
+    this.crossSellHydrationError = '';
     this.productsService
       .productsControllerGet(String(productId))
       .pipe(finalize(() => (this.loadingProduct = false)))
       .subscribe({
         next: (response) => {
           this.patchFormFromDetail(response.data);
+          this.loadCrossSells(productId);
         },
         error: (error) => {
           this.toastService.error(this.getApiErrorMessage(error, 'Failed to load product.'));
@@ -1061,6 +1204,27 @@ export class AdminProductsComponent implements OnInit {
 
     this.form.markAsPristine();
     this.form.markAsUntouched();
+  }
+
+  private loadCrossSells(productId: number): void {
+    this.loadingCrossSells = true;
+    this.productsService
+      .productsControllerListCrossSells(String(productId))
+      .pipe(finalize(() => (this.loadingCrossSells = false)))
+      .subscribe({
+        next: (response) => {
+          this.crossSellHydrationError = '';
+          this.crossSellValidationError = '';
+          this.crossSellItems = (response.data ?? []).map((item) => this.mapCrossSellDto(item));
+        },
+        error: (error) => {
+          this.crossSellItems = [];
+          this.crossSellHydrationError = this.getApiErrorMessage(
+            error,
+            'Failed to load existing cross-sell products.',
+          );
+        },
+      });
   }
 
   private extractWorkspaceAttributes(response: any): CategoryAttributeItem[] {
@@ -1474,6 +1638,14 @@ export class AdminProductsComponent implements OnInit {
     return attributes;
   }
 
+  private buildCrossSellPayload(): ProductCrossSellItemDto[] {
+    return this.crossSellItems.map((item, index) => ({
+      recommended_product_id: item.recommended_product_id,
+      sort_order: index,
+      is_active: Boolean(item.is_active),
+    }));
+  }
+
   private hasReturnPolicyConfigured(): boolean {
     const value = this.form.getRawValue();
     if (value.returnable) {
@@ -1516,6 +1688,31 @@ export class AdminProductsComponent implements OnInit {
     return true;
   }
 
+  private validateCrossSells(): boolean {
+    const ids = this.crossSellItems.map((item) => item.recommended_product_id);
+    const uniqueIds = new Set(ids);
+
+    if (this.editingProductId !== null && ids.includes(this.editingProductId)) {
+      this.crossSellValidationError = 'A product cannot be assigned as its own cross-sell.';
+      this.toastService.warning(this.crossSellValidationError);
+      return false;
+    }
+
+    if (uniqueIds.size !== ids.length) {
+      this.crossSellValidationError = 'Remove duplicate cross-sell products before saving.';
+      this.toastService.warning(this.crossSellValidationError);
+      return false;
+    }
+
+    this.crossSellValidationError = '';
+    this.crossSellItems = this.crossSellItems.map((item, index) => ({
+      ...item,
+      sort_order: index,
+      is_active: Boolean(item.is_active),
+    }));
+    return true;
+  }
+
   private getDefaultAttributeRows(): AttributeRow[] {
     return [];
   }
@@ -1550,6 +1747,54 @@ export class AdminProductsComponent implements OnInit {
         sort_order: images.length + index,
       })),
     ];
+  }
+
+  private mapCrossSellDto(item: ProductCrossSellDto): CrossSellFormItem {
+    return {
+      recommended_product_id: item.product_id,
+      sort_order: item.sort_order,
+      is_active: item.is_active,
+      title: item.title,
+      sku: item.sku,
+      thumbnail_image: this.toNullableText(item.thumbnail_image),
+      currency: this.toNullableText(item.currency),
+      price: this.toNullableNumber(item.selling_price ?? item.price),
+    };
+  }
+
+  private mapCrossSellSuggestion(item: ProductSearchSuggestionDto): CrossSellSearchOption | null {
+    const id = this.toNumberOrNull(item.id);
+    if (id === null) {
+      return null;
+    }
+
+    const meta =
+      item.meta && typeof item.meta === 'object' && !Array.isArray(item.meta)
+        ? (item.meta as Record<string, unknown>)
+        : {};
+    const title = this.toText(meta['title']) || item.label || `Product #${id}`;
+    const sku =
+      this.toText(meta['sku']) ||
+      this.toText(meta['product_sku']) ||
+      this.toText(meta['code']) ||
+      '';
+
+    return {
+      id,
+      title,
+      sku,
+      thumbnail_image: this.toText(meta['thumbnail_image']) || this.toText(meta['image']) || null,
+      currency: this.toText(meta['currency']) || null,
+      price: this.toNullableNumber(meta['selling_price'] ?? meta['price']),
+    };
+  }
+
+  private isCurrentProductCrossSell(productId: number): boolean {
+    return this.editingProductId !== null && this.editingProductId === productId;
+  }
+
+  private hasCrossSellProduct(productId: number): boolean {
+    return this.crossSellItems.some((item) => item.recommended_product_id === productId);
   }
 
   private getDefaultFormValue() {
@@ -1604,6 +1849,10 @@ export class AdminProductsComponent implements OnInit {
     this.clearPendingProductMediaState();
     const firstCategoryId = this.categories[0]?.category_id ?? null;
     this.pendingCategoryId = null;
+    if (this.crossSellSearchHandle) {
+      clearTimeout(this.crossSellSearchHandle);
+      this.crossSellSearchHandle = null;
+    }
 
     this.tagInput = '';
     this.fitmentInput = '';
@@ -1626,6 +1875,14 @@ export class AdminProductsComponent implements OnInit {
     this.models = [];
     this.categoryAttributes = [];
     this.attributeRows = this.getDefaultAttributeRows();
+    this.loadingCrossSells = false;
+    this.crossSellSearch = '';
+    this.crossSellSearchLoading = false;
+    this.crossSellSearchError = '';
+    this.crossSellHydrationError = '';
+    this.crossSellValidationError = '';
+    this.crossSellSearchResults = [];
+    this.crossSellItems = [];
 
     this.form.reset({
       ...this.getDefaultFormValue(),
@@ -1633,5 +1890,14 @@ export class AdminProductsComponent implements OnInit {
     });
     this.form.markAsPristine();
     this.form.markAsUntouched();
+  }
+
+  private toNullableNumber(value: unknown): number | null {
+    return this.toNumberOrNull(value);
+  }
+
+  private toNullableText(value: unknown): string | null {
+    const text = this.toText(value);
+    return text || null;
   }
 }

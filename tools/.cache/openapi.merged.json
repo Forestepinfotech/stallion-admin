@@ -4470,6 +4470,84 @@
         ]
       }
     },
+    "/products/{product_id}/cross-sells": {
+      "get": {
+        "operationId": "ProductsController_listCrossSells",
+        "parameters": [
+          {
+            "name": "product_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductCrossSellListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-products"
+        ]
+      },
+      "patch": {
+        "operationId": "ProductsController_saveCrossSells",
+        "parameters": [
+          {
+            "name": "product_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveProductCrossSellsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductCrossSellListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-products"
+        ]
+      }
+    },
     "/products/{product_id}": {
       "get": {
         "operationId": "ProductsController_get",
@@ -9544,6 +9622,38 @@
         ]
       }
     },
+    "/customer/products/{slug}/cross-sells": {
+      "get": {
+        "operationId": "CustomerCatalogController_productCrossSells",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "description": "SEO-friendly product identifier. Example: \"boot-cover-honda-civic\".",
+            "schema": {
+              "example": "boot-cover-honda-civic",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer cross-sell recommendations for one product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-catalog"
+        ]
+      }
+    },
     "/customer/account/profile": {
       "get": {
         "operationId": "CustomerAccountController_profile",
@@ -13551,6 +13661,177 @@
           "specifications"
         ]
       },
+      "ProductCrossSellDto": {
+        "type": "object",
+        "properties": {
+          "cross_sell_id": {
+            "type": "number",
+            "example": 1
+          },
+          "product_id": {
+            "type": "number",
+            "example": 21
+          },
+          "slug": {
+            "type": "string",
+            "example": "car-cover-honda-civic"
+          },
+          "title": {
+            "type": "string",
+            "example": "Car Cover"
+          },
+          "sku": {
+            "type": "string",
+            "example": "SKU-21"
+          },
+          "price": {
+            "type": "object",
+            "nullable": true,
+            "example": 99.99
+          },
+          "compare_at_price": {
+            "type": "object",
+            "nullable": true,
+            "example": 129.99
+          },
+          "currency": {
+            "type": "object",
+            "nullable": true,
+            "example": "CAD"
+          },
+          "thumbnail_image": {
+            "type": "object",
+            "nullable": true,
+            "example": "https://cdn.example.com/p.jpg"
+          },
+          "stock_qty": {
+            "type": "object",
+            "nullable": true,
+            "example": 5
+          },
+          "category_id": {
+            "type": "object",
+            "nullable": true,
+            "example": 8
+          },
+          "category_name": {
+            "type": "object",
+            "nullable": true,
+            "example": "Accessories"
+          },
+          "brand_id": {
+            "type": "object",
+            "nullable": true,
+            "example": 2
+          },
+          "brand_name": {
+            "type": "object",
+            "nullable": true,
+            "example": "Honda"
+          },
+          "model_id": {
+            "type": "object",
+            "nullable": true,
+            "example": 15
+          },
+          "model_name": {
+            "type": "object",
+            "nullable": true,
+            "example": "Civic"
+          },
+          "sort_order": {
+            "type": "number",
+            "example": 0
+          },
+          "is_active": {
+            "type": "boolean",
+            "example": true
+          },
+          "selling_price": {
+            "type": "object",
+            "nullable": true,
+            "example": 99.99
+          },
+          "savings_amount": {
+            "type": "number",
+            "example": 30
+          },
+          "has_price_difference": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "cross_sell_id",
+          "product_id",
+          "slug",
+          "title",
+          "sku",
+          "sort_order",
+          "is_active",
+          "savings_amount",
+          "has_price_difference"
+        ]
+      },
+      "ProductCrossSellListResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Product cross-sells fetched successfully"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductCrossSellDto"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "ProductCrossSellItemDto": {
+        "type": "object",
+        "properties": {
+          "recommended_product_id": {
+            "type": "number",
+            "example": 21
+          },
+          "sort_order": {
+            "type": "number",
+            "example": 0
+          },
+          "is_active": {
+            "type": "boolean",
+            "example": true,
+            "default": true
+          }
+        },
+        "required": [
+          "recommended_product_id"
+        ]
+      },
+      "SaveProductCrossSellsDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductCrossSellItemDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
       "ProductDetailDto": {
         "type": "object",
         "properties": {
@@ -13828,6 +14109,12 @@
             "items": {
               "type": "object"
             }
+          },
+          "cross_sells": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductCrossSellDto"
+            }
           }
         },
         "required": [
@@ -14063,6 +14350,12 @@
               "$ref": "#/components/schemas/ProductMediaItemDto"
             }
           },
+          "cross_sells": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductCrossSellItemDto"
+            }
+          },
           "seo_title": {
             "type": "string"
           },
@@ -14286,6 +14579,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ProductMediaItemDto"
+            }
+          },
+          "cross_sells": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductCrossSellItemDto"
             }
           },
           "seo_title": {

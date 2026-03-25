@@ -24,6 +24,7 @@ import type {
   PaginatedProductQuestionDto,
   PaginatedProductReviewDto,
   PaginatedProductsResponseDto,
+  ProductCrossSellListResponseDto,
   ProductQuestionDto,
   ProductReviewDto,
   ProductSearchSuggestionDto,
@@ -33,6 +34,7 @@ import type {
   ProductsControllerVehicleCategoriesParams,
   ProductsControllerVehicleProductsParams,
   ProductsResponseDto,
+  SaveProductCrossSellsDto,
   SaveProductSpecificationsDto,
   UpdateProductReviewDto,
   UpdateProductsDto,
@@ -971,6 +973,92 @@ export class AdminProductsService {
     return this.http.patch<TData>(
       `/products/${productId}/specifications`,
       saveProductSpecificationsDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
+  productsControllerListCrossSells<TData = ProductCrossSellListResponseDto>(
+    productId: string,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  productsControllerListCrossSells<TData = ProductCrossSellListResponseDto>(
+    productId: string,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  productsControllerListCrossSells<TData = ProductCrossSellListResponseDto>(
+    productId: string,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  productsControllerListCrossSells<TData = ProductCrossSellListResponseDto>(
+    productId: string,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/products/${productId}/cross-sells`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/products/${productId}/cross-sells`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+      });
+    }
+
+    return this.http.get<TData>(`/products/${productId}/cross-sells`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+    });
+  }
+  productsControllerSaveCrossSells<TData = ProductCrossSellListResponseDto>(
+    productId: string,
+    saveProductCrossSellsDto: SaveProductCrossSellsDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  productsControllerSaveCrossSells<TData = ProductCrossSellListResponseDto>(
+    productId: string,
+    saveProductCrossSellsDto: SaveProductCrossSellsDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  productsControllerSaveCrossSells<TData = ProductCrossSellListResponseDto>(
+    productId: string,
+    saveProductCrossSellsDto: SaveProductCrossSellsDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  productsControllerSaveCrossSells<TData = ProductCrossSellListResponseDto>(
+    productId: string,
+    saveProductCrossSellsDto: SaveProductCrossSellsDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.patch<TData>(
+        `/products/${productId}/cross-sells`,
+        saveProductCrossSellsDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.patch<TData>(
+        `/products/${productId}/cross-sells`,
+        saveProductCrossSellsDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.patch<TData>(
+      `/products/${productId}/cross-sells`,
+      saveProductCrossSellsDto,
       {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "body",

@@ -826,6 +826,148 @@
   transform: none;
 }
 
+.cross-sell-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #e4e9f1;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(221, 185, 107, 0.12), transparent 26%),
+    linear-gradient(180deg, #fcfdfd 0%, #f7f9fc 100%);
+}
+
+.cross-sell-search-results,
+.cross-sell-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cross-sell-search-item,
+.cross-sell-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid #dbe2ea;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.cross-sell-search-item {
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.cross-sell-search-item:hover {
+  border-color: #c3ceda;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+}
+
+.cross-sell-search-item__copy,
+.cross-sell-item__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cross-sell-search-item__copy strong,
+.cross-sell-item__heading strong {
+  color: #132136;
+  font-size: 0.98rem;
+}
+
+.cross-sell-search-item__copy span,
+.cross-sell-item__meta span,
+.cross-sell-item__heading span {
+  color: #667085;
+  font-size: 0.86rem;
+}
+
+.cross-sell-search-item__action {
+  color: #8c6b22;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.cross-sell-item {
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+}
+
+.cross-sell-item__media {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #eff3f8;
+  color: #667085;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.cross-sell-item__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cross-sell-item__media--placeholder {
+  border: 1px dashed #ccd4df;
+}
+
+.cross-sell-item__heading,
+.cross-sell-item__meta,
+.cross-sell-toggle,
+.cross-sell-order {
+  display: flex;
+  align-items: center;
+}
+
+.cross-sell-item__heading,
+.cross-sell-item__meta {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cross-sell-toggle {
+  gap: 8px;
+  color: #344054;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.cross-sell-order {
+  gap: 8px;
+}
+
+.cross-sell-remove {
+  justify-self: end;
+}
+
+.cross-sell-empty {
+  padding: 16px;
+  border: 1px dashed #cfd8e3;
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.88);
+  color: #667085;
+  font-size: 0.92rem;
+}
+
 @media (max-width: 1180px) {
   .product-layout {
     grid-template-columns: 1fr;
@@ -891,6 +1033,21 @@
 
   .attribute-row {
     grid-template-columns: 1fr;
+  }
+
+  .cross-sell-item {
+    grid-template-columns: 1fr;
+  }
+
+  .cross-sell-item__media {
+    width: 100%;
+    height: 160px;
+  }
+
+  .cross-sell-toggle,
+  .cross-sell-order,
+  .cross-sell-remove {
+    justify-self: start;
   }
 
   .attribute-row--header {

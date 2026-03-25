@@ -6,6 +6,7 @@
  */
 import type { CreateProductsDtoAttributes } from "./createProductsDtoAttributes";
 import type { CreateProductsDtoNotesItem } from "./createProductsDtoNotesItem";
+import type { ProductCrossSellItemDto } from "./productCrossSellItemDto";
 import type { ProductMediaItemDto } from "./productMediaItemDto";
 
 export interface CreateProductsDto {
@@ -57,6 +58,7 @@ export interface CreateProductsDto {
   gallery_images?: string[];
   video_urls?: string[];
   media?: ProductMediaItemDto[];
+  cross_sells?: ProductCrossSellItemDto[];
   seo_title?: string;
   seo_description?: string;
   tags?: string[];

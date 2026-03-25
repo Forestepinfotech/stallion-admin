@@ -143,6 +143,36 @@ export class AdminProductDetailComponent implements OnInit {
       .filter(Boolean);
   }
 
+  get fitmentEntries(): string[] {
+    return (this.product()?.fitments ?? [])
+      .map((item) => this.formatUnknown(item))
+      .filter(Boolean);
+  }
+
+  get packageContents(): string[] {
+    return (this.product()?.package_contents ?? [])
+      .map((item) => this.formatUnknown(item))
+      .filter(Boolean);
+  }
+
+  get notesList(): string[] {
+    return (this.product()?.notes ?? [])
+      .map((item) => this.formatUnknown(item))
+      .filter(Boolean);
+  }
+
+  get tagsList(): string[] {
+    return (this.product()?.tags ?? [])
+      .map((item) => this.formatUnknown(item))
+      .filter(Boolean);
+  }
+
+  get nonReturnableReasons(): string[] {
+    return (this.product()?.non_returnable_reasons ?? [])
+      .map((item) => this.formatUnknown(item))
+      .filter(Boolean);
+  }
+
   get galleryImages(): string[] {
     const detail = this.product();
     if (!detail) {
