@@ -48,8 +48,6 @@ import type { ProductDetailDtoStatus } from "./productDetailDtoStatus";
 import type { ProductDetailDtoStockQty } from "./productDetailDtoStockQty";
 import type { ProductDetailDtoStockStatus } from "./productDetailDtoStockStatus";
 import type { ProductDetailDtoStockStrategy } from "./productDetailDtoStockStrategy";
-import type { ProductDetailDtoSubCategoryId } from "./productDetailDtoSubCategoryId";
-import type { ProductDetailDtoSubCategoryName } from "./productDetailDtoSubCategoryName";
 import type { ProductDetailDtoSupplier } from "./productDetailDtoSupplier";
 import type { ProductDetailDtoThumbnailImage } from "./productDetailDtoThumbnailImage";
 import type { ProductDetailDtoUniversalFit } from "./productDetailDtoUniversalFit";
@@ -99,10 +97,6 @@ export interface ProductDetailDto {
   category_id?: ProductDetailDtoCategoryId;
   /** @nullable */
   category_name?: ProductDetailDtoCategoryName;
-  /** @nullable */
-  sub_category_id?: ProductDetailDtoSubCategoryId;
-  /** @nullable */
-  sub_category_name?: ProductDetailDtoSubCategoryName;
   /** @nullable */
   brand_id?: ProductDetailDtoBrandId;
   /** @nullable */

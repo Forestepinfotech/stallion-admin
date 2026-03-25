@@ -17,6 +17,7 @@ import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
 
 import type {
+  ChangeCustomerPasswordDto,
   CreateCustomerAddressDto,
   CreateCustomerVehicleDto,
   CustomerObjectDto,
@@ -124,6 +125,53 @@ export class CustomerAccountService {
     return this.http.patch<TData>(
       `/customer/account/profile`,
       updateCustomerProfileDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
+  customerAccountControllerChangePassword<TData = void>(
+    changeCustomerPasswordDto: ChangeCustomerPasswordDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  customerAccountControllerChangePassword<TData = void>(
+    changeCustomerPasswordDto: ChangeCustomerPasswordDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  customerAccountControllerChangePassword<TData = void>(
+    changeCustomerPasswordDto: ChangeCustomerPasswordDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  customerAccountControllerChangePassword<TData = void>(
+    changeCustomerPasswordDto: ChangeCustomerPasswordDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.patch<TData>(
+        `/customer/account/password`,
+        changeCustomerPasswordDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.patch<TData>(
+        `/customer/account/password`,
+        changeCustomerPasswordDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.patch<TData>(
+      `/customer/account/password`,
+      changeCustomerPasswordDto,
       {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "body",

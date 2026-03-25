@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "http://178.128.228.186"
+      "url": "http://localhost:3002"
     }
   ],
   "tags": [],
@@ -132,7 +132,7 @@
         },
         "responses": {
           "200": {
-            "description": "Reset flow initiated (stub)"
+            "description": "Reset flow initiated"
           }
         },
         "tags": [
@@ -2525,177 +2525,6 @@
         ]
       }
     },
-    "/product-sub-category": {
-      "get": {
-        "operationId": "ProductSubCategoryController_list",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedProductSubCategoryResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "admin-product-sub-category"
-        ]
-      },
-      "post": {
-        "operationId": "ProductSubCategoryController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateProductSubCategoryDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductSubCategoryResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "admin-product-sub-category"
-        ]
-      }
-    },
-    "/product-sub-category/{sub_category_id}": {
-      "get": {
-        "operationId": "ProductSubCategoryController_get",
-        "parameters": [
-          {
-            "name": "sub_category_id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductSubCategoryResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "admin-product-sub-category"
-        ]
-      },
-      "patch": {
-        "operationId": "ProductSubCategoryController_update",
-        "parameters": [
-          {
-            "name": "sub_category_id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProductSubCategoryDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductSubCategoryResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "admin-product-sub-category"
-        ]
-      },
-      "delete": {
-        "operationId": "ProductSubCategoryController_remove",
-        "parameters": [
-          {
-            "name": "sub_category_id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductSubCategoryResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "admin-product-sub-category"
-        ]
-      }
-    },
     "/product-attribute": {
       "get": {
         "operationId": "ProductAttributeController_list",
@@ -3546,25 +3375,6 @@
         ]
       }
     },
-    "/catalog/subcategories": {
-      "get": {
-        "operationId": "CatalogController_subcategories",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "admin-catalog"
-        ]
-      }
-    },
     "/catalog/taxonomy/tree": {
       "get": {
         "operationId": "CatalogController_taxonomyTree",
@@ -4210,14 +4020,6 @@
             "in": "query",
             "schema": {
               "example": 3
-            }
-          },
-          {
-            "name": "sub_category_id",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 2
             }
           },
           {
@@ -9369,14 +9171,6 @@
             }
           },
           {
-            "name": "sub_category",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "brand",
             "required": false,
             "in": "query",
@@ -9549,185 +9343,6 @@
         ]
       }
     },
-    "/customer/subcategories/{slug}": {
-      "get": {
-        "operationId": "CustomerCatalogController_subcategoryDetail",
-        "parameters": [
-          {
-            "name": "slug",
-            "required": true,
-            "in": "path",
-            "description": "SEO-friendly subcategory identifier. Example: \"hu\", \"seat-covers\", or \"led-bulbs\".",
-            "schema": {
-              "example": "hu",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Customer sub category detail page payload",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "customer-catalog"
-        ]
-      }
-    },
-    "/customer/subcategories/{slug}/products": {
-      "get": {
-        "operationId": "CustomerCatalogController_subcategoryProducts",
-        "parameters": [
-          {
-            "name": "slug",
-            "required": true,
-            "in": "path",
-            "description": "SEO-friendly subcategory identifier. Use the subcategory slug, not the numeric sub_category_id.",
-            "schema": {
-              "example": "hu",
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "category",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sub_category",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "brand",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "model",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "shipping_class",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "price_min",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "price_max",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "year",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "featured",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "in_stock",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "sort",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "relevance",
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 24,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Customer product listing for one sub category",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomerSearchResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "customer-catalog"
-        ]
-      }
-    },
     "/customer/search": {
       "get": {
         "operationId": "CustomerCatalogController_search",
@@ -9742,14 +9357,6 @@
           },
           {
             "name": "category",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sub_category",
             "required": false,
             "in": "query",
             "schema": {
@@ -9985,6 +9592,35 @@
                 }
               }
             }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-account"
+        ]
+      }
+    },
+    "/customer/account/password": {
+      "patch": {
+        "operationId": "CustomerAccountController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeCustomerPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Update customer password"
           }
         },
         "security": [
@@ -12781,143 +12417,6 @@
           }
         }
       },
-      "ProductSubCategoryResponseDto": {
-        "type": "object",
-        "properties": {
-          "sub_category_id": {
-            "type": "number"
-          },
-          "category_id": {
-            "type": "number"
-          },
-          "sub_category": {
-            "type": "string"
-          },
-          "sub_category_image": {
-            "type": "object",
-            "nullable": true
-          },
-          "sub_category_code": {
-            "type": "object",
-            "nullable": true
-          },
-          "slug": {
-            "type": "object",
-            "nullable": true
-          },
-          "sort_order": {
-            "type": "object",
-            "nullable": true
-          },
-          "is_active": {
-            "type": "boolean"
-          },
-          "is_deleted": {
-            "type": "boolean"
-          },
-          "category_name": {
-            "type": "object",
-            "nullable": true
-          }
-        },
-        "required": [
-          "sub_category_id",
-          "category_id",
-          "sub_category",
-          "is_active",
-          "is_deleted"
-        ]
-      },
-      "PaginatedProductSubCategoryResponseDto": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ProductSubCategoryResponseDto"
-            }
-          },
-          "meta": {
-            "type": "object",
-            "example": {
-              "page": 1,
-              "limit": 20,
-              "total": 0,
-              "totalPages": 0
-            }
-          }
-        },
-        "required": [
-          "data",
-          "meta"
-        ]
-      },
-      "CreateProductSubCategoryDto": {
-        "type": "object",
-        "properties": {
-          "category_id": {
-            "type": "number"
-          },
-          "sub_category": {
-            "type": "string"
-          },
-          "sub_category_image": {
-            "type": "string"
-          },
-          "sub_category_code": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "sort_order": {
-            "type": "number"
-          },
-          "is_active": {
-            "type": "boolean",
-            "default": true
-          },
-          "is_deleted": {
-            "type": "boolean",
-            "default": false
-          }
-        },
-        "required": [
-          "category_id",
-          "sub_category"
-        ]
-      },
-      "UpdateProductSubCategoryDto": {
-        "type": "object",
-        "properties": {
-          "category_id": {
-            "type": "number"
-          },
-          "sub_category": {
-            "type": "string"
-          },
-          "sub_category_image": {
-            "type": "string"
-          },
-          "sub_category_code": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "sort_order": {
-            "type": "number"
-          },
-          "is_active": {
-            "type": "boolean",
-            "default": true
-          },
-          "is_deleted": {
-            "type": "boolean",
-            "default": false
-          }
-        }
-      },
       "ProductAttributeResponseDto": {
         "type": "object",
         "properties": {
@@ -13303,10 +12802,6 @@
             "type": "object",
             "nullable": true
           },
-          "sub_category_id": {
-            "type": "object",
-            "nullable": true
-          },
           "is_required": {
             "type": "object",
             "nullable": true
@@ -13509,9 +13004,6 @@
           "attribute_id": {
             "type": "number"
           },
-          "sub_category_id": {
-            "type": "number"
-          },
           "is_required": {
             "type": "boolean",
             "default": false
@@ -13573,9 +13065,6 @@
             "type": "number"
           },
           "attribute_id": {
-            "type": "number"
-          },
-          "sub_category_id": {
             "type": "number"
           },
           "is_required": {
@@ -13952,14 +13441,6 @@
             "type": "object",
             "nullable": true
           },
-          "sub_category_id": {
-            "type": "object",
-            "nullable": true
-          },
-          "sub_category_name": {
-            "type": "object",
-            "nullable": true
-          },
           "brand_id": {
             "type": "object",
             "nullable": true
@@ -14150,14 +13631,6 @@
             "nullable": true
           },
           "category_name": {
-            "type": "object",
-            "nullable": true
-          },
-          "sub_category_id": {
-            "type": "object",
-            "nullable": true
-          },
-          "sub_category_name": {
             "type": "object",
             "nullable": true
           },
@@ -14444,9 +13917,6 @@
           "category_id": {
             "type": "number"
           },
-          "sub_category_id": {
-            "type": "number"
-          },
           "short_description": {
             "type": "string"
           },
@@ -14642,8 +14112,7 @@
         "required": [
           "title",
           "sku",
-          "category_id",
-          "sub_category_id"
+          "category_id"
         ]
       },
       "UpdateProductsDto": {
@@ -14671,9 +14140,6 @@
             "type": "number"
           },
           "category_id": {
-            "type": "number"
-          },
-          "sub_category_id": {
             "type": "number"
           },
           "short_description": {
@@ -15659,10 +15125,6 @@
             "nullable": true
           },
           "category_name": {
-            "type": "object",
-            "nullable": true
-          },
-          "sub_category_name": {
             "type": "object",
             "nullable": true
           },
@@ -19116,6 +18578,23 @@
             "type": "boolean"
           }
         }
+      },
+      "ChangeCustomerPasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "minLength": 8
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
       },
       "CreateCustomerAddressDto": {
         "type": "object",

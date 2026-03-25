@@ -22,8 +22,6 @@ import type { ProductSummaryDtoPrice } from "./productSummaryDtoPrice";
 import type { ProductSummaryDtoStatus } from "./productSummaryDtoStatus";
 import type { ProductSummaryDtoStockQty } from "./productSummaryDtoStockQty";
 import type { ProductSummaryDtoStockStatus } from "./productSummaryDtoStockStatus";
-import type { ProductSummaryDtoSubCategoryId } from "./productSummaryDtoSubCategoryId";
-import type { ProductSummaryDtoSubCategoryName } from "./productSummaryDtoSubCategoryName";
 import type { ProductSummaryDtoThumbnailImage } from "./productSummaryDtoThumbnailImage";
 import type { ProductSummaryDtoUpdatedAt } from "./productSummaryDtoUpdatedAt";
 import type { ProductSummaryDtoVisibility } from "./productSummaryDtoVisibility";
@@ -67,10 +65,6 @@ export interface ProductSummaryDto {
   category_id?: ProductSummaryDtoCategoryId;
   /** @nullable */
   category_name?: ProductSummaryDtoCategoryName;
-  /** @nullable */
-  sub_category_id?: ProductSummaryDtoSubCategoryId;
-  /** @nullable */
-  sub_category_name?: ProductSummaryDtoSubCategoryName;
   /** @nullable */
   brand_id?: ProductSummaryDtoBrandId;
   /** @nullable */

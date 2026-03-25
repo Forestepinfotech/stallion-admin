@@ -8,7 +8,6 @@
 export interface CreateProductCategoryAttributeDto {
   category_id: number;
   attribute_id: number;
-  sub_category_id?: number;
   is_required?: boolean;
   is_filterable?: boolean;
   is_searchable?: boolean;

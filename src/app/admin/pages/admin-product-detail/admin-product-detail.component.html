@@ -152,10 +152,6 @@
               <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.category_name) }}</div>
             </div>
             <div>
-              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Sub Category</div>
-              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.sub_category_name) }}</div>
-            </div>
-            <div>
               <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Barcode</div>
               <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.barcode) }}</div>
             </div>
@@ -240,7 +236,7 @@
           </div>
           <ng-template #categoryPath>
             <div class="mt-4 text-sm text-slate-700">
-              {{ formatText(detail.category_name) }} / {{ formatText(detail.sub_category_name) }}
+              {{ formatText(detail.category_name) }}
             </div>
           </ng-template>
         </div>

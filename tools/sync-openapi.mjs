@@ -1,7 +1,18 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import url from "node:url";
+import dotenv from "dotenv";
 
-const baseUrl = (process.env.API_BASE_URL || "http://178.128.228.186").replace(
+const SERVER_BASE_URL = "http://178.128.228.186";
+const LOCAL_BASE_URL = "http://localhost:3002";
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(__dirname, "..");
+dotenv.config({ path: path.resolve(projectRoot, ".env") });
+
+const isServerEnv = process.env.IS_SERVER?.trim().toLowerCase();
+const useServerBaseUrl = isServerEnv !== "false";
+const baseUrl = (useServerBaseUrl ? SERVER_BASE_URL : LOCAL_BASE_URL).replace(
   /\/+$/,
   "",
 );

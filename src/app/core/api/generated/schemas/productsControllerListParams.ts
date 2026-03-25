@@ -16,7 +16,6 @@ export type ProductsControllerListParams = {
   status?: unknown;
   model_id?: unknown;
   brand_id?: unknown;
-  sub_category_id?: unknown;
   category_id?: unknown;
   search?: unknown;
 };

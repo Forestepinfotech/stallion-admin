@@ -17,7 +17,6 @@ import type { ProductCategoryAttributeResponseDtoIsSearchable } from "./productC
 import type { ProductCategoryAttributeResponseDtoIsVisibleOnPdp } from "./productCategoryAttributeResponseDtoIsVisibleOnPdp";
 import type { ProductCategoryAttributeResponseDtoIsVisibleOnPlp } from "./productCategoryAttributeResponseDtoIsVisibleOnPlp";
 import type { ProductCategoryAttributeResponseDtoSortOrder } from "./productCategoryAttributeResponseDtoSortOrder";
-import type { ProductCategoryAttributeResponseDtoSubCategoryId } from "./productCategoryAttributeResponseDtoSubCategoryId";
 import type { ProductCategoryAttributeResponseDtoUpdatedBy } from "./productCategoryAttributeResponseDtoUpdatedBy";
 import type { ProductCategoryAttributeResponseDtoValueItemsItem } from "./productCategoryAttributeResponseDtoValueItemsItem";
 
@@ -26,8 +25,6 @@ export interface ProductCategoryAttributeResponseDto {
   attribute_id: number;
   /** @nullable */
   assignment_id?: ProductCategoryAttributeResponseDtoAssignmentId;
-  /** @nullable */
-  sub_category_id?: ProductCategoryAttributeResponseDtoSubCategoryId;
   /** @nullable */
   is_required?: ProductCategoryAttributeResponseDtoIsRequired;
   /** @nullable */

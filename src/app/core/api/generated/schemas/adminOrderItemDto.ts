@@ -9,7 +9,6 @@ import type { AdminOrderItemDtoProductSlug } from "./adminOrderItemDtoProductSlu
 import type { AdminOrderItemDtoSku } from "./adminOrderItemDtoSku";
 import type { AdminOrderItemDtoStatusId } from "./adminOrderItemDtoStatusId";
 import type { AdminOrderItemDtoStatusName } from "./adminOrderItemDtoStatusName";
-import type { AdminOrderItemDtoSubCategoryName } from "./adminOrderItemDtoSubCategoryName";
 
 export interface AdminOrderItemDto {
   order_id: number;
@@ -21,8 +20,6 @@ export interface AdminOrderItemDto {
   sku?: AdminOrderItemDtoSku;
   /** @nullable */
   category_name?: AdminOrderItemDtoCategoryName;
-  /** @nullable */
-  sub_category_name?: AdminOrderItemDtoSubCategoryName;
   qty: number;
   unit_price: number;
   tax_amount: number;

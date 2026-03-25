@@ -7,7 +7,6 @@ import { AdminCarBrandService as CarBrandService } from '../../../core/api/gener
 import { AdminCarBrandModelService as CarBrandModelService } from '../../../core/api/generated/admin-car-brand-model/admin-car-brand-model.service';
 import { AdminProductCategoryService as ProductCategoryService } from '../../../core/api/generated/admin-product-category/admin-product-category.service';
 import { AdminProductCategoryAttributeService as ProductCategoryAttributeService } from '../../../core/api/generated/admin-product-category-attribute/admin-product-category-attribute.service';
-import { AdminProductSubCategoryService as ProductSubCategoryService } from '../../../core/api/generated/admin-product-sub-category/admin-product-sub-category.service';
 import { AdminProductsService as ProductsService } from '../../../core/api/generated/admin-products/admin-products.service';
 import type {
   CarBrandModelResponseDto,
@@ -16,7 +15,6 @@ import type {
   CreateProductsDto,
   ProductCategoryResponseDto,
   ProductDetailDto,
-  ProductSubCategoryResponseDto,
   UpdateProductsDto,
 } from '../../../core/api/generated/schemas';
 import { MediaUrlService } from '../../../core/media/media-url.service';
@@ -76,7 +74,6 @@ export class AdminProductsComponent implements OnInit {
   ];
 
   loadingCategories = true;
-  loadingSubCategories = false;
   loadingAttributes = false;
   loadingBrands = false;
   loadingModels = false;
@@ -84,10 +81,8 @@ export class AdminProductsComponent implements OnInit {
   saving = false;
   editingProductId: number | null = null;
   pendingCategoryId: number | null = null;
-  pendingSubCategoryId: number | null = null;
 
   categories: ProductCategoryResponseDto[] = [];
-  subCategories: ProductSubCategoryResponseDto[] = [];
   categoryAttributes: CategoryAttributeItem[] = [];
   brands: CarBrandResponseDto[] = [];
   models: CarBrandModelResponseDto[] = [];
@@ -134,7 +129,6 @@ export class AdminProductsComponent implements OnInit {
     private readonly carBrandModelService: CarBrandModelService,
     private readonly productCategoryService: ProductCategoryService,
     private readonly productCategoryAttributeService: ProductCategoryAttributeService,
-    private readonly productSubCategoryService: ProductSubCategoryService,
     private readonly productsService: ProductsService,
     private readonly toastService: ToastService,
     private readonly assetUploadService: AssetUploadService,
@@ -142,7 +136,6 @@ export class AdminProductsComponent implements OnInit {
   ) {
     this.form = this.fb.group({
       categoryId: [this.getDefaultFormValue().categoryId, Validators.required],
-      subCategoryId: [this.getDefaultFormValue().subCategoryId, Validators.required],
       title: [this.getDefaultFormValue().title, [Validators.required, Validators.minLength(3)]],
       slug: [this.getDefaultFormValue().slug],
       sku: [this.getDefaultFormValue().sku, [Validators.required, Validators.minLength(3)]],
@@ -220,7 +213,6 @@ export class AdminProductsComponent implements OnInit {
 
       if (productId === null) {
         this.pendingCategoryId = null;
-        this.pendingSubCategoryId = null;
         this.resetProductForm();
         return;
       }
@@ -239,11 +231,6 @@ export class AdminProductsComponent implements OnInit {
   get selectedCategoryName(): string {
     const id = this.toNumberOrNull(this.form.get('categoryId')!.value);
     return this.categories.find((item) => item.category_id === id)?.category_name ?? 'No category selected';
-  }
-
-  get selectedSubCategoryName(): string {
-    const id = this.toNumberOrNull(this.form.get('subCategoryId')!.value);
-    return this.subCategories.find((item) => item.sub_category_id === id)?.sub_category ?? 'No sub category selected';
   }
 
   get marginValue(): number {
@@ -268,7 +255,6 @@ export class AdminProductsComponent implements OnInit {
     const checklist: string[] = [];
 
     if (this.form.get('categoryId')!.value) checklist.push('Category selected');
-    if (this.form.get('subCategoryId')!.value) checklist.push('Sub category selected');
     if (this.form.get('sku')!.value) checklist.push('SKU ready');
     if (this.form.get('title')!.value) checklist.push('Title added');
     if (this.form.get('shortDescription')!.value) checklist.push('Short copy ready');
@@ -319,10 +305,9 @@ export class AdminProductsComponent implements OnInit {
     }
 
     const category = this.selectedCategoryName.toLowerCase();
-    const subCategory = this.selectedSubCategoryName.toLowerCase();
     const suggestions = [
-      `${subCategory || 'product'}_spec`,
-      `${subCategory || 'product'}_size`,
+      `${category || 'product'}_spec`,
+      `${category || 'product'}_size`,
       `${category || 'category'}_fitment`,
       'material',
       'color',
@@ -745,15 +730,12 @@ export class AdminProductsComponent implements OnInit {
   }
 
   private handleCategoryChange(categoryId: number | null): void {
-    this.subCategories = [];
     this.categoryAttributes = [];
-    this.form.patchValue({ subCategoryId: null }, { emitEvent: false });
 
     if (categoryId === null) {
       return;
     }
 
-    this.loadSubCategories(categoryId);
     this.loadCategoryAttributes(categoryId);
   }
 
@@ -835,35 +817,6 @@ export class AdminProductsComponent implements OnInit {
       });
   }
 
-  private loadSubCategories(categoryId: number, selectedSubCategoryId?: number | null): void {
-    this.loadingSubCategories = true;
-    this.productSubCategoryService
-      .productSubCategoryControllerList({
-        params: {
-          page: 1,
-          limit: 500,
-          category_id: categoryId,
-          is_deleted: false,
-        },
-      })
-      .pipe(finalize(() => (this.loadingSubCategories = false)))
-      .subscribe({
-        next: (response) => {
-          this.subCategories = (response.data ?? [])
-            .map((item) => this.normalizeSubCategory(item))
-            .filter((item) => !item.is_deleted);
-          const matchedSubCategory = this.subCategories.find(
-            (item) => item.sub_category_id === selectedSubCategoryId,
-          );
-          const nextSubCategoryId = matchedSubCategory?.sub_category_id ?? this.subCategories[0]?.sub_category_id ?? null;
-          this.form.patchValue({ subCategoryId: nextSubCategoryId }, { emitEvent: false });
-        },
-        error: (error) => {
-          this.toastService.error(this.getApiErrorMessage(error, 'Failed to load sub categories.'));
-        },
-      });
-  }
-
   private loadCategoryAttributes(
     categoryId: number,
     existingAttributes?: Record<string, string>,
@@ -938,7 +891,6 @@ export class AdminProductsComponent implements OnInit {
       brand_id: payload.brandId ?? undefined,
       model_id: payload.modelId ?? undefined,
       category_id: Number(payload.categoryId),
-      sub_category_id: Number(payload.subCategoryId),
       short_description: payload.shortDescription || undefined,
       description: payload.longDescription || undefined,
       status: payload.status ?? 'draft',
@@ -1015,13 +967,11 @@ export class AdminProductsComponent implements OnInit {
   private patchFormFromDetail(detail: ProductDetailDto): void {
     this.clearPendingProductMediaState();
     const categoryId = this.toNumberOrNull(detail.category_id);
-    const subCategoryId = this.toNumberOrNull(detail.sub_category_id);
     const brandId = this.toNumberOrNull(detail.brand_id);
     const modelId = this.toNumberOrNull(detail.model_id);
     const attributes = this.extractEditableAttributes(detail.attributes);
 
     this.pendingCategoryId = categoryId;
-    this.pendingSubCategoryId = subCategoryId;
 
     this.tags = Array.isArray(detail.tags) ? detail.tags.filter((item) => typeof item === 'string') : [];
     this.packageItems = this.extractStringArray(attributes['package_items']);
@@ -1050,7 +1000,6 @@ export class AdminProductsComponent implements OnInit {
     this.form.patchValue(
       {
         categoryId,
-        subCategoryId,
         title: detail.title ?? '',
         slug: detail.slug ?? '',
         sku: detail.sku ?? '',
@@ -1098,7 +1047,6 @@ export class AdminProductsComponent implements OnInit {
     );
 
     if (categoryId !== null) {
-      this.loadSubCategories(categoryId, subCategoryId);
       this.loadCategoryAttributes(categoryId, attributes);
     } else {
       this.attributeRows = Object.entries(attributes).map(([key, value]) => ({ key, value }));
@@ -1384,16 +1332,6 @@ export class AdminProductsComponent implements OnInit {
     };
   }
 
-  private normalizeSubCategory(
-    item: ProductSubCategoryResponseDto,
-  ): ProductSubCategoryResponseDto {
-    return {
-      ...item,
-      sub_category_id: this.toNumberOrNull(item.sub_category_id) ?? 0,
-      category_id: this.toNumberOrNull(item.category_id) ?? 0,
-    };
-  }
-
   private toText(value: unknown): string {
     return typeof value === 'string' ? value : '';
   }
@@ -1617,7 +1555,6 @@ export class AdminProductsComponent implements OnInit {
   private getDefaultFormValue() {
     return {
       categoryId: null as number | null,
-      subCategoryId: null as number | null,
       title: '',
       slug: '',
       sku: '',
@@ -1667,7 +1604,6 @@ export class AdminProductsComponent implements OnInit {
     this.clearPendingProductMediaState();
     const firstCategoryId = this.categories[0]?.category_id ?? null;
     this.pendingCategoryId = null;
-    this.pendingSubCategoryId = null;
 
     this.tagInput = '';
     this.fitmentInput = '';
@@ -1688,7 +1624,6 @@ export class AdminProductsComponent implements OnInit {
     this.showBrandDropdown = false;
     this.showModelDropdown = false;
     this.models = [];
-    this.subCategories = [];
     this.categoryAttributes = [];
     this.attributeRows = this.getDefaultAttributeRows();
 

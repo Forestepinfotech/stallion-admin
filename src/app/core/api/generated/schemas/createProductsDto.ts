@@ -17,7 +17,6 @@ export interface CreateProductsDto {
   brand_id?: number;
   model_id?: number;
   category_id: number;
-  sub_category_id: number;
   short_description?: string;
   description?: string;
   status?: string;

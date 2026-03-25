@@ -19,7 +19,6 @@ import { Observable } from "rxjs";
 import type {
   CustomerCatalogControllerCategoryProductsParams,
   CustomerCatalogControllerSearchParams,
-  CustomerCatalogControllerSubcategoryProductsParams,
   CustomerCatalogControllerSuggestionsParams,
   CustomerObjectDto,
   CustomerObjectListDto,
@@ -305,96 +304,6 @@ export class CustomerCatalogService {
     return this.http.get<TData>(`/customer/categories/${slug}/attributes`, {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
-    });
-  }
-  customerCatalogControllerSubcategoryDetail<TData = CustomerObjectDto>(
-    slug: string,
-    options?: HttpClientOptions & { observe?: "body" },
-  ): Observable<TData>;
-  customerCatalogControllerSubcategoryDetail<TData = CustomerObjectDto>(
-    slug: string,
-    options?: HttpClientOptions & { observe: "events" },
-  ): Observable<HttpEvent<TData>>;
-  customerCatalogControllerSubcategoryDetail<TData = CustomerObjectDto>(
-    slug: string,
-    options?: HttpClientOptions & { observe: "response" },
-  ): Observable<AngularHttpResponse<TData>>;
-  customerCatalogControllerSubcategoryDetail<TData = CustomerObjectDto>(
-    slug: string,
-    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
-  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === "events") {
-      return this.http.get<TData>(`/customer/subcategories/${slug}`, {
-        ...(options as Omit<NonNullable<typeof options>, "observe">),
-        observe: "events",
-      });
-    }
-
-    if (options?.observe === "response") {
-      return this.http.get<TData>(`/customer/subcategories/${slug}`, {
-        ...(options as Omit<NonNullable<typeof options>, "observe">),
-        observe: "response",
-      });
-    }
-
-    return this.http.get<TData>(`/customer/subcategories/${slug}`, {
-      ...(options as Omit<NonNullable<typeof options>, "observe">),
-      observe: "body",
-    });
-  }
-  customerCatalogControllerSubcategoryProducts<
-    TData = CustomerSearchResponseDto,
-  >(
-    slug: string,
-    params?: CustomerCatalogControllerSubcategoryProductsParams,
-    options?: HttpClientOptions & { observe?: "body" },
-  ): Observable<TData>;
-  customerCatalogControllerSubcategoryProducts<
-    TData = CustomerSearchResponseDto,
-  >(
-    slug: string,
-    params?: CustomerCatalogControllerSubcategoryProductsParams,
-    options?: HttpClientOptions & { observe: "events" },
-  ): Observable<HttpEvent<TData>>;
-  customerCatalogControllerSubcategoryProducts<
-    TData = CustomerSearchResponseDto,
-  >(
-    slug: string,
-    params?: CustomerCatalogControllerSubcategoryProductsParams,
-    options?: HttpClientOptions & { observe: "response" },
-  ): Observable<AngularHttpResponse<TData>>;
-  customerCatalogControllerSubcategoryProducts<
-    TData = CustomerSearchResponseDto,
-  >(
-    slug: string,
-    params?: CustomerCatalogControllerSubcategoryProductsParams,
-    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
-  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    const filteredParams = filterParams(
-      { ...params, ...options?.params },
-      new Set<string>([]),
-    );
-
-    if (options?.observe === "events") {
-      return this.http.get<TData>(`/customer/subcategories/${slug}/products`, {
-        ...(options as Omit<NonNullable<typeof options>, "observe">),
-        observe: "events",
-        params: filteredParams,
-      });
-    }
-
-    if (options?.observe === "response") {
-      return this.http.get<TData>(`/customer/subcategories/${slug}/products`, {
-        ...(options as Omit<NonNullable<typeof options>, "observe">),
-        observe: "response",
-        params: filteredParams,
-      });
-    }
-
-    return this.http.get<TData>(`/customer/subcategories/${slug}/products`, {
-      ...(options as Omit<NonNullable<typeof options>, "observe">),
-      observe: "body",
-      params: filteredParams,
     });
   }
   customerCatalogControllerSearch<TData = CustomerSearchResponseDto>(

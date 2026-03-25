@@ -4,13 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AdminProductCategoryService as ProductCategoryService } from '../../../core/api/generated/admin-product-category/admin-product-category.service';
-import { AdminProductSubCategoryService as ProductSubCategoryService } from '../../../core/api/generated/admin-product-sub-category/admin-product-sub-category.service';
 import { AdminProductsService as ProductsService } from '../../../core/api/generated/admin-products/admin-products.service';
 import type {
   CreateProductsDto,
   ProductCategoryResponseDto,
   ProductDetailDto,
-  ProductSubCategoryResponseDto,
   ProductSummaryDto,
   UpdateProductsDto,
 } from '../../../core/api/generated/schemas';
@@ -20,7 +18,6 @@ import { ToastService } from '../../../core/notification/toast.service';
 type ProductForm = {
   product_id?: string;
   category_id: string;
-  sub_category_id: string;
   sku: string;
   title: string;
   short_description: string;
@@ -61,7 +58,6 @@ type ProductRow = {
   returnable: boolean;
   thumbnail_image: string;
   category_name: string;
-  sub_category_name: string;
   status: string;
   visibility: string;
 };
@@ -105,7 +101,6 @@ function toNumOrUndefined(value: string): number | undefined {
 export class AdminProductListComponent implements OnInit {
   private readonly productsService = inject(ProductsService);
   private readonly productCategoryService = inject(ProductCategoryService);
-  private readonly productSubCategoryService = inject(ProductSubCategoryService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
   private readonly mediaUrlService = inject(MediaUrlService);
@@ -115,7 +110,6 @@ export class AdminProductListComponent implements OnInit {
   statusFilter = signal<'all' | 'active' | 'inactive'>('all');
   stockFilter = signal<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>('all');
   selectedCategoryId = signal<string>('all');
-  selectedSubCategoryId = signal<string>('all');
   dateFrom = signal('');
   dateTo = signal('');
   appliedQ = signal('');
@@ -123,7 +117,6 @@ export class AdminProductListComponent implements OnInit {
   appliedStatusFilter = signal<'all' | 'active' | 'inactive'>('all');
   appliedStockFilter = signal<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>('all');
   appliedCategoryId = signal<string>('all');
-  appliedSubCategoryId = signal<string>('all');
   appliedDateFrom = signal('');
   appliedDateTo = signal('');
   modalOpen = signal(false);
@@ -136,11 +129,9 @@ export class AdminProductListComponent implements OnInit {
   saving = false;
   deletingId: number | null = null;
   loadingCategories = false;
-  loadingSubCategories = false;
 
   products = signal<ProductRow[]>([]);
   categories = signal<ProductCategoryResponseDto[]>([]);
-  subCategories = signal<ProductSubCategoryResponseDto[]>([]);
 
   form = signal<ProductForm>(this.emptyForm());
 
@@ -179,12 +170,6 @@ export class AdminProductListComponent implements OnInit {
 
   onCategoryFilterChange(value: string): void {
     this.selectedCategoryId.set(value);
-    this.selectedSubCategoryId.set('all');
-    this.loadSubCategoriesForFilter();
-  }
-
-  onSubCategoryFilterChange(value: string): void {
-    this.selectedSubCategoryId.set(value);
   }
 
   onPageSizeChange(value: number): void {
@@ -207,7 +192,6 @@ export class AdminProductListComponent implements OnInit {
     this.appliedStatusFilter.set(this.statusFilter());
     this.appliedStockFilter.set(this.stockFilter());
     this.appliedCategoryId.set(this.selectedCategoryId());
-    this.appliedSubCategoryId.set(this.selectedSubCategoryId());
     this.appliedDateFrom.set(this.dateFrom());
     this.appliedDateTo.set(this.dateTo());
     this.page.set(1);
@@ -220,16 +204,13 @@ export class AdminProductListComponent implements OnInit {
     this.statusFilter.set('all');
     this.stockFilter.set('all');
     this.selectedCategoryId.set('all');
-    this.selectedSubCategoryId.set('all');
     this.dateFrom.set('');
     this.dateTo.set('');
-    this.subCategories.set([]);
     this.appliedQ.set('');
     this.appliedShowDeleted.set(false);
     this.appliedStatusFilter.set('all');
     this.appliedStockFilter.set('all');
     this.appliedCategoryId.set('all');
-    this.appliedSubCategoryId.set('all');
     this.appliedDateFrom.set('');
     this.appliedDateTo.set('');
     this.page.set(1);
@@ -277,8 +258,8 @@ export class AdminProductListComponent implements OnInit {
       return;
     }
 
-    if (!form.category_id || !form.sub_category_id) {
-      this.toastService.warning('Category and sub category are required.');
+    if (!form.category_id) {
+      this.toastService.warning('Category is required.');
       return;
     }
 
@@ -348,8 +329,6 @@ export class AdminProductListComponent implements OnInit {
 
   onModalCategoryChange(value: string): void {
     this.patchForm('category_id', value);
-    this.patchForm('sub_category_id', '');
-    this.loadModalSubCategories(value);
   }
 
   private loadProducts(): void {
@@ -392,50 +371,6 @@ export class AdminProductListComponent implements OnInit {
       });
   }
 
-  private loadSubCategoriesForFilter(): void {
-    const categoryId = this.selectedCategoryId();
-    if (categoryId === 'all') {
-      this.subCategories.set([]);
-      return;
-    }
-
-    this.loadingSubCategories = true;
-    this.productSubCategoryService
-      .productSubCategoryControllerList({
-        params: { page: 1, limit: 500, category_id: Number(categoryId), is_deleted: false },
-      })
-      .pipe(finalize(() => (this.loadingSubCategories = false)))
-      .subscribe({
-        next: (response) => {
-          this.subCategories.set(response.data ?? []);
-        },
-        error: () => {
-          this.subCategories.set([]);
-        },
-      });
-  }
-
-  private loadModalSubCategories(categoryId: string): void {
-    if (!categoryId) {
-      return;
-    }
-
-    this.loadingSubCategories = true;
-    this.productSubCategoryService
-      .productSubCategoryControllerList({
-        params: { page: 1, limit: 500, category_id: Number(categoryId), is_deleted: false },
-      })
-      .pipe(finalize(() => (this.loadingSubCategories = false)))
-      .subscribe({
-        next: (response) => {
-          this.subCategories.set(response.data ?? []);
-        },
-        error: () => {
-          this.subCategories.set([]);
-        },
-      });
-  }
-
   private buildListParams(): Record<string, string | number | boolean> {
     const params: Record<string, string | number | boolean> = {
       search: this.appliedQ().trim(),
@@ -447,10 +382,6 @@ export class AdminProductListComponent implements OnInit {
 
     if (this.appliedCategoryId() !== 'all') {
       params['category_id'] = Number(this.appliedCategoryId());
-    }
-
-    if (this.appliedSubCategoryId() !== 'all') {
-      params['sub_category_id'] = Number(this.appliedSubCategoryId());
     }
 
     if (this.appliedDateFrom()) {
@@ -483,7 +414,6 @@ export class AdminProductListComponent implements OnInit {
       returnable: false,
       thumbnail_image: this.mediaUrlService.resolve(item.thumbnail_image),
       category_name: typeof item.category_name === 'string' ? item.category_name : '',
-      sub_category_name: typeof item.sub_category_name === 'string' ? item.sub_category_name : '',
       status: typeof item.status === 'string' ? item.status : '',
       visibility: typeof item.visibility === 'string' ? item.visibility : '',
     };
@@ -493,7 +423,6 @@ export class AdminProductListComponent implements OnInit {
     return {
       product_id: String(item.product_id),
       category_id: toNumberString(item.category_id),
-      sub_category_id: toNumberString(item.sub_category_id),
       sku: item.sku ?? '',
       title: item.title ?? '',
       short_description: toStringValue(item.short_description),
@@ -520,7 +449,6 @@ export class AdminProductListComponent implements OnInit {
   private toCreatePayload(form: ProductForm): CreateProductsDto {
     return {
       category_id: Number(form.category_id),
-      sub_category_id: Number(form.sub_category_id),
       sku: form.sku.trim(),
       title: form.title.trim(),
       short_description: form.short_description.trim() || undefined,
@@ -561,7 +489,6 @@ export class AdminProductListComponent implements OnInit {
   private emptyForm(): ProductForm {
     return {
       category_id: '',
-      sub_category_id: '',
       sku: '',
       title: '',
       short_description: '',

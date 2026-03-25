@@ -32,18 +32,6 @@
             <small *ngIf="loadingCategories">Loading categories from server...</small>
             <small *ngIf="hasError('categoryId')" class="field-error">{{ getErrorMessage('categoryId', 'Category') }}</small>
           </label>
-
-          <label class="field">
-            <span>Sub Category *</span>
-            <select formControlName="subCategoryId" [disabled]="loadingSubCategories || !form.value.categoryId" [class.is-invalid]="hasError('subCategoryId')">
-              <option [ngValue]="null">Select sub category</option>
-              <option *ngFor="let subCategory of subCategories" [ngValue]="subCategory.sub_category_id">
-                {{ subCategory.sub_category }}
-              </option>
-            </select>
-            <small *ngIf="loadingSubCategories">Loading sub categories from server...</small>
-            <small *ngIf="hasError('subCategoryId')" class="field-error">{{ getErrorMessage('subCategoryId', 'Sub category') }}</small>
-          </label>
         </div>
       </article>
 
@@ -532,7 +520,7 @@
 
             <div class="preview-card__body">
               <strong>{{ form.value.title || "Product Preview" }}</strong>
-              <span>{{ selectedCategoryName }} • {{ selectedSubCategoryName }}</span>
+              <span>{{ selectedCategoryName }}</span>
               <span>SKU: {{ form.value.sku || "-" }}</span>
             </div>
 
@@ -767,7 +755,7 @@
       <article class="sidebar-card sidebar-card--summary">
         <div class="sidebar-card__eyebrow">Launch Summary</div>
         <h3>{{ form.value.title || "Untitled Product" }}</h3>
-        <p>{{ selectedCategoryName }} / {{ selectedSubCategoryName }}</p>
+        <p>{{ selectedCategoryName }}</p>
 
         <div class="summary-grid">
           <div>

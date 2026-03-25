@@ -8,7 +8,6 @@
 export type CustomerCatalogControllerCategoryProductsParams = {
   q?: string;
   category?: string;
-  sub_category?: string;
   brand?: string;
   model?: string;
   shipping_class?: string;

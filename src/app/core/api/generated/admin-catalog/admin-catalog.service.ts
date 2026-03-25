@@ -73,37 +73,6 @@ export class AdminCatalogService {
       observe: "body",
     });
   }
-  catalogControllerSubcategories<TData = void>(
-    options?: HttpClientOptions & { observe?: "body" },
-  ): Observable<TData>;
-  catalogControllerSubcategories<TData = void>(
-    options?: HttpClientOptions & { observe: "events" },
-  ): Observable<HttpEvent<TData>>;
-  catalogControllerSubcategories<TData = void>(
-    options?: HttpClientOptions & { observe: "response" },
-  ): Observable<AngularHttpResponse<TData>>;
-  catalogControllerSubcategories<TData = void>(
-    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
-  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === "events") {
-      return this.http.get<TData>(`/catalog/subcategories`, {
-        ...(options as Omit<NonNullable<typeof options>, "observe">),
-        observe: "events",
-      });
-    }
-
-    if (options?.observe === "response") {
-      return this.http.get<TData>(`/catalog/subcategories`, {
-        ...(options as Omit<NonNullable<typeof options>, "observe">),
-        observe: "response",
-      });
-    }
-
-    return this.http.get<TData>(`/catalog/subcategories`, {
-      ...(options as Omit<NonNullable<typeof options>, "observe">),
-      observe: "body",
-    });
-  }
   catalogControllerTaxonomyTree<TData = void>(
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;

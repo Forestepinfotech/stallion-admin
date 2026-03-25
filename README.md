@@ -7,10 +7,11 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 The frontend is built as a static Angular SPA and can be served on a DigitalOcean droplet with PM2.
 
 1. Copy `.env.example` to `.env` and set the real auth values.
-2. Keep `API_BASE_URL=http://178.128.228.186` if your backend is running on the same droplet.
-3. Run `npm ci`.
-4. Run `npm run build`.
-5. Run `npm run pm2:start`.
+2. Set `IS_SERVER=true` to use `http://178.128.228.186`, or `IS_SERVER=false` to use `http://localhost:3002`.
+3. `IS_SERVER` defaults to the server URL when the flag is omitted.
+4. Run `npm ci`.
+5. Run `npm run build`.
+6. Run `npm run pm2:start`.
 
 PM2 serves the compiled frontend on port `4200` through [ecosystem.config.cjs](/Users/mac/Desktop/NATIVE_IOS/VarinderCuApps/stallion-admin-main/ecosystem.config.cjs). Production PM2 stdout/stderr logs are disabled there.
 
