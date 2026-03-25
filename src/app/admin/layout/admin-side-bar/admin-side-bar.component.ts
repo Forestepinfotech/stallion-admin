@@ -33,8 +33,11 @@ export class AdminSideBarComponent {
 
   get avatarUrl(): string {
     const user = this.session.snapshot.user as any;
-    const pic = user?.user_pic ?? user?.avatarUrl;
-    const resolved = this.mediaUrlService.resolve(pic);
+    return this.resolveAvatarUrl(user?.user_pic ?? user?.avatarUrl);
+  }
+
+  resolveAvatarUrl(value: unknown): string {
+    const resolved = this.mediaUrlService.resolve(value);
     if (resolved) return resolved;
     return 'assets/images/profile.png';
   }
