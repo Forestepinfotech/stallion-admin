@@ -1106,7 +1106,23 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.loadCategoryAttributes(categoryId);
+    const existingAttributes = this.isEditMode
+      ? this.getCurrentCustomAttributes()
+      : undefined;
+    this.loadCategoryAttributes(categoryId, existingAttributes);
+  }
+
+  private getCurrentCustomAttributes(): Record<string, string> {
+    return this.attributeRows.reduce<Record<string, string>>((accumulator, row) => {
+      const key = row.key.trim();
+      const value = String(row.value ?? '').trim();
+      if (!key || !value) {
+        return accumulator;
+      }
+
+      accumulator[key] = value;
+      return accumulator;
+    }, {});
   }
 
   private loadCategories(): void {
