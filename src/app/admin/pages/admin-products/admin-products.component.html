@@ -32,6 +32,40 @@
             <small *ngIf="loadingCategories">Loading categories from server...</small>
             <small *ngIf="hasError('categoryId')" class="field-error">{{ getErrorMessage('categoryId', 'Category') }}</small>
           </label>
+
+          <div class="field field--dropdown" *ngIf="!isEditMode">
+            <span>Copy From Product</span>
+            <input
+              [ngModel]="copyFromSearch"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onCopyFromSearchChange($event)"
+              (focus)="showCopyFromDropdown = true"
+              (blur)="hideCopyFromDropdown()"
+              placeholder="Search existing product..."
+            />
+            <div class="field-dropdown" *ngIf="showCopyFromDropdown">
+              <button
+                *ngFor="let option of copyFromSearchResults"
+                type="button"
+                class="field-dropdown__item"
+                (mousedown)="selectCopyFromProduct(option)"
+              >
+                {{ option.title }}
+                <span *ngIf="option.sku">· {{ option.sku }}</span>
+              </button>
+              <div *ngIf="copyFromSearchLoading" class="field-dropdown__empty">Searching...</div>
+              <div *ngIf="!copyFromSearchLoading && copyFromSearchError" class="field-dropdown__empty">
+                {{ copyFromSearchError }}
+              </div>
+              <div
+                *ngIf="!copyFromSearchLoading && !copyFromSearchError && copyFromSearchResults.length === 0 && copyFromSearch.trim()"
+                class="field-dropdown__empty"
+              >
+                No products found
+              </div>
+            </div>
+            <small>Copies attributes, return policy, media, and cross-sells. SKU/slug/UPC are cleared.</small>
+          </div>
         </div>
       </article>
 

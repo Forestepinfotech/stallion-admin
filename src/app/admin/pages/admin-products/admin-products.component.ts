@@ -74,6 +74,7 @@ const RESERVED_ATTRIBUTE_FIELDS = [
 ] as const;
 
 const CROSS_SELL_SEARCH_DEBOUNCE_MS = 2000;
+const COPY_FROM_SEARCH_DEBOUNCE_MS = 450;
 
 @Component({
   selector: 'app-admin-products',
@@ -129,11 +130,17 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   crossSellValidationError = '';
   crossSellSearchResults: CrossSellSearchOption[] = [];
   crossSellItems: CrossSellFormItem[] = [];
+  copyFromSearch = '';
+  copyFromSearchLoading = false;
+  copyFromSearchError = '';
+  copyFromSearchResults: CrossSellSearchOption[] = [];
+  showCopyFromDropdown = false;
   private pendingPrimaryImageFile: File | null = null;
   private pendingPrimaryImagePreviewUrl: string | null = null;
   private pendingGalleryFiles: PendingAssetItem[] = [];
   private pendingVideoFiles: PendingAssetItem[] = [];
   private crossSellSearchHandle: ReturnType<typeof setTimeout> | null = null;
+  private copyFromSearchHandle: ReturnType<typeof setTimeout> | null = null;
 
   tagInput = '';
   fitmentInput = '';
@@ -259,6 +266,11 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     if (this.crossSellSearchHandle) {
       clearTimeout(this.crossSellSearchHandle);
       this.crossSellSearchHandle = null;
+    }
+
+    if (this.copyFromSearchHandle) {
+      clearTimeout(this.copyFromSearchHandle);
+      this.copyFromSearchHandle = null;
     }
   }
 
@@ -635,6 +647,68 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         this.modelSearch = '';
       }
     }, 150);
+  }
+
+  hideCopyFromDropdown(): void {
+    setTimeout(() => {
+      this.showCopyFromDropdown = false;
+    }, 150);
+  }
+
+  onCopyFromSearchChange(value: string): void {
+    this.copyFromSearch = value;
+    this.copyFromSearchError = '';
+
+    if (this.copyFromSearchHandle) {
+      clearTimeout(this.copyFromSearchHandle);
+      this.copyFromSearchHandle = null;
+    }
+
+    const term = value.trim();
+    if (!term) {
+      this.copyFromSearchLoading = false;
+      this.copyFromSearchResults = [];
+      return;
+    }
+
+    this.copyFromSearchHandle = setTimeout(() => {
+      this.copyFromSearchLoading = true;
+      this.productsService.productsControllerSearchSuggestions({ term, limit: 8 }).subscribe({
+        next: (response) => {
+          this.copyFromSearchLoading = false;
+          this.copyFromSearchResults = response
+            .filter((item: ProductSearchSuggestionDto) => item.type === 'product')
+            .map((item: ProductSearchSuggestionDto) => this.mapCrossSellSuggestion(item))
+            .filter((item): item is CrossSellSearchOption => item !== null);
+        },
+        error: () => {
+          this.copyFromSearchLoading = false;
+          this.copyFromSearchResults = [];
+          this.copyFromSearchError = 'Unable to search products right now.';
+        },
+      });
+    }, COPY_FROM_SEARCH_DEBOUNCE_MS);
+  }
+
+  selectCopyFromProduct(option: CrossSellSearchOption): void {
+    if (this.isEditMode) {
+      return;
+    }
+
+    if (!this.confirmCopyOverwrite()) {
+      return;
+    }
+
+    this.copyFromSearch = option.sku ? `${option.title} · ${option.sku}` : option.title;
+    this.copyFromSearchResults = [];
+    this.showCopyFromDropdown = false;
+    this.copyProductFromExisting(option.id);
+  }
+
+  clearCopyFromProduct(): void {
+    this.copyFromSearch = '';
+    this.copyFromSearchError = '';
+    this.copyFromSearchResults = [];
   }
 
   addAttributeRow(key = '', value = ''): void {
@@ -1105,6 +1179,75 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
           this.router.navigate(['/admin/products-list']);
         },
       });
+  }
+
+  private copyProductFromExisting(productId: number): void {
+    this.loadingProduct = true;
+    this.crossSellHydrationError = '';
+    this.productsService
+      .productsControllerGet(String(productId))
+      .pipe(finalize(() => (this.loadingProduct = false)))
+      .subscribe({
+        next: (response) => {
+          this.applyCopyFromDetail(response.data, productId);
+        },
+        error: (error) => {
+          this.toastService.error(this.getApiErrorMessage(error, 'Failed to copy product details.'));
+        },
+      });
+  }
+
+  private applyCopyFromDetail(detail: ProductDetailDto, productId: number): void {
+    this.patchFormFromDetail(detail);
+
+    // Keep most fields, but clear identifiers that must be unique.
+    this.form.patchValue(
+      {
+        sku: '',
+        slug: '',
+        upc: '',
+      },
+      { emitEvent: false },
+    );
+
+    // Copy cross-sells as well (if any).
+    this.loadingCrossSells = true;
+    this.productsService
+      .productsControllerListCrossSells(String(productId))
+      .pipe(finalize(() => (this.loadingCrossSells = false)))
+      .subscribe({
+        next: (response) => {
+          this.crossSellHydrationError = '';
+          this.crossSellValidationError = '';
+          this.crossSellItems = (response.data ?? []).map((item) => this.mapCrossSellDto(item));
+        },
+        error: (error) => {
+          this.crossSellItems = [];
+          this.crossSellHydrationError = this.getApiErrorMessage(error, 'Failed to load cross-sell products.');
+        },
+      });
+
+    this.form.markAsDirty();
+    this.toastService.success('Product copied. Update SKU/slug before saving.');
+  }
+
+  private confirmCopyOverwrite(): boolean {
+    if (
+      this.form.dirty ||
+      this.tags.length > 0 ||
+      this.fitments.length > 0 ||
+      this.packageItems.length > 0 ||
+      this.notes.length > 0 ||
+      this.nonReturnableReasons.length > 0 ||
+      this.galleryImages.length > 0 ||
+      this.videoUrls.length > 0 ||
+      this.attributeRows.length > 0 ||
+      this.crossSellItems.length > 0
+    ) {
+      return globalThis.confirm('Copying will overwrite the current product form. Continue?');
+    }
+
+    return true;
   }
 
   private patchFormFromDetail(detail: ProductDetailDto): void {
@@ -1853,6 +1996,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       clearTimeout(this.crossSellSearchHandle);
       this.crossSellSearchHandle = null;
     }
+    if (this.copyFromSearchHandle) {
+      clearTimeout(this.copyFromSearchHandle);
+      this.copyFromSearchHandle = null;
+    }
 
     this.tagInput = '';
     this.fitmentInput = '';
@@ -1883,6 +2030,11 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     this.crossSellValidationError = '';
     this.crossSellSearchResults = [];
     this.crossSellItems = [];
+    this.copyFromSearch = '';
+    this.copyFromSearchLoading = false;
+    this.copyFromSearchError = '';
+    this.copyFromSearchResults = [];
+    this.showCopyFromDropdown = false;
 
     this.form.reset({
       ...this.getDefaultFormValue(),
