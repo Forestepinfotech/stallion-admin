@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "npm run config:gen && ng serve --poll=2000",
+    "start": "npm run config:gen && ng serve",
     "build": "npm run config:gen && ng build --configuration production",
     "build:dev": "npm run config:gen && ng build --configuration development",
     "watch": "ng build --watch --configuration development --poll=2000",

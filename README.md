@@ -13,7 +13,7 @@ The frontend is built as a static Angular SPA and can be served on a DigitalOcea
 5. Run `npm run build`.
 6. Run `npm run pm2:start`.
 
-PM2 serves the compiled frontend on port `4200` through [ecosystem.config.cjs](/Users/mac/Desktop/NATIVE_IOS/VarinderCuApps/stallion-admin-main/ecosystem.config.cjs). Production PM2 stdout/stderr logs are disabled there.
+PM2 serves the compiled frontend on port `4300` through [ecosystem.config.cjs](/Users/mac/Desktop/NATIVE_IOS/VarinderCuApps/stallion-admin-main/ecosystem.config.cjs). Production PM2 stdout/stderr logs are disabled there.
 
 ### Nginx on the droplet
 
@@ -31,7 +31,7 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-That config listens on port `80` and proxies requests to the PM2 app on `127.0.0.1:4200`.
+That config listens on port `80` and proxies requests to the PM2 app on `127.0.0.1:4300`.
 
 If you want HTTPS, point your domain to the droplet and then run:
 
@@ -48,7 +48,7 @@ To start a local development server, run:
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Once the server is running, open your browser and navigate to `http://localhost:4300/`. The application will automatically reload whenever you modify any of the source files.
 
 ## Code scaffolding
 
