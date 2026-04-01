@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize, forkJoin, of } from 'rxjs';
+import { finalize, forkJoin, of, from } from 'rxjs';
+import { catchError, mergeMap } from 'rxjs/operators';
 import { CategoryModalComponent } from '../../components/category-modal/category-modal.component';
 import { AdminCarBrandService as CarBrandService } from '../../../core/api/generated/admin-car-brand/admin-car-brand.service';
 import { AdminCarBrandModelService as CarBrandModelService } from '../../../core/api/generated/admin-car-brand-model/admin-car-brand-model.service';
@@ -15,6 +16,7 @@ import type {
   CarBrandModelResponseDto,
   CreateProductCategoryDto,
   CreateProductAttributeDto,
+  PaginatedCarBrandModelResponseDto,
   ProductAttributeResponseDto,
   ProductAttributeValuesResponseDto,
   SaveProductCategoryAttributeValuesDto,
@@ -29,6 +31,7 @@ import { ToastService } from '../../../core/notification/toast.service';
 
 type AttributeStatusFilter = 'All' | 'Active' | 'Inactive';
 type AttributeDropdownKey = 'category' | 'brand' | 'model' | 'product';
+type AddValuesMode = 'year_range' | 'brands' | 'categories' | 'models';
 
 interface DummyAttributeValueItem {
   id: number;
@@ -86,6 +89,43 @@ export class AdminAttributesComponent implements OnInit {
   valueDateFrom = '';
   valueDateTo = '';
   newValueLabel = '';
+  addValuesModalOpen = false;
+  addValuesMode: AddValuesMode = 'year_range';
+  addValuesBusy = false;
+  addValuesProgress: { total: number; done: number } | null = null;
+  addValuesYearFrom = new Date().getFullYear();
+  addValuesYearTo = new Date().getFullYear();
+  addValuesBrandSearchInput = '';
+  addValuesCategorySearchInput = '';
+  addValuesModelSearchInput = '';
+  addValuesBrandSearchApplied = '';
+  addValuesCategorySearchApplied = '';
+  addValuesModelSearchApplied = '';
+  private addValuesBrandSearchHandle: number | null = null;
+  private addValuesCategorySearchHandle: number | null = null;
+  private addValuesModelSearchHandle: number | null = null;
+  readonly addValuesPageSize = 50;
+  addValuesBrandsLoading = false;
+  addValuesCategoriesLoading = false;
+  addValuesModelsLoading = false;
+  addValuesBrandsPage = 1;
+  addValuesCategoriesPage = 1;
+  addValuesModelsPage = 1;
+  addValuesBrandsTotalPages = 1;
+  addValuesCategoriesTotalPages = 1;
+  addValuesModelsTotalPages = 1;
+  addValuesBrandsHasNext = false;
+  addValuesCategoriesHasNext = false;
+  addValuesModelsHasNext = false;
+  addValuesBrands: CarBrandResponseDto[] = [];
+  addValuesCategories: ProductCategoryResponseDto[] = [];
+  addValuesModels: CarBrandModelResponseDto[] = [];
+  addValuesSelectedBrandIds = new Set<number>();
+  addValuesSelectedCategoryIds = new Set<number>();
+  addValuesSelectedModelIds = new Set<number>();
+  private addValuesBrandNameById = new Map<number, string>();
+  private addValuesCategoryNameById = new Map<number, string>();
+  private addValuesModelNameById = new Map<number, string>();
   editingValueId: number | null = null;
   editingValueLabel = '';
   duplicateValueConfirmOpen = false;
@@ -200,6 +240,20 @@ export class AdminAttributesComponent implements OnInit {
 
   get modelsForBrand(): CarBrandModelResponseDto[] {
     return this.models;
+  }
+
+  get addValuesSelectedCount(): number {
+    switch (this.addValuesMode) {
+      case 'brands':
+        return this.addValuesSelectedBrandIds.size;
+      case 'categories':
+        return this.addValuesSelectedCategoryIds.size;
+      case 'models':
+        return this.addValuesSelectedModelIds.size;
+      case 'year_range':
+      default:
+        return this.buildYearRange(this.addValuesYearFrom, this.addValuesYearTo).length;
+    }
   }
 
   get filteredCategories(): ProductCategoryResponseDto[] {
@@ -850,6 +904,7 @@ export class AdminAttributesComponent implements OnInit {
     this.valueDateFrom = '';
     this.valueDateTo = '';
     this.newValueLabel = '';
+    this.closeAddValuesModal();
     this.editingValueId = null;
     this.editingValueLabel = '';
     this.selectedValueIdsDraft = [];
@@ -864,6 +919,7 @@ export class AdminAttributesComponent implements OnInit {
     this.selectedValueAttribute = null;
     this.duplicateValueConfirmOpen = false;
     this.pendingDuplicateValue = null;
+    this.closeAddValuesModal();
     this.valueOriginalItems = [];
     this.valueDraftItems = [];
     this.selectedValueIdsDraft = [];
@@ -1046,6 +1102,486 @@ export class AdminAttributesComponent implements OnInit {
           this.toastService.error(
             this.getErrorMessage(error, 'Failed to add value.'),
           );
+        },
+      });
+  }
+
+  openAddValuesModal(mode: AddValuesMode = 'year_range'): void {
+    if (!this.selectedValueAttribute?.attribute_id) return;
+    this.addValuesModalOpen = true;
+    this.setAddValuesMode(mode);
+  }
+
+  closeAddValuesModal(): void {
+    this.addValuesModalOpen = false;
+    this.addValuesBusy = false;
+    this.addValuesProgress = null;
+    this.addValuesBrandSearchInput = '';
+    this.addValuesCategorySearchInput = '';
+    this.addValuesModelSearchInput = '';
+    this.addValuesBrandSearchApplied = '';
+    this.addValuesCategorySearchApplied = '';
+    this.addValuesModelSearchApplied = '';
+    this.addValuesSelectedBrandIds.clear();
+    this.addValuesSelectedCategoryIds.clear();
+    this.addValuesSelectedModelIds.clear();
+    this.addValuesModels = [];
+    this.addValuesBrands = [];
+    this.addValuesCategories = [];
+    this.addValuesBrandsLoading = false;
+    this.addValuesCategoriesLoading = false;
+    this.addValuesModelsLoading = false;
+    this.addValuesBrandsPage = 1;
+    this.addValuesCategoriesPage = 1;
+    this.addValuesModelsPage = 1;
+    this.addValuesBrandsTotalPages = 1;
+    this.addValuesCategoriesTotalPages = 1;
+    this.addValuesModelsTotalPages = 1;
+    this.addValuesBrandsHasNext = false;
+    this.addValuesCategoriesHasNext = false;
+    this.addValuesModelsHasNext = false;
+    this.addValuesBrandNameById.clear();
+    this.addValuesCategoryNameById.clear();
+    this.addValuesModelNameById.clear();
+    this.addValuesYearFrom = new Date().getFullYear();
+    this.addValuesYearTo = new Date().getFullYear();
+    this.clearAddValuesSearchTimers();
+  }
+
+  setAddValuesMode(mode: AddValuesMode): void {
+    this.addValuesMode = mode;
+    this.addValuesProgress = null;
+    this.addValuesSelectedBrandIds.clear();
+    this.addValuesSelectedCategoryIds.clear();
+    this.addValuesSelectedModelIds.clear();
+    this.addValuesBrandNameById.clear();
+    this.addValuesCategoryNameById.clear();
+    this.addValuesModelNameById.clear();
+
+    if (mode === 'brands') {
+      this.addValuesBrandsPage = 1;
+      this.loadAddValuesBrands(1, this.addValuesBrandSearchApplied);
+    }
+
+    if (mode === 'categories') {
+      this.addValuesCategoriesPage = 1;
+      this.loadAddValuesCategories(1, this.addValuesCategorySearchApplied);
+    }
+
+    if (mode === 'models') {
+      this.addValuesModelsPage = 1;
+      this.loadAddValuesModels(1, this.addValuesModelSearchApplied);
+    }
+  }
+
+  onAddValuesBrandSearchChange(value: string): void {
+    this.addValuesBrandSearchInput = value;
+    if (this.addValuesBrandSearchHandle) {
+      clearTimeout(this.addValuesBrandSearchHandle);
+    }
+    this.addValuesBrandSearchHandle = window.setTimeout(() => {
+      this.addValuesBrandSearchApplied = this.addValuesBrandSearchInput.trim();
+      this.addValuesBrandsPage = 1;
+      this.loadAddValuesBrands(1, this.addValuesBrandSearchApplied);
+    }, 2000);
+  }
+
+  onAddValuesCategorySearchChange(value: string): void {
+    this.addValuesCategorySearchInput = value;
+    if (this.addValuesCategorySearchHandle) {
+      clearTimeout(this.addValuesCategorySearchHandle);
+    }
+    this.addValuesCategorySearchHandle = window.setTimeout(() => {
+      this.addValuesCategorySearchApplied = this.addValuesCategorySearchInput.trim();
+      this.addValuesCategoriesPage = 1;
+      this.loadAddValuesCategories(1, this.addValuesCategorySearchApplied);
+    }, 2000);
+  }
+
+  onAddValuesModelSearchChange(value: string): void {
+    this.addValuesModelSearchInput = value;
+    if (this.addValuesModelSearchHandle) {
+      clearTimeout(this.addValuesModelSearchHandle);
+    }
+    this.addValuesModelSearchHandle = window.setTimeout(() => {
+      this.addValuesModelSearchApplied = this.addValuesModelSearchInput.trim();
+      this.addValuesModelsPage = 1;
+      this.loadAddValuesModels(1, this.addValuesModelSearchApplied);
+    }, 2000);
+  }
+
+  toggleAddValuesBrand(brand: CarBrandResponseDto): void {
+    const id = Number((brand as any).car_brand_id ?? 0);
+    const name = String((brand as any).car_brand_name ?? '').trim();
+    if (!id) return;
+    if (name) this.addValuesBrandNameById.set(id, name);
+
+    const next = new Set(this.addValuesSelectedBrandIds);
+    next.has(id) ? next.delete(id) : next.add(id);
+    this.addValuesSelectedBrandIds = next;
+  }
+
+  toggleAddValuesCategory(category: ProductCategoryResponseDto): void {
+    const id = Number((category as any).category_id ?? 0);
+    const name = String((category as any).category_name ?? '').trim();
+    if (!id) return;
+    if (name) this.addValuesCategoryNameById.set(id, name);
+
+    const next = new Set(this.addValuesSelectedCategoryIds);
+    next.has(id) ? next.delete(id) : next.add(id);
+    this.addValuesSelectedCategoryIds = next;
+  }
+
+  toggleAddValuesModel(model: CarBrandModelResponseDto): void {
+    const id = Number((model as any).model_id ?? 0);
+    const name = String((model as any).model_name ?? '').trim();
+    if (!id) return;
+    if (name) this.addValuesModelNameById.set(id, name);
+
+    const next = new Set(this.addValuesSelectedModelIds);
+    next.has(id) ? next.delete(id) : next.add(id);
+    this.addValuesSelectedModelIds = next;
+  }
+
+  prevAddValuesBrandsPage(): void {
+    if (this.addValuesBrandsPage <= 1 || this.addValuesBrandsLoading) return;
+    this.addValuesBrandsPage -= 1;
+    this.loadAddValuesBrands(this.addValuesBrandsPage, this.addValuesBrandSearchApplied);
+  }
+
+  nextAddValuesBrandsPage(): void {
+    if (!this.addValuesBrandsHasNext || this.addValuesBrandsLoading) return;
+    this.addValuesBrandsPage += 1;
+    this.loadAddValuesBrands(this.addValuesBrandsPage, this.addValuesBrandSearchApplied);
+  }
+
+  prevAddValuesCategoriesPage(): void {
+    if (this.addValuesCategoriesPage <= 1 || this.addValuesCategoriesLoading) return;
+    this.addValuesCategoriesPage -= 1;
+    this.loadAddValuesCategories(this.addValuesCategoriesPage, this.addValuesCategorySearchApplied);
+  }
+
+  nextAddValuesCategoriesPage(): void {
+    if (!this.addValuesCategoriesHasNext || this.addValuesCategoriesLoading) return;
+    this.addValuesCategoriesPage += 1;
+    this.loadAddValuesCategories(this.addValuesCategoriesPage, this.addValuesCategorySearchApplied);
+  }
+
+  prevAddValuesModelsPage(): void {
+    if (this.addValuesModelsPage <= 1 || this.addValuesModelsLoading) return;
+    this.addValuesModelsPage -= 1;
+    this.loadAddValuesModels(this.addValuesModelsPage, this.addValuesModelSearchApplied);
+  }
+
+  nextAddValuesModelsPage(): void {
+    if (!this.addValuesModelsHasNext || this.addValuesModelsLoading) return;
+    this.addValuesModelsPage += 1;
+    this.loadAddValuesModels(this.addValuesModelsPage, this.addValuesModelSearchApplied);
+  }
+
+  confirmAddValuesFromDialog(): void {
+    const attributeId = this.selectedValueAttribute?.attribute_id;
+    if (!attributeId || this.addValuesBusy) return;
+
+    const labels = this.buildAddValuesLabels();
+    if (labels.length === 0) {
+      this.toastService.warning('Select at least one value to add.');
+      return;
+    }
+
+    const uniqueLabels = this.uniqueLabels(labels);
+    this.addValuesBusy = true;
+    this.addValuesProgress = { total: uniqueLabels.length, done: 0 };
+
+    from(uniqueLabels)
+      .pipe(
+        mergeMap((label) => this.createOrSelectValueByLabel(attributeId, label), 5),
+        finalize(() => {
+          this.addValuesBusy = false;
+          this.addValuesProgress = null;
+          this.reloadAttributeValuesWorkspace();
+        }),
+      )
+      .subscribe({
+        next: () => {
+          if (!this.addValuesProgress) return;
+          this.addValuesProgress = {
+            ...this.addValuesProgress,
+            done: Math.min(this.addValuesProgress.done + 1, this.addValuesProgress.total),
+          };
+        },
+        error: (error) => {
+          this.toastService.error(this.getErrorMessage(error, 'Failed to add values.'));
+        },
+        complete: () => {
+          this.toastService.success('Values added successfully.');
+          this.closeAddValuesModal();
+        },
+      });
+  }
+
+  onAddValuesYearFromChange(value: number): void {
+    this.addValuesYearFrom = Number(value);
+    this.ensureAddValuesYearOrder();
+  }
+
+  onAddValuesYearToChange(value: number): void {
+    this.addValuesYearTo = Number(value);
+    this.ensureAddValuesYearOrder();
+  }
+
+  private buildAddValuesLabels(): string[] {
+    switch (this.addValuesMode) {
+      case 'year_range':
+        return this.buildYearRange(this.addValuesYearFrom, this.addValuesYearTo).map(String);
+      case 'brands': {
+        return [...this.addValuesSelectedBrandIds]
+          .map((id) => this.addValuesBrandNameById.get(id) ?? '')
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+      case 'categories': {
+        return [...this.addValuesSelectedCategoryIds]
+          .map((id) => this.addValuesCategoryNameById.get(id) ?? '')
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+      case 'models': {
+        return [...this.addValuesSelectedModelIds]
+          .map((id) => this.addValuesModelNameById.get(id) ?? '')
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+      default:
+        return [];
+    }
+  }
+
+  private uniqueLabels(labels: string[]): string[] {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const label of labels) {
+      const normalized = this.normalizeValueLabel(label);
+      if (!normalized || seen.has(normalized)) continue;
+      seen.add(normalized);
+      result.push(label.trim());
+    }
+    return result;
+  }
+
+  private normalizeValueLabel(label: string): string {
+    return String(label ?? '').trim().toLowerCase();
+  }
+
+  private buildYearRange(fromYear: number, toYear: number): number[] {
+    const a = Number(fromYear);
+    const b = Number(toYear);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) return [];
+    const start = Math.min(a, b);
+    const end = Math.max(a, b);
+    const years: number[] = [];
+    for (let y = start; y <= end; y += 1) years.push(y);
+    return years;
+  }
+
+  private createOrSelectValueByLabel(attributeId: number, label: string) {
+    const trimmed = label.trim();
+    if (!trimmed) return of(null);
+
+    const existing = this.valueDraftItems.find(
+      (item) => item.label.trim().toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (existing) {
+      if (!existing.selected) {
+        this.toggleValueDraft(existing.id);
+      }
+      return of(null);
+    }
+
+    return this.productAttributeValuesService
+      .productAttributeValuesControllerCreate({
+        attribute_id: attributeId,
+        attribute_value: trimmed,
+        is_active: true,
+      })
+      .pipe(
+        catchError((error) => {
+          const existingValue = this.extractAlreadyAddedValue(error, attributeId, trimmed);
+          if (existingValue) {
+            this.selectExistingDraftValue(existingValue);
+            return of(existingValue);
+          }
+          this.toastService.error(this.getErrorMessage(error, `Failed to add "${trimmed}".`));
+          return of(null);
+        }),
+      );
+  }
+
+  private ensureAddValuesYearOrder(): void {
+    if (!Number.isFinite(this.addValuesYearFrom) || !Number.isFinite(this.addValuesYearTo)) {
+      return;
+    }
+    if (this.addValuesYearFrom <= this.addValuesYearTo) return;
+    const from = this.addValuesYearFrom;
+    this.addValuesYearFrom = this.addValuesYearTo;
+    this.addValuesYearTo = from;
+  }
+
+  private clearAddValuesSearchTimers(): void {
+    if (this.addValuesBrandSearchHandle) {
+      clearTimeout(this.addValuesBrandSearchHandle);
+      this.addValuesBrandSearchHandle = null;
+    }
+    if (this.addValuesCategorySearchHandle) {
+      clearTimeout(this.addValuesCategorySearchHandle);
+      this.addValuesCategorySearchHandle = null;
+    }
+    if (this.addValuesModelSearchHandle) {
+      clearTimeout(this.addValuesModelSearchHandle);
+      this.addValuesModelSearchHandle = null;
+    }
+  }
+
+  private normalizeListMeta(meta: unknown, page: number, limit: number): { total: number; totalPages: number } {
+    const source = (meta ?? {}) as Record<string, unknown>;
+    const total =
+      this.toNumber(source['total']) ??
+      this.toNumber(source['count']) ??
+      this.toNumber(source['itemCount']) ??
+      this.toNumber(source['totalItems']) ??
+      0;
+    const totalPages =
+      this.toNumber(source['totalPages']) ??
+      this.toNumber(source['pageCount']) ??
+      Math.max(1, Math.ceil((total || 0) / Math.max(limit, 1)));
+    const normalizedPages = Math.max(1, totalPages);
+    const normalizedTotal = total || normalizedPages * limit;
+    return { total: normalizedTotal, totalPages: normalizedPages };
+  }
+
+  private toNumber(value: unknown): number | undefined {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    const normalized = String(value ?? '').trim();
+    if (!normalized) return undefined;
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+
+  private loadAddValuesBrands(page: number, search?: string): void {
+    const params: Record<string, string | number | boolean> = {
+      page,
+      limit: this.addValuesPageSize,
+      is_active: true,
+    };
+    const normalizedSearch = search?.trim();
+    if (normalizedSearch) {
+      params['search'] = normalizedSearch;
+      params['q'] = normalizedSearch;
+    }
+
+    this.addValuesBrandsLoading = true;
+    this.carBrandService
+      .carBrandControllerList({
+        params,
+      })
+      .pipe(finalize(() => (this.addValuesBrandsLoading = false)))
+      .subscribe({
+        next: (response: any) => {
+          this.addValuesBrands = response?.data ?? [];
+          const meta = this.normalizeListMeta(response?.meta, page, this.addValuesPageSize);
+          this.addValuesBrandsTotalPages = meta.totalPages;
+          this.addValuesBrandsHasNext =
+            this.addValuesBrandsTotalPages > 1
+              ? page < this.addValuesBrandsTotalPages
+              : this.addValuesBrands.length >= this.addValuesPageSize;
+          for (const brand of this.addValuesBrands) {
+            const id = Number((brand as any).car_brand_id ?? 0);
+            const name = String((brand as any).car_brand_name ?? '').trim();
+            if (id && name) this.addValuesBrandNameById.set(id, name);
+          }
+        },
+        error: () => {
+          this.addValuesBrands = [];
+          this.addValuesBrandsTotalPages = 1;
+          this.addValuesBrandsHasNext = false;
+          this.toastService.error('Failed to load brands.');
+        },
+      });
+  }
+
+  private loadAddValuesCategories(page: number, search?: string): void {
+    const params: Record<string, string | number | boolean> = {
+      page,
+      limit: this.addValuesPageSize,
+      is_active: true,
+      is_deleted: false,
+    };
+    const normalizedSearch = search?.trim();
+    if (normalizedSearch) {
+      params['search'] = normalizedSearch;
+      params['q'] = normalizedSearch;
+    }
+
+    this.addValuesCategoriesLoading = true;
+    this.productCategoryService
+      .productCategoryControllerList({
+        params,
+      })
+      .pipe(finalize(() => (this.addValuesCategoriesLoading = false)))
+      .subscribe({
+        next: (response: any) => {
+          this.addValuesCategories = response?.data ?? [];
+          const meta = this.normalizeListMeta(response?.meta, page, this.addValuesPageSize);
+          this.addValuesCategoriesTotalPages = meta.totalPages;
+          this.addValuesCategoriesHasNext =
+            this.addValuesCategoriesTotalPages > 1
+              ? page < this.addValuesCategoriesTotalPages
+              : this.addValuesCategories.length >= this.addValuesPageSize;
+          for (const category of this.addValuesCategories) {
+            const id = Number((category as any).category_id ?? 0);
+            const name = String((category as any).category_name ?? '').trim();
+            if (id && name) this.addValuesCategoryNameById.set(id, name);
+          }
+        },
+        error: () => {
+          this.addValuesCategories = [];
+          this.addValuesCategoriesTotalPages = 1;
+          this.addValuesCategoriesHasNext = false;
+          this.toastService.error('Failed to load categories.');
+        },
+      });
+  }
+
+  private loadAddValuesModels(page: number, search?: string): void {
+    this.addValuesModelsLoading = true;
+    this.carBrandModelService
+      .carBrandModelControllerList({
+        page,
+        limit: this.addValuesPageSize,
+        search: search?.trim() || undefined,
+        is_active: true,
+      })
+      .pipe(finalize(() => (this.addValuesModelsLoading = false)))
+      .subscribe({
+        next: (response: PaginatedCarBrandModelResponseDto) => {
+          this.addValuesModels = response.data ?? [];
+          const meta = this.normalizeListMeta(response.meta, page, this.addValuesPageSize);
+          this.addValuesModelsTotalPages = meta.totalPages;
+          this.addValuesModelsHasNext =
+            this.addValuesModelsTotalPages > 1
+              ? page < this.addValuesModelsTotalPages
+              : this.addValuesModels.length >= this.addValuesPageSize;
+          for (const model of this.addValuesModels) {
+            const id = Number((model as any).model_id ?? 0);
+            const name = String((model as any).model_name ?? '').trim();
+            if (id && name) this.addValuesModelNameById.set(id, name);
+          }
+        },
+        error: () => {
+          this.addValuesModels = [];
+          this.addValuesModelsTotalPages = 1;
+          this.addValuesModelsHasNext = false;
+          this.toastService.error('Failed to load models.');
         },
       });
   }

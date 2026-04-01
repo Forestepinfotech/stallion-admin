@@ -465,19 +465,27 @@
             </button>
           </div>
 
-          <div class="values-add">
-            <input
-              [(ngModel)]="newValueLabel"
-              [ngModelOptions]="{ standalone: true }"
-              class="values-add__input"
-              placeholder="Add value to attribute"
-              (keyup.enter)="addValueToServer()"
-            />
-            <button
-              type="button"
-              class="values-add__button"
-              [disabled]="addingValue"
-              (click)="addValueToServer()"
+	          <div class="values-add">
+	            <input
+	              [(ngModel)]="newValueLabel"
+	              [ngModelOptions]="{ standalone: true }"
+	              class="values-add__input"
+	              placeholder="Add value to attribute"
+	              (keyup.enter)="addValueToServer()"
+	            />
+	            <button
+	              type="button"
+	              class="values-add__button values-add__button--light"
+	              [disabled]="addingValue || loadingValueSelection"
+	              (click)="openAddValuesModal()"
+	            >
+	              Bulk Add
+	            </button>
+	            <button
+	              type="button"
+	              class="values-add__button"
+	              [disabled]="addingValue"
+	              (click)="addValueToServer()"
             >
               {{ addingValue ? "Adding..." : "Add Value" }}
             </button>
@@ -594,8 +602,281 @@
               >
                 Next
               </button>
-            </div>
-          </div>
+	    </div>
+	  </div>
+
+	  <!-- ============ BULK ADD VALUES MODAL ============ -->
+	  <div *ngIf="addValuesModalOpen" class="fixed inset-0 z-[60] overflow-y-auto">
+	    <div class="fixed inset-0 bg-black/50" (click)="closeAddValuesModal()"></div>
+
+	    <div class="relative flex min-h-full items-start justify-center p-4 sm:p-6">
+	      <div class="bulk-values-modal">
+	        <div class="bulk-values-modal__header">
+	          <div>
+	            <div class="bulk-values-modal__title">Add values</div>
+	            <div class="bulk-values-modal__subtitle">
+	              Choose one method and add values by name. Duplicates are ignored.
+	            </div>
+	          </div>
+
+	          <button
+	            type="button"
+	            class="values-modal__close"
+	            (click)="closeAddValuesModal()"
+	          >
+	            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+	              <path
+	                d="M6 6l12 12M18 6L6 18"
+	                stroke="currentColor"
+	                stroke-width="2"
+	                stroke-linecap="round"
+	              />
+	            </svg>
+	          </button>
+	        </div>
+
+	        <div class="bulk-values-modal__body">
+	          <div class="bulk-values-modal__row">
+	            <label class="bulk-values-modal__label">Method</label>
+	            <select
+	              class="values-filter__control"
+	              [(ngModel)]="addValuesMode"
+	              [ngModelOptions]="{ standalone: true }"
+	              (ngModelChange)="setAddValuesMode($event)"
+	            >
+	              <option value="year_range">Year range</option>
+	              <option value="brands">Brands</option>
+	              <option value="categories">Categories</option>
+	              <option value="models">Models</option>
+	            </select>
+	          </div>
+
+	          <ng-container *ngIf="addValuesMode === 'year_range'">
+	            <div class="bulk-values-modal__grid">
+	              <div>
+	                <label class="bulk-values-modal__label">From year</label>
+	                <input
+	                  type="number"
+	                  class="values-filter__control"
+	                  [ngModel]="addValuesYearFrom"
+	                  [ngModelOptions]="{ standalone: true }"
+	                  (ngModelChange)="onAddValuesYearFromChange($event)"
+	                  min="1900"
+	                  max="2100"
+	                />
+	              </div>
+	              <div>
+	                <label class="bulk-values-modal__label">To year</label>
+	                <input
+	                  type="number"
+	                  class="values-filter__control"
+	                  [ngModel]="addValuesYearTo"
+	                  [ngModelOptions]="{ standalone: true }"
+	                  (ngModelChange)="onAddValuesYearToChange($event)"
+	                  min="1900"
+	                  max="2100"
+	                />
+	              </div>
+	            </div>
+	          </ng-container>
+
+	          <ng-container *ngIf="addValuesMode === 'brands'">
+	            <div class="bulk-values-modal__row bulk-values-modal__row--split">
+	              <input
+	                class="values-search"
+	                placeholder="Search brands..."
+	                [ngModel]="addValuesBrandSearchInput"
+	                [ngModelOptions]="{ standalone: true }"
+	                (ngModelChange)="onAddValuesBrandSearchChange($event)"
+	              />
+	            </div>
+
+	            <div class="bulk-values-modal__list">
+	              <div *ngIf="addValuesBrandsLoading" class="attribute-empty attribute-empty--compact">
+	                Loading brands...
+	              </div>
+	              <button
+	                type="button"
+	                class="bulk-values-modal__list-row"
+	                *ngFor="let brand of addValuesBrands"
+	                (click)="toggleAddValuesBrand(brand)"
+	              >
+	                <input
+	                  type="checkbox"
+	                  class="value-row__checkbox"
+	                  [checked]="addValuesSelectedBrandIds.has(brand.car_brand_id)"
+	                />
+	                <span class="bulk-values-modal__list-label">{{ brand.car_brand_name }}</span>
+	              </button>
+	            </div>
+
+	            <div class="values-pagination">
+	              <div class="values-pagination__meta">
+	                Page {{ addValuesBrandsPage }}<ng-container *ngIf="addValuesBrandsTotalPages > 1"> of {{ addValuesBrandsTotalPages }}</ng-container>
+	              </div>
+	              <div class="values-pagination__actions">
+	                <button
+	                  type="button"
+	                  class="values-footer__button"
+	                  [disabled]="addValuesBrandsPage === 1 || addValuesBrandsLoading"
+	                  (click)="prevAddValuesBrandsPage()"
+	                >
+	                  Prev
+	                </button>
+	                <button
+	                  type="button"
+	                  class="values-footer__button"
+	                  [disabled]="!addValuesBrandsHasNext || addValuesBrandsLoading"
+	                  (click)="nextAddValuesBrandsPage()"
+	                >
+	                  Next
+	                </button>
+	              </div>
+	            </div>
+	          </ng-container>
+
+	          <ng-container *ngIf="addValuesMode === 'categories'">
+	            <div class="bulk-values-modal__row bulk-values-modal__row--split">
+	              <input
+	                class="values-search"
+	                placeholder="Search categories..."
+	                [ngModel]="addValuesCategorySearchInput"
+	                [ngModelOptions]="{ standalone: true }"
+	                (ngModelChange)="onAddValuesCategorySearchChange($event)"
+	              />
+	            </div>
+
+	            <div class="bulk-values-modal__list">
+	              <div *ngIf="addValuesCategoriesLoading" class="attribute-empty attribute-empty--compact">
+	                Loading categories...
+	              </div>
+	              <button
+	                type="button"
+	                class="bulk-values-modal__list-row"
+	                *ngFor="let category of addValuesCategories"
+	                (click)="toggleAddValuesCategory(category)"
+	              >
+	                <input
+	                  type="checkbox"
+	                  class="value-row__checkbox"
+	                  [checked]="addValuesSelectedCategoryIds.has(category.category_id)"
+	                />
+	                <span class="bulk-values-modal__list-label">{{ category.category_name }}</span>
+	              </button>
+	            </div>
+
+	            <div class="values-pagination">
+	              <div class="values-pagination__meta">
+	                Page {{ addValuesCategoriesPage }}<ng-container *ngIf="addValuesCategoriesTotalPages > 1"> of {{ addValuesCategoriesTotalPages }}</ng-container>
+	              </div>
+	              <div class="values-pagination__actions">
+	                <button
+	                  type="button"
+	                  class="values-footer__button"
+	                  [disabled]="addValuesCategoriesPage === 1 || addValuesCategoriesLoading"
+	                  (click)="prevAddValuesCategoriesPage()"
+	                >
+	                  Prev
+	                </button>
+	                <button
+	                  type="button"
+	                  class="values-footer__button"
+	                  [disabled]="!addValuesCategoriesHasNext || addValuesCategoriesLoading"
+	                  (click)="nextAddValuesCategoriesPage()"
+	                >
+	                  Next
+	                </button>
+	              </div>
+	            </div>
+	          </ng-container>
+
+	          <ng-container *ngIf="addValuesMode === 'models'">
+	            <div class="bulk-values-modal__row bulk-values-modal__row--split">
+	              <input
+	                class="values-search"
+	                placeholder="Search models..."
+	                [ngModel]="addValuesModelSearchInput"
+	                [ngModelOptions]="{ standalone: true }"
+	                (ngModelChange)="onAddValuesModelSearchChange($event)"
+	              />
+	              <div class="bulk-values-modal__row-actions">
+	                <span class="values-counter" *ngIf="addValuesModelsLoading">Loading…</span>
+	              </div>
+	            </div>
+
+	            <div class="bulk-values-modal__list">
+	              <button
+	                type="button"
+	                class="bulk-values-modal__list-row"
+	                *ngFor="let model of addValuesModels"
+	                (click)="toggleAddValuesModel(model)"
+	              >
+	                <input
+	                  type="checkbox"
+	                  class="value-row__checkbox"
+	                  [checked]="addValuesSelectedModelIds.has(model.model_id)"
+	                />
+	                <span class="bulk-values-modal__list-label">
+	                  {{ model.model_name }}
+	                  <span class="bulk-values-modal__list-meta" *ngIf="model.car_brand_name">
+	                    • {{ model.car_brand_name }}
+	                  </span>
+	                </span>
+	              </button>
+	            </div>
+
+	            <div class="values-pagination">
+	              <div class="values-pagination__meta">
+	                Page {{ addValuesModelsPage }}<ng-container *ngIf="addValuesModelsTotalPages > 1"> of {{ addValuesModelsTotalPages }}</ng-container>
+	              </div>
+	              <div class="values-pagination__actions">
+	                <button
+	                  type="button"
+	                  class="values-footer__button"
+	                  [disabled]="addValuesModelsPage === 1 || addValuesModelsLoading"
+	                  (click)="prevAddValuesModelsPage()"
+	                >
+	                  Prev
+	                </button>
+	                <button
+	                  type="button"
+	                  class="values-footer__button"
+	                  [disabled]="!addValuesModelsHasNext || addValuesModelsLoading"
+	                  (click)="nextAddValuesModelsPage()"
+	                >
+	                  Next
+	                </button>
+	              </div>
+	            </div>
+	          </ng-container>
+
+	          <div class="bulk-values-modal__meta">
+	            Selected: {{ addValuesSelectedCount }}
+	            <span *ngIf="addValuesProgress"> • Adding {{ addValuesProgress.done }}/{{ addValuesProgress.total }}</span>
+	          </div>
+	        </div>
+
+	        <div class="bulk-values-modal__footer">
+	          <button
+	            type="button"
+	            class="values-footer__button"
+	            [disabled]="addValuesBusy"
+	            (click)="closeAddValuesModal()"
+	          >
+	            Cancel
+	          </button>
+	          <button
+	            type="button"
+	            class="values-footer__button values-footer__button--dark"
+	            [disabled]="addValuesBusy"
+	            (click)="confirmAddValuesFromDialog()"
+	          >
+	            {{ addValuesBusy ? "Adding..." : "Add values" }}
+	          </button>
+	        </div>
+	      </div>
+	    </div>
+	  </div>
 
           <div class="values-modal__footer">
             <button
