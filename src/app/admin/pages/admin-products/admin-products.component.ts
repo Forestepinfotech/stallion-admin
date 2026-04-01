@@ -136,6 +136,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   crossSellSearchResults: CrossSellSearchOption[] = [];
   crossSellItems: CrossSellFormItem[] = [];
   copyFromSearch = '';
+  copyFromSearchPending = false;
   copyFromSearchLoading = false;
   copyFromSearchError = '';
   copyFromSearchResults: CrossSellSearchOption[] = [];
@@ -318,6 +319,8 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       clearTimeout(this.copyFromSearchHandle);
       this.copyFromSearchHandle = null;
     }
+
+    this.copyFromSearchPending = false;
   }
 
   get isEditMode(): boolean {
@@ -748,18 +751,25 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
 
     const term = value.trim();
     if (!term) {
+      this.copyFromSearchPending = false;
       this.copyFromSearchLoading = false;
       this.copyFromSearchResults = [];
       return;
     }
 
     this.copyFromSearchHandle = setTimeout(() => {
+      this.copyFromSearchPending = false;
       this.copyFromSearchLoading = true;
       this.productsService
         .productsControllerSearchSuggestions({ term, limit: 8 })
         .subscribe({
           next: (response) => {
             this.copyFromSearchLoading = false;
+            if (!Array.isArray(response)) {
+              this.copyFromSearchResults = [];
+              this.copyFromSearchError = 'Invalid response from server.';
+              return;
+            }
             this.copyFromSearchResults = response
               .filter(
                 (item: ProductSearchSuggestionDto) => item.type === 'product',
@@ -769,13 +779,18 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
               )
               .filter((item): item is CrossSellSearchOption => item !== null);
           },
-          error: () => {
+          error: (error) => {
             this.copyFromSearchLoading = false;
             this.copyFromSearchResults = [];
-            this.copyFromSearchError = 'Unable to search products right now.';
+            this.copyFromSearchError = this.getApiErrorMessage(
+              error,
+              'Unable to search products right now.',
+            );
           },
         });
     }, COPY_FROM_SEARCH_DEBOUNCE_MS);
+
+    this.copyFromSearchPending = true;
   }
 
   selectCopyFromProduct(option: CrossSellSearchOption): void {
@@ -787,6 +802,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.copyFromSearchPending = false;
     this.copyFromSearch = option.sku
       ? `${option.title} · ${option.sku}`
       : option.title;
@@ -799,6 +815,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     this.copyFromSearch = '';
     this.copyFromSearchError = '';
     this.copyFromSearchResults = [];
+    this.copyFromSearchPending = false;
   }
 
   addAttributeRow(key = '', value = ''): void {
@@ -904,6 +921,11 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (response) => {
             this.crossSellSearchLoading = false;
+            if (!Array.isArray(response)) {
+              this.crossSellSearchResults = [];
+              this.crossSellSearchError = 'Invalid response from server.';
+              return;
+            }
             this.crossSellSearchResults = response
               .filter(
                 (item: ProductSearchSuggestionDto) => item.type === 'product',
@@ -918,10 +940,13 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
                   !this.hasCrossSellProduct(item.id),
               );
           },
-          error: () => {
+          error: (error) => {
             this.crossSellSearchLoading = false;
             this.crossSellSearchResults = [];
-            this.crossSellSearchError = 'Unable to search products right now.';
+            this.crossSellSearchError = this.getApiErrorMessage(
+              error,
+              'Unable to search products right now.',
+            );
           },
         });
     }, CROSS_SELL_SEARCH_DEBOUNCE_MS);
@@ -1255,6 +1280,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       title: payload.title ?? '',
       slug: payload.slug || undefined,
       sku: payload.sku ?? '',
+      mpn: payload.mpn || undefined,
       barcode: payload.upc || undefined,
       brand_id: payload.brandId ?? undefined,
       model_id: payload.modelId ?? undefined,
@@ -1263,6 +1289,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       description: payload.longDescription || undefined,
       status: payload.status ?? 'draft',
       visibility: payload.visibility ?? 'draft',
+      condition: payload.condition ?? 'new',
       featured: payload.featured ?? false,
       is_active: (payload.status ?? 'draft') !== 'inactive',
       is_deleted: false,
@@ -1283,6 +1310,20 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       height: Number(payload.heightCm) || 0,
       warranty: payload.warranty || undefined,
       returnable: payload.returnable ?? true,
+      min_order_qty: Number(payload.minOrderQty) || 1,
+      return_window_days:
+        payload.returnable && this.toNumberOrNull(payload.returnWindowDays) !== null
+          ? Number(payload.returnWindowDays)
+          : undefined,
+      non_returnable_reasons:
+        payload.returnable || this.nonReturnableReasons.length === 0
+          ? undefined
+          : [...this.nonReturnableReasons],
+      return_policy_note: payload.returnPolicyNote || undefined,
+      serial_tracking_note: payload.serialTrackingNote || undefined,
+      fulfillment_note: payload.fulfillmentNote || undefined,
+      universal_fit: Boolean(payload.universalFit),
+      requires_serial: Boolean(payload.requiresSerial),
       thumbnail_image:
         this.mediaUrlService.toStoredValue(payload.imageUrl) ||
         this.mediaUrlService.toStoredValue(this.galleryImages[0]) ||
@@ -1296,6 +1337,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       seo_title: payload.seoTitle || undefined,
       seo_description: payload.seoDescription || undefined,
       tags: payload.tags,
+      package_contents: payload.packageItems,
       attributes: {
         ...payload.attributes,
         fitments: payload.fitments,
@@ -1426,32 +1468,22 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     const brandId = this.toNumberOrNull(detail.brand_id);
     const modelId = this.toNumberOrNull(detail.model_id);
     const attributes = this.extractEditableAttributes(detail.attributes);
+    const media = this.extractDetailMedia(detail);
 
     this.pendingCategoryId = categoryId;
 
     this.tags = Array.isArray(detail.tags)
       ? detail.tags.filter((item) => typeof item === 'string')
       : [];
-    this.packageItems = this.extractStringArray(attributes['package_items']);
-    this.notes = this.extractStringArray(attributes['notes']);
+    this.packageItems = this.extractPackageContents(detail, attributes);
+    this.notes = this.extractNotes(detail, attributes);
     this.fitments = this.extractFitments(
       detail.fitments,
       attributes['fitments'],
     );
-    this.nonReturnableReasons = this.extractAttributeStringArray(
-      detail.attributes,
-      'non_returnable_reason',
-    );
-    this.galleryImages = Array.isArray(detail.gallery_images)
-      ? detail.gallery_images
-          .filter((item) => typeof item === 'string')
-          .map((item) => this.mediaUrlService.resolve(item))
-      : [];
-    this.videoUrls = Array.isArray(detail.video_urls)
-      ? detail.video_urls
-          .filter((item) => typeof item === 'string')
-          .map((item) => this.mediaUrlService.resolve(item))
-      : [];
+    this.nonReturnableReasons = this.extractNonReturnableReasons(detail);
+    this.galleryImages = media.galleryImages;
+    this.videoUrls = media.videoUrls;
     for (const key of RESERVED_ATTRIBUTE_FIELDS) {
       delete attributes[key];
     }
@@ -1467,13 +1499,13 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         title: detail.title ?? '',
         slug: detail.slug ?? '',
         sku: detail.sku ?? '',
-        mpn: '',
+        mpn: this.toText(detail.mpn),
         upc: this.toText(detail.barcode),
         brandId,
         modelId,
         status: this.toText(detail.status) || 'draft',
         visibility: this.toText(detail.visibility) || 'catalog_search',
-        condition: 'new',
+        condition: this.toText(detail.condition) || 'new',
         shortDescription: this.toText(detail.short_description),
         longDescription: this.toText(detail.description),
         price: this.toNumberOrZero(detail.price),
@@ -1494,23 +1526,34 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         warranty: this.toText(detail.warranty) || '12 Months',
         featured: Boolean(detail.featured),
         universalFit: this.toBooleanValue(
-          detail.attributes?.['universal_fit'],
+          detail.universal_fit ?? detail.attributes?.['universal_fit'],
           false,
         ),
         requiresSerial: this.toBooleanValue(
-          detail.attributes?.['requires_serial'],
+          detail.requires_serial ?? detail.attributes?.['requires_serial'],
           false,
         ),
         returnable: this.toBooleanValue(detail.returnable, true),
         supplierSku: this.toText(attributes['supplier_sku']),
         procurementType:
           this.toText(attributes['procurement_type']) || 'stocked',
-        minOrderQty: this.toNumberOrZero(attributes['min_order_qty']) || 1,
-        returnWindowDays: this.toNumberOrNull(attributes['return_window_days']),
-        returnPolicyNote: this.toText(attributes['return_policy_note']),
-        serialTrackingNote: this.toText(attributes['serial_tracking_note']),
-        fulfillmentNote: this.toText(attributes['fulfillment_note']),
-        imageUrl: this.mediaUrlService.resolve(detail.thumbnail_image),
+        minOrderQty:
+          this.toNumberOrNull(detail.min_order_qty) ??
+          this.toNumberOrNull(attributes['min_order_qty']) ??
+          1,
+        returnWindowDays:
+          this.toNumberOrNull(detail.return_window_days) ??
+          this.toNumberOrNull(attributes['return_window_days']),
+        returnPolicyNote:
+          this.toText(detail.return_policy_note) ||
+          this.toText(attributes['return_policy_note']),
+        serialTrackingNote:
+          this.toText(detail.serial_tracking_note) ||
+          this.toText(attributes['serial_tracking_note']),
+        fulfillmentNote:
+          this.toText(detail.fulfillment_note) ||
+          this.toText(attributes['fulfillment_note']),
+        imageUrl: media.primaryImageUrl,
         seoTitle: this.toText(detail.seo_title),
         seoDescription: this.toText(detail.seo_description),
       },
@@ -1535,6 +1578,142 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
 
     this.form.markAsPristine();
     this.form.markAsUntouched();
+  }
+
+  private extractNonReturnableReasons(detail: ProductDetailDto): string[] {
+    if (Array.isArray(detail.non_returnable_reasons)) {
+      return detail.non_returnable_reasons
+        .map((item) => (typeof item === 'string' ? item.trim() : String(item)))
+        .filter(Boolean);
+    }
+
+    return this.extractAttributeStringArray(
+      detail.attributes,
+      'non_returnable_reason',
+    );
+  }
+
+  private extractPackageContents(
+    detail: ProductDetailDto,
+    attributes: Record<string, string>,
+  ): string[] {
+    if (Array.isArray(detail.package_contents)) {
+      return detail.package_contents
+        .map((item) => (typeof item === 'string' ? item.trim() : String(item)))
+        .filter(Boolean);
+    }
+
+    return this.extractStringArray(attributes['package_items']);
+  }
+
+  private extractNotes(
+    detail: ProductDetailDto,
+    attributes: Record<string, string>,
+  ): string[] {
+    if (Array.isArray(detail.notes)) {
+      return (detail.notes as unknown[])
+        .map((item) => this.extractNoteText(item))
+        .filter((item) => item.length > 0);
+    }
+
+    return this.extractStringArray(attributes['notes']);
+  }
+
+  private extractNoteText(item: unknown): string {
+    if (typeof item === 'string') {
+      return item.trim();
+    }
+
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      return '';
+    }
+
+    const record = item as Record<string, unknown>;
+    const candidates = [
+      record['note'],
+      record['text'],
+      record['message'],
+      record['value'],
+    ];
+
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string' && candidate.trim()) {
+        return candidate.trim();
+      }
+    }
+
+    return '';
+  }
+
+  private extractDetailMedia(detail: ProductDetailDto): {
+    primaryImageUrl: string;
+    galleryImages: string[];
+    videoUrls: string[];
+  } {
+    const galleryFromFields = Array.isArray(detail.gallery_images)
+      ? detail.gallery_images
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => this.mediaUrlService.resolve(item))
+      : [];
+    const videosFromFields = Array.isArray(detail.video_urls)
+      ? detail.video_urls
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => this.mediaUrlService.resolve(item))
+      : [];
+
+    const mediaItems = Array.isArray(detail.media) ? detail.media : [];
+    const mediaImages = mediaItems
+      .map((item) => (item && typeof item === 'object' ? item : null))
+      .filter((item): item is Record<string, unknown> => item !== null)
+      .filter((item) => String(item['type'] ?? '').toLowerCase() === 'image')
+      .map((item) => ({
+        url: this.toText(item['url']),
+        sort_order: this.toNumberOrNull(item['sort_order']),
+        is_primary: this.toBooleanValue(item['is_primary'], false),
+      }))
+      .filter((item) => item.url.trim().length > 0)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      .map((item) => ({ ...item, url: this.mediaUrlService.resolve(item.url) }));
+
+    const mediaVideos = mediaItems
+      .map((item) => (item && typeof item === 'object' ? item : null))
+      .filter((item): item is Record<string, unknown> => item !== null)
+      .filter((item) => String(item['type'] ?? '').toLowerCase() === 'video')
+      .map((item) => ({
+        url: this.toText(item['url']),
+        sort_order: this.toNumberOrNull(item['sort_order']),
+      }))
+      .filter((item) => item.url.trim().length > 0)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      .map((item) => this.mediaUrlService.resolve(item.url));
+
+    const primaryFromThumbnail = this.mediaUrlService.resolve(
+      detail.thumbnail_image,
+    );
+
+    const primaryFromMedia =
+      mediaImages.find((item) => item.is_primary)?.url ?? mediaImages[0]?.url;
+
+    const primaryFromGallery = galleryFromFields[0];
+
+    const primaryImageUrl =
+      primaryFromThumbnail || primaryFromMedia || primaryFromGallery || '';
+
+    const allImages = galleryFromFields.length > 0 ? galleryFromFields : [];
+    const fallbackImages =
+      allImages.length > 0
+        ? allImages
+        : mediaImages.map((item) => item.url);
+
+    const galleryImages = fallbackImages.filter((url) => url !== primaryImageUrl);
+
+    const videoUrls = videosFromFields.length > 0 ? videosFromFields : mediaVideos;
+
+    return {
+      primaryImageUrl,
+      galleryImages,
+      videoUrls,
+    };
   }
 
   private loadCrossSells(productId: number): void {
@@ -2305,6 +2484,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     this.crossSellSearchResults = [];
     this.crossSellItems = [];
     this.copyFromSearch = '';
+    this.copyFromSearchPending = false;
     this.copyFromSearchLoading = false;
     this.copyFromSearchError = '';
     this.copyFromSearchResults = [];

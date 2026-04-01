@@ -53,12 +53,15 @@
                 {{ option.title }}
                 <span *ngIf="option.sku">· {{ option.sku }}</span>
               </button>
+              <div *ngIf="copyFromSearchPending" class="field-dropdown__empty">
+                Waiting for you to stop typing...
+              </div>
               <div *ngIf="copyFromSearchLoading" class="field-dropdown__empty">Searching...</div>
               <div *ngIf="!copyFromSearchLoading && copyFromSearchError" class="field-dropdown__empty">
                 {{ copyFromSearchError }}
               </div>
               <div
-                *ngIf="!copyFromSearchLoading && !copyFromSearchError && copyFromSearchResults.length === 0 && copyFromSearch.trim()"
+                *ngIf="!copyFromSearchPending && !copyFromSearchLoading && !copyFromSearchError && copyFromSearchResults.length === 0 && copyFromSearch.trim()"
                 class="field-dropdown__empty"
               >
                 No products found
