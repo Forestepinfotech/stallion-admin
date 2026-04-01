@@ -1,8 +1,9 @@
+import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize, forkJoin, of, from } from 'rxjs';
-import { catchError, mergeMap } from 'rxjs/operators';
+import { finalize, forkJoin, of, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { CategoryModalComponent } from '../../components/category-modal/category-modal.component';
 import { AdminCarBrandService as CarBrandService } from '../../../core/api/generated/admin-car-brand/admin-car-brand.service';
 import { AdminCarBrandModelService as CarBrandModelService } from '../../../core/api/generated/admin-car-brand-model/admin-car-brand-model.service';
@@ -12,6 +13,7 @@ import { AdminProductCategoryAttributeService as ProductCategoryAttributeService
 import { AdminProductCategoryService as ProductCategoryService } from '../../../core/api/generated/admin-product-category/admin-product-category.service';
 import { AdminProductsService as ProductsService } from '../../../core/api/generated/admin-products/admin-products.service';
 import type {
+  BulkCreateProductAttributeValuesDto,
   CarBrandResponseDto,
   CarBrandModelResponseDto,
   CreateProductCategoryDto,
@@ -170,6 +172,7 @@ export class AdminAttributesComponent implements OnInit {
 
   constructor(
     private readonly fb: FormBuilder,
+    private readonly http: HttpClient,
     private readonly productAttributeService: ProductAttributeService,
     private readonly productAttributeValuesService: ProductAttributeValuesService,
     private readonly productCategoryAttributeService: ProductCategoryAttributeService,
@@ -1293,9 +1296,20 @@ export class AdminAttributesComponent implements OnInit {
     this.addValuesBusy = true;
     this.addValuesProgress = { total: uniqueLabels.length, done: 0 };
 
-    from(uniqueLabels)
+    const payload: BulkCreateProductAttributeValuesDto = {
+      attribute_id: attributeId,
+      values: uniqueLabels,
+      is_active: true,
+    };
+
+    this.productAttributeValuesService
+      .productAttributeValuesControllerCreateBulk(payload)
       .pipe(
-        mergeMap((label) => this.createOrSelectValueByLabel(attributeId, label), 5),
+        catchError((error) =>
+          this.http.post(`/product-attribute-values`, payload).pipe(
+            catchError(() => throwError(() => error)),
+          ),
+        ),
         finalize(() => {
           this.addValuesBusy = false;
           this.addValuesProgress = null;
@@ -1307,7 +1321,7 @@ export class AdminAttributesComponent implements OnInit {
           if (!this.addValuesProgress) return;
           this.addValuesProgress = {
             ...this.addValuesProgress,
-            done: Math.min(this.addValuesProgress.done + 1, this.addValuesProgress.total),
+            done: this.addValuesProgress.total,
           };
         },
         error: (error) => {
@@ -1382,39 +1396,6 @@ export class AdminAttributesComponent implements OnInit {
     const years: number[] = [];
     for (let y = start; y <= end; y += 1) years.push(y);
     return years;
-  }
-
-  private createOrSelectValueByLabel(attributeId: number, label: string) {
-    const trimmed = label.trim();
-    if (!trimmed) return of(null);
-
-    const existing = this.valueDraftItems.find(
-      (item) => item.label.trim().toLowerCase() === trimmed.toLowerCase(),
-    );
-    if (existing) {
-      if (!existing.selected) {
-        this.toggleValueDraft(existing.id);
-      }
-      return of(null);
-    }
-
-    return this.productAttributeValuesService
-      .productAttributeValuesControllerCreate({
-        attribute_id: attributeId,
-        attribute_value: trimmed,
-        is_active: true,
-      })
-      .pipe(
-        catchError((error) => {
-          const existingValue = this.extractAlreadyAddedValue(error, attributeId, trimmed);
-          if (existingValue) {
-            this.selectExistingDraftValue(existingValue);
-            return of(existingValue);
-          }
-          this.toastService.error(this.getErrorMessage(error, `Failed to add "${trimmed}".`));
-          return of(null);
-        }),
-      );
   }
 
   private ensureAddValuesYearOrder(): void {

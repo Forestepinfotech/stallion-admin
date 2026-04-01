@@ -2902,6 +2902,42 @@
         ]
       }
     },
+    "/product-attribute-values/bulk": {
+      "post": {
+        "operationId": "ProductAttributeValuesController_createBulk",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkCreateProductAttributeValuesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkProductAttributeValuesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-product-attribute-values"
+        ]
+      }
+    },
     "/product-category-attribute": {
       "get": {
         "operationId": "ProductCategoryAttributeController_list",
@@ -13251,6 +13287,70 @@
         "required": [
           "attribute_id",
           "attribute_value"
+        ]
+      },
+      "BulkCreateProductAttributeValuesDto": {
+        "type": "object",
+        "properties": {
+          "attribute_id": {
+            "type": "number"
+          },
+          "values": {
+            "example": [
+              "Red",
+              "Blue",
+              "Green"
+            ],
+            "description": "List of attribute values to create (duplicates are ignored)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "is_active": {
+            "type": "boolean",
+            "default": true
+          },
+          "created_by": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "attribute_id",
+          "values"
+        ]
+      },
+      "BulkProductAttributeValuesResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Attribute values saved successfully"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductAttributeValuesResponseDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "example": {
+              "requested": 3,
+              "created": 2,
+              "existing": 1
+            }
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data",
+          "meta"
         ]
       },
       "UpdateProductAttributeValuesDto": {
