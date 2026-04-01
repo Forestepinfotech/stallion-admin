@@ -1,6 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AdminCarBrandService as CarBrandService } from '../../../core/api/generated/admin-car-brand/admin-car-brand.service';
@@ -74,7 +79,7 @@ const RESERVED_ATTRIBUTE_FIELDS = [
 ] as const;
 
 const CROSS_SELL_SEARCH_DEBOUNCE_MS = 2000;
-const COPY_FROM_SEARCH_DEBOUNCE_MS = 20000;
+const COPY_FROM_SEARCH_DEBOUNCE_MS = 2000;
 
 @Component({
   selector: 'app-admin-products',
@@ -174,9 +179,15 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   ) {
     this.form = this.fb.group({
       categoryId: [this.getDefaultFormValue().categoryId, Validators.required],
-      title: [this.getDefaultFormValue().title, [Validators.required, Validators.minLength(3)]],
+      title: [
+        this.getDefaultFormValue().title,
+        [Validators.required, Validators.minLength(3)],
+      ],
       slug: [this.getDefaultFormValue().slug],
-      sku: [this.getDefaultFormValue().sku, [Validators.required, Validators.minLength(3)]],
+      sku: [
+        this.getDefaultFormValue().sku,
+        [Validators.required, Validators.minLength(3)],
+      ],
       mpn: [this.getDefaultFormValue().mpn],
       upc: [this.getDefaultFormValue().upc],
       brandId: [this.getDefaultFormValue().brandId],
@@ -184,19 +195,46 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       status: [this.getDefaultFormValue().status, Validators.required],
       visibility: [this.getDefaultFormValue().visibility, Validators.required],
       condition: [this.getDefaultFormValue().condition, Validators.required],
-      shortDescription: [this.getDefaultFormValue().shortDescription, [Validators.required, Validators.minLength(10)]],
-      longDescription: [this.getDefaultFormValue().longDescription, [Validators.required, Validators.minLength(20)]],
-      price: [this.getDefaultFormValue().price, [Validators.required, Validators.min(0)]],
-      compareAtPrice: [this.getDefaultFormValue().compareAtPrice, [Validators.min(0)]],
+      shortDescription: [
+        this.getDefaultFormValue().shortDescription,
+        [Validators.required, Validators.minLength(10)],
+      ],
+      longDescription: [
+        this.getDefaultFormValue().longDescription,
+        [Validators.required, Validators.minLength(20)],
+      ],
+      price: [
+        this.getDefaultFormValue().price,
+        [Validators.required, Validators.min(0)],
+      ],
+      compareAtPrice: [
+        this.getDefaultFormValue().compareAtPrice,
+        [Validators.min(0)],
+      ],
       cost: [this.getDefaultFormValue().cost, [Validators.min(0)]],
       currency: [this.getDefaultFormValue().currency, Validators.required],
-      stockStatus: [this.getDefaultFormValue().stockStatus, Validators.required],
-      stockQty: [this.getDefaultFormValue().stockQty, [Validators.required, Validators.min(0)]],
-      safetyStock: [this.getDefaultFormValue().safetyStock, [Validators.min(0)]],
+      stockStatus: [
+        this.getDefaultFormValue().stockStatus,
+        Validators.required,
+      ],
+      stockQty: [
+        this.getDefaultFormValue().stockQty,
+        [Validators.required, Validators.min(0)],
+      ],
+      safetyStock: [
+        this.getDefaultFormValue().safetyStock,
+        [Validators.min(0)],
+      ],
       supplier: [this.getDefaultFormValue().supplier],
       warehouseBin: [this.getDefaultFormValue().warehouseBin],
-      leadTimeDays: [this.getDefaultFormValue().leadTimeDays, [Validators.min(0)]],
-      shippingClass: [this.getDefaultFormValue().shippingClass, Validators.required],
+      leadTimeDays: [
+        this.getDefaultFormValue().leadTimeDays,
+        [Validators.min(0)],
+      ],
+      shippingClass: [
+        this.getDefaultFormValue().shippingClass,
+        Validators.required,
+      ],
       weightKg: [this.getDefaultFormValue().weightKg, [Validators.min(0)]],
       lengthCm: [this.getDefaultFormValue().lengthCm, [Validators.min(0)]],
       widthCm: [this.getDefaultFormValue().widthCm, [Validators.min(0)]],
@@ -208,8 +246,14 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       returnable: [this.getDefaultFormValue().returnable],
       supplierSku: [this.getDefaultFormValue().supplierSku],
       procurementType: [this.getDefaultFormValue().procurementType],
-      minOrderQty: [this.getDefaultFormValue().minOrderQty, [Validators.min(1)]],
-      returnWindowDays: [this.getDefaultFormValue().returnWindowDays, [Validators.min(1)]],
+      minOrderQty: [
+        this.getDefaultFormValue().minOrderQty,
+        [Validators.min(1)],
+      ],
+      returnWindowDays: [
+        this.getDefaultFormValue().returnWindowDays,
+        [Validators.min(1)],
+      ],
       returnPolicyNote: [this.getDefaultFormValue().returnPolicyNote],
       serialTrackingNote: [this.getDefaultFormValue().serialTrackingNote],
       fulfillmentNote: [this.getDefaultFormValue().fulfillmentNote],
@@ -241,7 +285,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     this.form.get('title')!.valueChanges.subscribe((title) => {
       const slugControl = this.form.get('slug');
       if (!slugControl?.dirty) {
-        slugControl?.setValue(this.slugify(String(title ?? '')), { emitEvent: false });
+        slugControl?.setValue(this.slugify(String(title ?? '')), {
+          emitEvent: false,
+        });
       }
     });
 
@@ -280,7 +326,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
 
   get selectedCategoryName(): string {
     const id = this.toNumberOrNull(this.form.get('categoryId')!.value);
-    return this.categories.find((item) => item.category_id === id)?.category_name ?? 'No category selected';
+    return (
+      this.categories.find((item) => item.category_id === id)?.category_name ??
+      'No category selected'
+    );
   }
 
   get marginValue(): number {
@@ -290,7 +339,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   }
 
   get attributeCount(): number {
-    return this.attributeRows.filter((item) => item.key.trim() && String(item.value).trim()).length;
+    return this.attributeRows.filter(
+      (item) => item.key.trim() && String(item.value).trim(),
+    ).length;
   }
 
   get hasIncompleteAttributeRows(): boolean {
@@ -307,19 +358,28 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     if (this.form.get('categoryId')!.value) checklist.push('Category selected');
     if (this.form.get('sku')!.value) checklist.push('SKU ready');
     if (this.form.get('title')!.value) checklist.push('Title added');
-    if (this.form.get('shortDescription')!.value) checklist.push('Short copy ready');
-    if (this.form.get('imageUrl')!.value) checklist.push('Primary media attached');
-    if (Number(this.form.get('price')!.value ?? 0) > 0) checklist.push('Price configured');
+    if (this.form.get('shortDescription')!.value)
+      checklist.push('Short copy ready');
+    if (this.form.get('imageUrl')!.value)
+      checklist.push('Primary media attached');
+    if (Number(this.form.get('price')!.value ?? 0) > 0)
+      checklist.push('Price configured');
     if (this.attributeCount > 0) checklist.push('Attributes prepared');
-    if (this.crossSellItems.length > 0) checklist.push(`${this.crossSellItems.length} cross-sell products linked`);
-    if (this.hasReturnPolicyConfigured()) checklist.push('Return policy configured');
+    if (this.crossSellItems.length > 0)
+      checklist.push(
+        `${this.crossSellItems.length} cross-sell products linked`,
+      );
+    if (this.hasReturnPolicyConfigured())
+      checklist.push('Return policy configured');
 
     return checklist;
   }
 
   hasError(controlName: string): boolean {
     const control = this.form.get(controlName);
-    return Boolean(control && control.invalid && (control.touched || control.dirty));
+    return Boolean(
+      control && control.invalid && (control.touched || control.dirty),
+    );
   }
 
   getErrorMessage(controlName: string, label: string): string {
@@ -378,17 +438,25 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
 
   get selectedBrandName(): string {
     const brandId = this.toNumberOrNull(this.form.get('brandId')!.value);
-    return this.brands.find((item) => item.car_brand_id === brandId)?.car_brand_name ?? '';
+    return (
+      this.brands.find((item) => item.car_brand_id === brandId)
+        ?.car_brand_name ?? ''
+    );
   }
 
   get selectedModelName(): string {
     const modelId = this.toNumberOrNull(this.form.get('modelId')!.value);
-    return this.models.find((item) => item.model_id === modelId)?.model_name ?? '';
+    return (
+      this.models.find((item) => item.model_id === modelId)?.model_name ?? ''
+    );
   }
 
   get selectedProcurementTypeLabel(): string {
     const value = String(this.form.get('procurementType')!.value ?? '');
-    return this.procurementTypeOptions.find((item) => item.value === value)?.label ?? (value || '-');
+    return (
+      this.procurementTypeOptions.find((item) => item.value === value)?.label ??
+      (value || '-')
+    );
   }
 
   get hasCrossSellSearchTerm(): boolean {
@@ -409,7 +477,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     }
 
     if (!this.isValidPrimaryImage(file)) {
-      this.toastService.warning('Please choose an image file smaller than 50 MB.');
+      this.toastService.warning(
+        'Please choose an image file smaller than 50 MB.',
+      );
       return;
     }
 
@@ -444,7 +514,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     }
 
     if (!this.isValidPrimaryImage(file)) {
-      this.toastService.warning('Please choose an image file smaller than 50 MB.');
+      this.toastService.warning(
+        'Please choose an image file smaller than 50 MB.',
+      );
       return;
     }
 
@@ -515,8 +587,13 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.removePendingAssetByPreview(this.pendingGalleryFiles, this.galleryImages[index]);
-    this.galleryImages = this.galleryImages.filter((_, itemIndex) => itemIndex !== index);
+    this.removePendingAssetByPreview(
+      this.pendingGalleryFiles,
+      this.galleryImages[index],
+    );
+    this.galleryImages = this.galleryImages.filter(
+      (_, itemIndex) => itemIndex !== index,
+    );
   }
 
   async onVideoFilesChange(event: Event): Promise<void> {
@@ -578,8 +655,13 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   }
 
   removeVideo(index: number): void {
-    this.removePendingAssetByPreview(this.pendingVideoFiles, this.videoUrls[index]);
-    this.videoUrls = this.videoUrls.filter((_, itemIndex) => itemIndex !== index);
+    this.removePendingAssetByPreview(
+      this.pendingVideoFiles,
+      this.videoUrls[index],
+    );
+    this.videoUrls = this.videoUrls.filter(
+      (_, itemIndex) => itemIndex !== index,
+    );
   }
 
   onBrandSearchChange(value: string): void {
@@ -673,20 +755,26 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
 
     this.copyFromSearchHandle = setTimeout(() => {
       this.copyFromSearchLoading = true;
-      this.productsService.productsControllerSearchSuggestions({ term, limit: 8 }).subscribe({
-        next: (response) => {
-          this.copyFromSearchLoading = false;
-          this.copyFromSearchResults = response
-            .filter((item: ProductSearchSuggestionDto) => item.type === 'product')
-            .map((item: ProductSearchSuggestionDto) => this.mapCrossSellSuggestion(item))
-            .filter((item): item is CrossSellSearchOption => item !== null);
-        },
-        error: () => {
-          this.copyFromSearchLoading = false;
-          this.copyFromSearchResults = [];
-          this.copyFromSearchError = 'Unable to search products right now.';
-        },
-      });
+      this.productsService
+        .productsControllerSearchSuggestions({ term, limit: 8 })
+        .subscribe({
+          next: (response) => {
+            this.copyFromSearchLoading = false;
+            this.copyFromSearchResults = response
+              .filter(
+                (item: ProductSearchSuggestionDto) => item.type === 'product',
+              )
+              .map((item: ProductSearchSuggestionDto) =>
+                this.mapCrossSellSuggestion(item),
+              )
+              .filter((item): item is CrossSellSearchOption => item !== null);
+          },
+          error: () => {
+            this.copyFromSearchLoading = false;
+            this.copyFromSearchResults = [];
+            this.copyFromSearchError = 'Unable to search products right now.';
+          },
+        });
     }, COPY_FROM_SEARCH_DEBOUNCE_MS);
   }
 
@@ -699,7 +787,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.copyFromSearch = option.sku ? `${option.title} · ${option.sku}` : option.title;
+    this.copyFromSearch = option.sku
+      ? `${option.title} · ${option.sku}`
+      : option.title;
     this.copyFromSearchResults = [];
     this.showCopyFromDropdown = false;
     this.copyProductFromExisting(option.id);
@@ -716,12 +806,17 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   }
 
   removeAttributeRow(index: number): void {
-    this.attributeRows = this.attributeRows.filter((_, itemIndex) => itemIndex !== index);
+    this.attributeRows = this.attributeRows.filter(
+      (_, itemIndex) => itemIndex !== index,
+    );
   }
 
   addSuggestedAttribute(key: string): void {
     const normalizedKey = key.trim();
-    if (!normalizedKey || this.attributeRows.some((item) => item.key === normalizedKey)) {
+    if (
+      !normalizedKey ||
+      this.attributeRows.some((item) => item.key === normalizedKey)
+    ) {
       return;
     }
 
@@ -733,19 +828,35 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   }
 
   addFitment(): void {
-    this.pushUniqueValue(this.fitmentInput, this.fitments, () => (this.fitmentInput = ''));
+    this.pushUniqueValue(
+      this.fitmentInput,
+      this.fitments,
+      () => (this.fitmentInput = ''),
+    );
   }
 
   addPackageItem(): void {
-    this.pushUniqueValue(this.packageItemInput, this.packageItems, () => (this.packageItemInput = ''));
+    this.pushUniqueValue(
+      this.packageItemInput,
+      this.packageItems,
+      () => (this.packageItemInput = ''),
+    );
   }
 
   addNote(): void {
-    this.pushUniqueValue(this.noteInput, this.notes, () => (this.noteInput = ''));
+    this.pushUniqueValue(
+      this.noteInput,
+      this.notes,
+      () => (this.noteInput = ''),
+    );
   }
 
   addNonReturnableReason(): void {
-    this.pushUniqueValue(this.nonReturnReasonInput, this.nonReturnableReasons, () => (this.nonReturnReasonInput = ''));
+    this.pushUniqueValue(
+      this.nonReturnReasonInput,
+      this.nonReturnableReasons,
+      () => (this.nonReturnReasonInput = ''),
+    );
   }
 
   removeTag(value: string): void {
@@ -765,7 +876,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   }
 
   removeNonReturnableReason(value: string): void {
-    this.nonReturnableReasons = this.nonReturnableReasons.filter((item) => item !== value);
+    this.nonReturnableReasons = this.nonReturnableReasons.filter(
+      (item) => item !== value,
+    );
   }
 
   onCrossSellSearchChange(value: string): void {
@@ -792,10 +905,18 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
           next: (response) => {
             this.crossSellSearchLoading = false;
             this.crossSellSearchResults = response
-              .filter((item: ProductSearchSuggestionDto) => item.type === 'product')
-              .map((item: ProductSearchSuggestionDto) => this.mapCrossSellSuggestion(item))
+              .filter(
+                (item: ProductSearchSuggestionDto) => item.type === 'product',
+              )
+              .map((item: ProductSearchSuggestionDto) =>
+                this.mapCrossSellSuggestion(item),
+              )
               .filter((item): item is CrossSellSearchOption => item !== null)
-              .filter((item) => !this.isCurrentProductCrossSell(item.id) && !this.hasCrossSellProduct(item.id));
+              .filter(
+                (item) =>
+                  !this.isCurrentProductCrossSell(item.id) &&
+                  !this.hasCrossSellProduct(item.id),
+              );
           },
           error: () => {
             this.crossSellSearchLoading = false;
@@ -808,12 +929,14 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
 
   addCrossSell(option: CrossSellSearchOption): void {
     if (this.isCurrentProductCrossSell(option.id)) {
-      this.crossSellValidationError = 'A product cannot be assigned as its own cross-sell.';
+      this.crossSellValidationError =
+        'A product cannot be assigned as its own cross-sell.';
       return;
     }
 
     if (this.hasCrossSellProduct(option.id)) {
-      this.crossSellValidationError = 'This product is already selected as a cross-sell.';
+      this.crossSellValidationError =
+        'This product is already selected as a cross-sell.';
       return;
     }
 
@@ -864,12 +987,16 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   async save(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.toastService.warning('Fill the required product fields before saving.');
+      this.toastService.warning(
+        'Fill the required product fields before saving.',
+      );
       return;
     }
 
     if (this.hasIncompleteAttributeRows) {
-      this.toastService.warning('Each dynamic attribute row must have both a key and a value, or be removed.');
+      this.toastService.warning(
+        'Each dynamic attribute row must have both a key and a value, or be removed.',
+      );
       return;
     }
 
@@ -896,7 +1023,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       this.toastService.error(
         this.getApiErrorMessage(
           error,
-          this.isEditMode ? 'Failed to upload product media.' : 'Failed to upload product media.',
+          this.isEditMode
+            ? 'Failed to upload product media.'
+            : 'Failed to upload product media.',
         ),
       );
       this.clearUploadProgress();
@@ -910,37 +1039,39 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
             String(this.editingProductId),
             this.toUpdatePayload(payload),
           )
-        : this.productsService.productsControllerCreate(this.toCreatePayload(payload));
-
-    request
-      .pipe(finalize(() => (this.saving = false)))
-      .subscribe({
-        next: (response) => {
-          this.clearPendingProductMediaState();
-          this.toastService.success(
-            response.message ||
-              (this.isEditMode
-                ? 'Product updated successfully.'
-                : 'Product created successfully.'),
+        : this.productsService.productsControllerCreate(
+            this.toCreatePayload(payload),
           );
 
-          if (this.isEditMode) {
-            this.goBack();
-            return;
-          }
+    request.pipe(finalize(() => (this.saving = false))).subscribe({
+      next: (response) => {
+        this.clearPendingProductMediaState();
+        this.toastService.success(
+          response.message ||
+            (this.isEditMode
+              ? 'Product updated successfully.'
+              : 'Product created successfully.'),
+        );
 
-          this.resetProductForm();
-        },
-        error: (error) => {
-          this.clearUploadProgress();
-          this.toastService.error(
-            this.getApiErrorMessage(
-              error,
-              this.isEditMode ? 'Failed to update product.' : 'Failed to create product.',
-            ),
-          );
-        },
-      });
+        if (this.isEditMode) {
+          this.goBack();
+          return;
+        }
+
+        this.resetProductForm();
+      },
+      error: (error) => {
+        this.clearUploadProgress();
+        this.toastService.error(
+          this.getApiErrorMessage(
+            error,
+            this.isEditMode
+              ? 'Failed to update product.'
+              : 'Failed to create product.',
+          ),
+        );
+      },
+    });
   }
 
   private handleCategoryChange(categoryId: number | null): void {
@@ -972,18 +1103,28 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
           const firstCategoryId = this.categories[0]?.category_id ?? null;
           if (this.isEditMode && this.pendingCategoryId !== null) {
             const matchedCategoryId =
-              this.categories.find((item) => item.category_id === this.pendingCategoryId)?.category_id ??
-              this.pendingCategoryId;
-            this.form.patchValue({ categoryId: matchedCategoryId }, { emitEvent: false });
+              this.categories.find(
+                (item) => item.category_id === this.pendingCategoryId,
+              )?.category_id ?? this.pendingCategoryId;
+            this.form.patchValue(
+              { categoryId: matchedCategoryId },
+              { emitEvent: false },
+            );
             return;
           }
 
-          if (!this.isEditMode && firstCategoryId !== null && !this.form.get('categoryId')!.value) {
+          if (
+            !this.isEditMode &&
+            firstCategoryId !== null &&
+            !this.form.get('categoryId')!.value
+          ) {
             this.form.patchValue({ categoryId: firstCategoryId });
           }
         },
         error: (error) => {
-          this.toastService.error(this.getApiErrorMessage(error, 'Failed to load categories.'));
+          this.toastService.error(
+            this.getApiErrorMessage(error, 'Failed to load categories.'),
+          );
         },
       });
   }
@@ -995,13 +1136,17 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         params: {
           page: this.brandPage,
           limit: 20,
-          ...(this.brandSearch.trim() ? { search: this.brandSearch.trim() } : {}),
+          ...(this.brandSearch.trim()
+            ? { search: this.brandSearch.trim() }
+            : {}),
         } as Record<string, string | number>,
       })
       .pipe(finalize(() => (this.loadingBrands = false)))
       .subscribe({
         next: (response: any) => {
-          const rows = (response.data ?? []).filter((item: CarBrandResponseDto) => !item.is_deleted);
+          const rows = (response.data ?? []).filter(
+            (item: CarBrandResponseDto) => !item.is_deleted,
+          );
           this.brands = append ? [...this.brands, ...rows] : rows;
         },
         error: () => {
@@ -1047,7 +1192,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         next: (response) => {
           this.categoryAttributes = this.extractWorkspaceAttributes(response);
           const mappedRows = this.categoryAttributes.map((item) => {
-            const key = this.slugify(String(item.attribute_name ?? 'attribute')).replace(/-/g, '_');
+            const key = this.slugify(
+              String(item.attribute_name ?? 'attribute'),
+            ).replace(/-/g, '_');
             return {
               key,
               value: existingAttributes?.[key] ?? '',
@@ -1066,23 +1213,28 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         error: () => {
           this.categoryAttributes = [];
           this.attributeRows =
-            Object.entries(existingAttributes ?? {}).map(([key, value]) => ({ key, value })) ||
-            this.getDefaultAttributeRows();
+            Object.entries(existingAttributes ?? {}).map(([key, value]) => ({
+              key,
+              value,
+            })) || this.getDefaultAttributeRows();
         },
       });
   }
 
   private buildAttributesObject(): Record<string, unknown> {
-    const customAttributes = this.attributeRows.reduce<Record<string, unknown>>((accumulator, item) => {
-      const key = item.key.trim();
-      const value = item.value.trim();
-      if (!key || !value) {
-        return accumulator;
-      }
+    const customAttributes = this.attributeRows.reduce<Record<string, unknown>>(
+      (accumulator, item) => {
+        const key = item.key.trim();
+        const value = item.value.trim();
+        if (!key || !value) {
+          return accumulator;
+        }
 
-      accumulator[key] = value;
-      return accumulator;
-    }, {});
+        accumulator[key] = value;
+        return accumulator;
+      },
+      {},
+    );
 
     return {
       ...customAttributes,
@@ -1090,13 +1242,15 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     };
   }
 
-  private toCreatePayload(payload: ReturnType<typeof this.form.getRawValue> & {
-    tags: string[];
-    fitments: string[];
-    packageItems: string[];
-    notes: string[];
-    attributes: Record<string, unknown>;
-  }): CreateProductsDto {
+  private toCreatePayload(
+    payload: ReturnType<typeof this.form.getRawValue> & {
+      tags: string[];
+      fitments: string[];
+      packageItems: string[];
+      notes: string[];
+      attributes: Record<string, unknown>;
+    },
+  ): CreateProductsDto {
     return {
       title: payload.title ?? '',
       slug: payload.slug || undefined,
@@ -1151,13 +1305,15 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     };
   }
 
-  private toUpdatePayload(payload: ReturnType<typeof this.form.getRawValue> & {
-    tags: string[];
-    fitments: string[];
-    packageItems: string[];
-    notes: string[];
-    attributes: Record<string, unknown>;
-  }): UpdateProductsDto {
+  private toUpdatePayload(
+    payload: ReturnType<typeof this.form.getRawValue> & {
+      tags: string[];
+      fitments: string[];
+      packageItems: string[];
+      notes: string[];
+      attributes: Record<string, unknown>;
+    },
+  ): UpdateProductsDto {
     return {
       ...this.toCreatePayload(payload),
     };
@@ -1175,7 +1331,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
           this.loadCrossSells(productId);
         },
         error: (error) => {
-          this.toastService.error(this.getApiErrorMessage(error, 'Failed to load product.'));
+          this.toastService.error(
+            this.getApiErrorMessage(error, 'Failed to load product.'),
+          );
           this.router.navigate(['/admin/products-list']);
         },
       });
@@ -1192,12 +1350,17 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
           this.applyCopyFromDetail(response.data, productId);
         },
         error: (error) => {
-          this.toastService.error(this.getApiErrorMessage(error, 'Failed to copy product details.'));
+          this.toastService.error(
+            this.getApiErrorMessage(error, 'Failed to copy product details.'),
+          );
         },
       });
   }
 
-  private applyCopyFromDetail(detail: ProductDetailDto, productId: number): void {
+  private applyCopyFromDetail(
+    detail: ProductDetailDto,
+    productId: number,
+  ): void {
     this.patchFormFromDetail(detail);
 
     // Keep most fields, but clear identifiers that must be unique.
@@ -1219,11 +1382,16 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         next: (response) => {
           this.crossSellHydrationError = '';
           this.crossSellValidationError = '';
-          this.crossSellItems = (response.data ?? []).map((item) => this.mapCrossSellDto(item));
+          this.crossSellItems = (response.data ?? []).map((item) =>
+            this.mapCrossSellDto(item),
+          );
         },
         error: (error) => {
           this.crossSellItems = [];
-          this.crossSellHydrationError = this.getApiErrorMessage(error, 'Failed to load cross-sell products.');
+          this.crossSellHydrationError = this.getApiErrorMessage(
+            error,
+            'Failed to load cross-sell products.',
+          );
         },
       });
 
@@ -1244,7 +1412,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       this.attributeRows.length > 0 ||
       this.crossSellItems.length > 0
     ) {
-      return globalThis.confirm('Copying will overwrite the current product form. Continue?');
+      return globalThis.confirm(
+        'Copying will overwrite the current product form. Continue?',
+      );
     }
 
     return true;
@@ -1259,11 +1429,19 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
 
     this.pendingCategoryId = categoryId;
 
-    this.tags = Array.isArray(detail.tags) ? detail.tags.filter((item) => typeof item === 'string') : [];
+    this.tags = Array.isArray(detail.tags)
+      ? detail.tags.filter((item) => typeof item === 'string')
+      : [];
     this.packageItems = this.extractStringArray(attributes['package_items']);
     this.notes = this.extractStringArray(attributes['notes']);
-    this.fitments = this.extractFitments(detail.fitments, attributes['fitments']);
-    this.nonReturnableReasons = this.extractAttributeStringArray(detail.attributes, 'non_returnable_reason');
+    this.fitments = this.extractFitments(
+      detail.fitments,
+      attributes['fitments'],
+    );
+    this.nonReturnableReasons = this.extractAttributeStringArray(
+      detail.attributes,
+      'non_returnable_reason',
+    );
     this.galleryImages = Array.isArray(detail.gallery_images)
       ? detail.gallery_images
           .filter((item) => typeof item === 'string')
@@ -1315,11 +1493,18 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         heightCm: this.toNumberOrZero(detail.height),
         warranty: this.toText(detail.warranty) || '12 Months',
         featured: Boolean(detail.featured),
-        universalFit: this.toBooleanValue(detail.attributes?.['universal_fit'], false),
-        requiresSerial: this.toBooleanValue(detail.attributes?.['requires_serial'], false),
+        universalFit: this.toBooleanValue(
+          detail.attributes?.['universal_fit'],
+          false,
+        ),
+        requiresSerial: this.toBooleanValue(
+          detail.attributes?.['requires_serial'],
+          false,
+        ),
         returnable: this.toBooleanValue(detail.returnable, true),
         supplierSku: this.toText(attributes['supplier_sku']),
-        procurementType: this.toText(attributes['procurement_type']) || 'stocked',
+        procurementType:
+          this.toText(attributes['procurement_type']) || 'stocked',
         minOrderQty: this.toNumberOrZero(attributes['min_order_qty']) || 1,
         returnWindowDays: this.toNumberOrNull(attributes['return_window_days']),
         returnPolicyNote: this.toText(attributes['return_policy_note']),
@@ -1335,7 +1520,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     if (categoryId !== null) {
       this.loadCategoryAttributes(categoryId, attributes);
     } else {
-      this.attributeRows = Object.entries(attributes).map(([key, value]) => ({ key, value }));
+      this.attributeRows = Object.entries(attributes).map(([key, value]) => ({
+        key,
+        value,
+      }));
     }
 
     if (brandId !== null) {
@@ -1358,7 +1546,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         next: (response) => {
           this.crossSellHydrationError = '';
           this.crossSellValidationError = '';
-          this.crossSellItems = (response.data ?? []).map((item) => this.mapCrossSellDto(item));
+          this.crossSellItems = (response.data ?? []).map((item) =>
+            this.mapCrossSellDto(item),
+          );
         },
         error: (error) => {
           this.crossSellItems = [];
@@ -1388,9 +1578,13 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
 
             return {
               attribute_id: attributeId,
-              attribute_name: String(item?.attribute_name ?? item?.name ?? 'Attribute'),
+              attribute_name: String(
+                item?.attribute_name ?? item?.name ?? 'Attribute',
+              ),
               values: Array.isArray(item?.values)
-                ? item.values.map((value: any) => String(value?.attribute_value ?? value?.value ?? value))
+                ? item.values.map((value: any) =>
+                    String(value?.attribute_value ?? value?.value ?? value),
+                  )
                 : [],
             } satisfies CategoryAttributeItem;
           })
@@ -1422,7 +1616,11 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  private pushUniqueValue(source: string, collection: string[], reset: () => void): void {
+  private pushUniqueValue(
+    source: string,
+    collection: string[],
+    reset: () => void,
+  ): void {
     const normalized = source.trim();
     if (!normalized || collection.includes(normalized)) {
       reset();
@@ -1446,7 +1644,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       return true;
     }
 
-    return globalThis.confirm('Replacing the primary image will remove the current one. Continue?');
+    return globalThis.confirm(
+      'Replacing the primary image will remove the current one. Continue?',
+    );
   }
 
   private confirmGalleryImageDeletion(): boolean {
@@ -1458,7 +1658,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       return true;
     }
 
-    return globalThis.confirm('Adding new video files will replace the existing videos. Continue?');
+    return globalThis.confirm(
+      'Adding new video files will replace the existing videos. Continue?',
+    );
   }
 
   private async uploadFilesSequentially(
@@ -1469,10 +1671,16 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     const uploadedUrls: string[] = [];
 
     for (const [index, file] of files.entries()) {
-      const uploaded = await this.assetUploadService.uploadFile(file, folder, (fileProgress) => {
-        const overallProgress = Math.round(((index + fileProgress / 100) / files.length) * 100);
-        onProgress(overallProgress);
-      });
+      const uploaded = await this.assetUploadService.uploadFile(
+        file,
+        folder,
+        (fileProgress) => {
+          const overallProgress = Math.round(
+            ((index + fileProgress / 100) / files.length) * 100,
+          );
+          onProgress(overallProgress);
+        },
+      );
       uploadedUrls.push(uploaded.endpoint);
     }
 
@@ -1494,7 +1702,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       previewUrl: URL.createObjectURL(file),
     }));
     this.pendingGalleryFiles = [...this.pendingGalleryFiles, ...pendingItems];
-    this.galleryImages = [...this.galleryImages, ...pendingItems.map((item) => item.previewUrl)];
+    this.galleryImages = [
+      ...this.galleryImages,
+      ...pendingItems.map((item) => item.previewUrl),
+    ];
   }
 
   private setPendingVideoFiles(files: File[]): void {
@@ -1516,11 +1727,18 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   }): Promise<void> {
     if (this.pendingPrimaryImageFile) {
       this.primaryImageUploadProgress = 0;
-      const uploaded = await this.assetUploadService.uploadFile(this.pendingPrimaryImageFile, 'product/image', (progress) => {
-        this.primaryImageUploadProgress = progress;
-      });
+      const uploaded = await this.assetUploadService.uploadFile(
+        this.pendingPrimaryImageFile,
+        'product/image',
+        (progress) => {
+          this.primaryImageUploadProgress = progress;
+        },
+      );
       payload.imageUrl = uploaded.endpoint;
-      this.form.patchValue({ imageUrl: this.mediaUrlService.resolve(uploaded.endpoint) }, { emitEvent: false });
+      this.form.patchValue(
+        { imageUrl: this.mediaUrlService.resolve(uploaded.endpoint) },
+        { emitEvent: false },
+      );
     }
 
     if (this.pendingGalleryFiles.length > 0) {
@@ -1533,7 +1751,8 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         },
       );
       const existingUrls = this.galleryImages.filter(
-        (url) => !this.pendingGalleryFiles.some((item) => item.previewUrl === url),
+        (url) =>
+          !this.pendingGalleryFiles.some((item) => item.previewUrl === url),
       );
       this.galleryImages = [...existingUrls, ...uploadedUrls];
     }
@@ -1548,10 +1767,13 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         },
       );
       const existingUrls = this.videoUrls.filter(
-        (url) => !this.pendingVideoFiles.some((item) => item.previewUrl === url),
+        (url) =>
+          !this.pendingVideoFiles.some((item) => item.previewUrl === url),
       );
       this.videoUrls =
-        this.isEditMode && existingUrls.length > 0 ? uploadedUrls : [...existingUrls, ...uploadedUrls];
+        this.isEditMode && existingUrls.length > 0
+          ? uploadedUrls
+          : [...existingUrls, ...uploadedUrls];
     }
   }
 
@@ -1578,7 +1800,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private removePendingAssetByPreview(items: PendingAssetItem[], previewUrl: string | undefined): void {
+  private removePendingAssetByPreview(
+    items: PendingAssetItem[],
+    previewUrl: string | undefined,
+  ): void {
     if (!previewUrl) {
       return;
     }
@@ -1632,7 +1857,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     return fallback;
   }
 
-  private normalizeCategory(item: ProductCategoryResponseDto): ProductCategoryResponseDto {
+  private normalizeCategory(
+    item: ProductCategoryResponseDto,
+  ): ProductCategoryResponseDto {
     return {
       ...item,
       category_id: this.toNumberOrNull(item.category_id) ?? 0,
@@ -1669,28 +1896,27 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       return {};
     }
 
-    return Object.entries(value as Record<string, unknown>).reduce<Record<string, string>>(
-      (accumulator, [key, itemValue]) => {
-        if (typeof itemValue === 'string') {
-          accumulator[key] = itemValue;
-          return accumulator;
-        }
-
-        if (typeof itemValue === 'number' || typeof itemValue === 'boolean') {
-          accumulator[key] = String(itemValue);
-          return accumulator;
-        }
-
-        if (Array.isArray(itemValue)) {
-          accumulator[key] = itemValue
-            .map((entry) => (typeof entry === 'string' ? entry : String(entry)))
-            .join(', ');
-        }
-
+    return Object.entries(value as Record<string, unknown>).reduce<
+      Record<string, string>
+    >((accumulator, [key, itemValue]) => {
+      if (typeof itemValue === 'string') {
+        accumulator[key] = itemValue;
         return accumulator;
-      },
-      {},
-    );
+      }
+
+      if (typeof itemValue === 'number' || typeof itemValue === 'boolean') {
+        accumulator[key] = String(itemValue);
+        return accumulator;
+      }
+
+      if (Array.isArray(itemValue)) {
+        accumulator[key] = itemValue
+          .map((entry) => (typeof entry === 'string' ? entry : String(entry)))
+          .join(', ');
+      }
+
+      return accumulator;
+    }, {});
   }
 
   private extractStringArray(value: string | undefined): string[] {
@@ -1704,7 +1930,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       .filter(Boolean);
   }
 
-  private extractFitments(detailFitments: unknown[], attributeFitments?: string): string[] {
+  private extractFitments(
+    detailFitments: unknown[],
+    attributeFitments?: string,
+  ): string[] {
     if (Array.isArray(detailFitments) && detailFitments.length > 0) {
       return detailFitments
         .map((item) => {
@@ -1714,7 +1943,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
 
           if (item && typeof item === 'object') {
             return Object.values(item as Record<string, unknown>)
-              .filter((value) => typeof value === 'string' || typeof value === 'number')
+              .filter(
+                (value) =>
+                  typeof value === 'string' || typeof value === 'number',
+              )
               .map((value) => String(value))
               .join(' ')
               .trim();
@@ -1736,7 +1968,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     const value = (source as Record<string, unknown>)[key];
     if (Array.isArray(value)) {
       return value
-        .map((item) => (typeof item === 'string' ? item.trim() : String(item).trim()))
+        .map((item) =>
+          typeof item === 'string' ? item.trim() : String(item).trim(),
+        )
         .filter(Boolean);
     }
 
@@ -1760,19 +1994,27 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       attributes['procurement_type'] = String(payload.procurementType).trim();
     }
     if (this.toNumberOrNull(payload.minOrderQty) !== null) {
-      attributes['min_order_qty'] = String(this.toNumberOrNull(payload.minOrderQty));
+      attributes['min_order_qty'] = String(
+        this.toNumberOrNull(payload.minOrderQty),
+      );
     }
     if (this.toNumberOrNull(payload.returnWindowDays) !== null) {
-      attributes['return_window_days'] = String(this.toNumberOrNull(payload.returnWindowDays));
+      attributes['return_window_days'] = String(
+        this.toNumberOrNull(payload.returnWindowDays),
+      );
     }
     if (String(payload.returnPolicyNote ?? '').trim()) {
-      attributes['return_policy_note'] = String(payload.returnPolicyNote).trim();
+      attributes['return_policy_note'] = String(
+        payload.returnPolicyNote,
+      ).trim();
     }
     if (this.nonReturnableReasons.length > 0) {
       attributes['non_returnable_reason'] = [...this.nonReturnableReasons];
     }
     if (String(payload.serialTrackingNote ?? '').trim()) {
-      attributes['serial_tracking_note'] = String(payload.serialTrackingNote).trim();
+      attributes['serial_tracking_note'] = String(
+        payload.serialTrackingNote,
+      ).trim();
     }
     if (String(payload.fulfillmentNote ?? '').trim()) {
       attributes['fulfillment_note'] = String(payload.fulfillmentNote).trim();
@@ -1792,7 +2034,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   private hasReturnPolicyConfigured(): boolean {
     const value = this.form.getRawValue();
     if (value.returnable) {
-      return this.toNumberOrNull(value.returnWindowDays) !== null || String(value.returnPolicyNote ?? '').trim().length > 0;
+      return (
+        this.toNumberOrNull(value.returnWindowDays) !== null ||
+        String(value.returnPolicyNote ?? '').trim().length > 0
+      );
     }
 
     return this.nonReturnableReasons.length > 0;
@@ -1801,19 +2046,26 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   private validateOperationalPolicies(): boolean {
     const value = this.form.getRawValue();
 
-    if (this.toNumberOrNull(value.minOrderQty) === null || Number(value.minOrderQty) < 1) {
+    if (
+      this.toNumberOrNull(value.minOrderQty) === null ||
+      Number(value.minOrderQty) < 1
+    ) {
       this.toastService.warning('Minimum order quantity must be at least 1.');
       return false;
     }
 
     if (value.returnable) {
       if (this.toNumberOrNull(value.returnWindowDays) === null) {
-        this.toastService.warning('Set a return window in days for returnable products.');
+        this.toastService.warning(
+          'Set a return window in days for returnable products.',
+        );
         return false;
       }
 
       if (!String(value.returnPolicyNote ?? '').trim()) {
-        this.toastService.warning('Add a return policy note for returnable products.');
+        this.toastService.warning(
+          'Add a return policy note for returnable products.',
+        );
         return false;
       }
     }
@@ -1823,8 +2075,13 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    if (value.requiresSerial && !String(value.serialTrackingNote ?? '').trim()) {
-      this.toastService.warning('Add serial or batch handling notes when serial tracking is required.');
+    if (
+      value.requiresSerial &&
+      !String(value.serialTrackingNote ?? '').trim()
+    ) {
+      this.toastService.warning(
+        'Add serial or batch handling notes when serial tracking is required.',
+      );
       return false;
     }
 
@@ -1836,13 +2093,15 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     const uniqueIds = new Set(ids);
 
     if (this.editingProductId !== null && ids.includes(this.editingProductId)) {
-      this.crossSellValidationError = 'A product cannot be assigned as its own cross-sell.';
+      this.crossSellValidationError =
+        'A product cannot be assigned as its own cross-sell.';
       this.toastService.warning(this.crossSellValidationError);
       return false;
     }
 
     if (uniqueIds.size !== ids.length) {
-      this.crossSellValidationError = 'Remove duplicate cross-sell products before saving.';
+      this.crossSellValidationError =
+        'Remove duplicate cross-sell products before saving.';
       this.toastService.warning(this.crossSellValidationError);
       return false;
     }
@@ -1860,12 +2119,17 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     return [];
   }
 
-  private buildGalleryImages(primaryImage: string | null | undefined): string[] {
+  private buildGalleryImages(
+    primaryImage: string | null | undefined,
+  ): string[] {
     return Array.from(
       new Set(
         [primaryImage, ...this.galleryImages]
           .map((item) => this.mediaUrlService.toStoredValue(item))
-          .filter((item): item is string => typeof item === 'string' && item.trim().length > 0),
+          .filter(
+            (item): item is string =>
+              typeof item === 'string' && item.trim().length > 0,
+          ),
       ),
     );
   }
@@ -1905,7 +2169,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     };
   }
 
-  private mapCrossSellSuggestion(item: ProductSearchSuggestionDto): CrossSellSearchOption | null {
+  private mapCrossSellSuggestion(
+    item: ProductSearchSuggestionDto,
+  ): CrossSellSearchOption | null {
     const id = this.toNumberOrNull(item.id);
     if (id === null) {
       return null;
@@ -1926,18 +2192,25 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       id,
       title,
       sku,
-      thumbnail_image: this.toText(meta['thumbnail_image']) || this.toText(meta['image']) || null,
+      thumbnail_image:
+        this.toText(meta['thumbnail_image']) ||
+        this.toText(meta['image']) ||
+        null,
       currency: this.toText(meta['currency']) || null,
       price: this.toNullableNumber(meta['selling_price'] ?? meta['price']),
     };
   }
 
   private isCurrentProductCrossSell(productId: number): boolean {
-    return this.editingProductId !== null && this.editingProductId === productId;
+    return (
+      this.editingProductId !== null && this.editingProductId === productId
+    );
   }
 
   private hasCrossSellProduct(productId: number): boolean {
-    return this.crossSellItems.some((item) => item.recommended_product_id === productId);
+    return this.crossSellItems.some(
+      (item) => item.recommended_product_id === productId,
+    );
   }
 
   private getDefaultFormValue() {
@@ -1979,7 +2252,8 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       procurementType: 'stocked',
       minOrderQty: 1,
       returnWindowDays: 30 as number | null,
-      returnPolicyNote: 'Return accepted within 30 days in unused condition with original packaging.',
+      returnPolicyNote:
+        'Return accepted within 30 days in unused condition with original packaging.',
       serialTrackingNote: '',
       fulfillmentNote: '',
       imageUrl: '',
