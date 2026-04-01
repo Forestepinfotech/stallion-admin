@@ -6,6 +6,16 @@
  */
 
 export interface UpdateCustomerAddressDto {
+  /** @nullable */
+  first_name?: string | null;
+  /** @nullable */
+  last_name?: string | null;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  city?: string | null;
   line1?: string;
   line2?: string;
   postalcode?: string;

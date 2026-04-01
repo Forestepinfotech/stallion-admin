@@ -558,6 +558,41 @@
         ]
       }
     },
+    "/users/{user_id}/unlock": {
+      "patch": {
+        "operationId": "UsersController_unlock",
+        "parameters": [
+          {
+            "name": "user_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsersResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
     "/usertype": {
       "get": {
         "operationId": "UsertypeController_list",
@@ -3657,7 +3692,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateProductReviewDto"
+                "$ref": "#/components/schemas/CreateStorefrontProductReviewDto"
               }
             }
           }
@@ -3710,7 +3745,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProductReviewDto"
+                "$ref": "#/components/schemas/UpdateStorefrontProductReviewDto"
               }
             }
           }
@@ -4644,6 +4679,41 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProductsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-products"
+        ]
+      }
+    },
+    "/products/{product_id}/admin-full": {
+      "get": {
+        "operationId": "ProductsController_adminFull",
+        "parameters": [
+          {
+            "name": "product_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminProductFullResponseDto"
                 }
               }
             }
@@ -9144,6 +9214,248 @@
         ]
       }
     },
+    "/customer/catalog/home": {
+      "get": {
+        "operationId": "CustomerCatalogController_home",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Customer homepage payload with categories, brands, new products, and featured products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerHomeResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-catalog"
+        ]
+      }
+    },
+    "/customer/catalog/brands": {
+      "get": {
+        "operationId": "CustomerCatalogController_brands",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "toyota",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer brand list. Returns latest 10 brands by default, or filtered results when q is provided.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerBrandListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-catalog"
+        ]
+      }
+    },
+    "/customer/catalog/models": {
+      "get": {
+        "operationId": "CustomerCatalogController_models",
+        "parameters": [
+          {
+            "name": "brand_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 5,
+              "type": "number"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "civic",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer model list. Can be filtered by brand_id, q, or both. Returns latest 10 by default.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerModelListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-catalog"
+        ]
+      }
+    },
+    "/customer/catalog/products": {
+      "get": {
+        "operationId": "CustomerCatalogController_catalogProducts",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "brand",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "model",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "shipping_class",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "price_min",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "price_max",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "featured",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "in_stock",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "relevance",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer product list filtered by optional q, brand, model, category, and year parameters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerProductSearchResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-catalog"
+        ]
+      }
+    },
     "/customer/catalog/menu": {
       "get": {
         "operationId": "CustomerCatalogController_menu",
@@ -9154,7 +9466,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerCategoryListResponseDto"
                 }
               }
             }
@@ -9175,7 +9487,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerCategoryListResponseDto"
                 }
               }
             }
@@ -9207,7 +9519,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectDto"
+                  "$ref": "#/components/schemas/CustomerCategoryDetailResponseDto"
                 }
               }
             }
@@ -9346,7 +9658,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerSearchResponseDto"
+                  "$ref": "#/components/schemas/CustomerProductSearchResponseDto"
                 }
               }
             }
@@ -9378,7 +9690,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectDto"
+                  "$ref": "#/components/schemas/CustomerCategoryFiltersResponseDto"
                 }
               }
             }
@@ -9410,7 +9722,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectDto"
+                  "$ref": "#/components/schemas/CustomerCategoryAttributesResponseDto"
                 }
               }
             }
@@ -9539,7 +9851,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerSearchResponseDto"
+                  "$ref": "#/components/schemas/CustomerProductSearchResponseDto"
                 }
               }
             }
@@ -9579,7 +9891,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerSearchSuggestionListResponseDto"
                 }
               }
             }
@@ -9643,7 +9955,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerProductCardListResponseDto"
                 }
               }
             }
@@ -9664,7 +9976,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectDto"
+                  "$ref": "#/components/schemas/CustomerProfileResponseDto"
                 }
               }
             }
@@ -9698,7 +10010,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectDto"
+                  "$ref": "#/components/schemas/CustomerProfileResponseDto"
                 }
               }
             }
@@ -9753,7 +10065,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerAddressListResponseDto"
                 }
               }
             }
@@ -9787,7 +10099,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerAddressListResponseDto"
                 }
               }
             }
@@ -9828,7 +10140,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerAddressListResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -9858,7 +10177,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerAddressListResponseDto"
                 }
               }
             }
@@ -9884,7 +10203,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerVehicleListResponseDto"
                 }
               }
             }
@@ -9918,7 +10237,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerVehicleListResponseDto"
                 }
               }
             }
@@ -9959,7 +10278,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerVehicleListResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -9989,7 +10315,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerVehicleListResponseDto"
                 }
               }
             }
@@ -10234,7 +10560,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerProductCardListResponseDto"
                 }
               }
             }
@@ -10269,7 +10595,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerProductCardListResponseDto"
                 }
               }
             }
@@ -10302,7 +10628,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerProductCardListResponseDto"
                 }
               }
             }
@@ -10338,7 +10664,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerProductCardListResponseDto"
                 }
               }
             }
@@ -10373,7 +10699,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectListDto"
+                  "$ref": "#/components/schemas/CustomerProductCardListResponseDto"
                 }
               }
             }
@@ -10464,7 +10790,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerPaginatedListDto"
+                  "$ref": "#/components/schemas/CustomerOrderListResponseDto"
                 }
               }
             }
@@ -10499,7 +10825,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerObjectDto"
+                  "$ref": "#/components/schemas/CustomerOrderDetailResponseDto"
                 }
               }
             }
@@ -11678,6 +12004,26 @@
           "user_id": {
             "type": "number"
           },
+          "first_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "last_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "email": {
+            "type": "object",
+            "nullable": true
+          },
+          "phone": {
+            "type": "object",
+            "nullable": true
+          },
+          "city": {
+            "type": "object",
+            "nullable": true
+          },
           "line1": {
             "type": "string"
           },
@@ -11750,6 +12096,21 @@
           "user_id": {
             "type": "number"
           },
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
           "line1": {
             "type": "string"
           },
@@ -11795,6 +12156,21 @@
         "properties": {
           "user_id": {
             "type": "number"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
           },
           "line1": {
             "type": "string"
@@ -13327,57 +13703,42 @@
           "meta"
         ]
       },
-      "CreateProductReviewDto": {
+      "CreateStorefrontProductReviewDto": {
         "type": "object",
         "properties": {
-          "user_id": {
-            "type": "number"
-          },
-          "product_id": {
-            "type": "number"
-          },
           "rating": {
-            "type": "number"
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5,
+            "example": 4,
+            "description": "Integer star rating from 1 (worst) to 5 (best)"
           },
-          "review_comment": {
+          "title": {
             "type": "string"
           },
-          "is_active": {
-            "type": "boolean"
-          },
-          "is_deleted": {
-            "type": "boolean"
+          "comment": {
+            "type": "string"
           }
         },
         "required": [
-          "user_id",
-          "product_id",
-          "rating",
-          "review_comment",
-          "is_active",
-          "is_deleted"
+          "rating"
         ]
       },
-      "UpdateProductReviewDto": {
+      "UpdateStorefrontProductReviewDto": {
         "type": "object",
         "properties": {
-          "user_id": {
-            "type": "number"
-          },
-          "product_id": {
-            "type": "number"
-          },
           "rating": {
-            "type": "number"
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5,
+            "example": 5,
+            "description": "Integer star rating from 1 (worst) to 5 (best)"
           },
-          "review_comment": {
+          "title": {
             "type": "string"
           },
-          "is_active": {
-            "type": "boolean"
-          },
-          "is_deleted": {
-            "type": "boolean"
+          "comment": {
+            "type": "string"
           }
         }
       },
@@ -14148,6 +14509,341 @@
           "data"
         ]
       },
+      "AdminProductConnectionsDto": {
+        "type": "object",
+        "properties": {
+          "reviews": {
+            "$ref": "#/components/schemas/PaginatedProductReviewDto"
+          },
+          "questions": {
+            "$ref": "#/components/schemas/PaginatedProductQuestionDto"
+          }
+        },
+        "required": [
+          "reviews",
+          "questions"
+        ]
+      },
+      "AdminProductFullDto": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "mpn": {
+            "type": "object",
+            "nullable": true
+          },
+          "barcode": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "type": "object",
+            "nullable": true
+          },
+          "compare_at_price": {
+            "type": "object",
+            "nullable": true
+          },
+          "cost_price": {
+            "type": "object",
+            "nullable": true
+          },
+          "currency": {
+            "type": "object",
+            "nullable": true
+          },
+          "stock_qty": {
+            "type": "object",
+            "nullable": true
+          },
+          "stock_status": {
+            "type": "object",
+            "nullable": true
+          },
+          "status": {
+            "type": "object",
+            "nullable": true
+          },
+          "visibility": {
+            "type": "object",
+            "nullable": true
+          },
+          "featured": {
+            "type": "object",
+            "nullable": true
+          },
+          "is_active": {
+            "type": "object",
+            "nullable": true
+          },
+          "thumbnail_image": {
+            "type": "object",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "updated_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "category_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "category_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "brand_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "brand_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "model_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "model_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "condition": {
+            "type": "object",
+            "nullable": true
+          },
+          "short_description": {
+            "type": "object",
+            "nullable": true
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "supplier": {
+            "type": "object",
+            "nullable": true
+          },
+          "warehouse_bin": {
+            "type": "object",
+            "nullable": true
+          },
+          "lead_time_days": {
+            "type": "object",
+            "nullable": true
+          },
+          "low_stock_threshold": {
+            "type": "object",
+            "nullable": true
+          },
+          "min_order_qty": {
+            "type": "object",
+            "nullable": true
+          },
+          "inventory_source": {
+            "type": "object",
+            "nullable": true
+          },
+          "internal_reference_code": {
+            "type": "object",
+            "nullable": true
+          },
+          "stock_strategy": {
+            "type": "object",
+            "nullable": true
+          },
+          "shipping_class": {
+            "type": "object",
+            "nullable": true
+          },
+          "weight": {
+            "type": "object",
+            "nullable": true
+          },
+          "length": {
+            "type": "object",
+            "nullable": true
+          },
+          "width": {
+            "type": "object",
+            "nullable": true
+          },
+          "height": {
+            "type": "object",
+            "nullable": true
+          },
+          "warranty": {
+            "type": "object",
+            "nullable": true
+          },
+          "returnable": {
+            "type": "object",
+            "nullable": true
+          },
+          "return_window_days": {
+            "type": "object",
+            "nullable": true
+          },
+          "non_returnable_reasons": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "return_policy_note": {
+            "type": "object",
+            "nullable": true
+          },
+          "serial_tracking_note": {
+            "type": "object",
+            "nullable": true
+          },
+          "fulfillment_note": {
+            "type": "object",
+            "nullable": true
+          },
+          "universal_fit": {
+            "type": "object",
+            "nullable": true
+          },
+          "requires_serial": {
+            "type": "object",
+            "nullable": true
+          },
+          "gallery_images": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "video_urls": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "media": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "package_contents": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "seo_title": {
+            "type": "object",
+            "nullable": true
+          },
+          "seo_description": {
+            "type": "object",
+            "nullable": true
+          },
+          "tags": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "attributes": {
+            "type": "object",
+            "nullable": true
+          },
+          "is_deleted": {
+            "type": "object",
+            "nullable": true
+          },
+          "breadcrumbs": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "specifications": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "fitments": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "cross_sells": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductCrossSellDto"
+            }
+          },
+          "connected": {
+            "$ref": "#/components/schemas/AdminProductConnectionsDto"
+          }
+        },
+        "required": [
+          "product_id",
+          "title",
+          "slug",
+          "sku",
+          "breadcrumbs",
+          "specifications",
+          "fitments",
+          "connected"
+        ]
+      },
+      "AdminProductFullResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Product fetched successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AdminProductFullDto"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
       "ProductMediaItemDto": {
         "type": "object",
         "properties": {
@@ -14834,6 +15530,60 @@
           "data",
           "meta"
         ]
+      },
+      "CreateProductReviewDto": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "number"
+          },
+          "product_id": {
+            "type": "number"
+          },
+          "rating": {
+            "type": "number"
+          },
+          "review_comment": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "is_deleted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "user_id",
+          "product_id",
+          "rating",
+          "review_comment",
+          "is_active",
+          "is_deleted"
+        ]
+      },
+      "UpdateProductReviewDto": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "number"
+          },
+          "product_id": {
+            "type": "number"
+          },
+          "rating": {
+            "type": "number"
+          },
+          "review_comment": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "is_deleted": {
+            "type": "boolean"
+          }
+        }
       },
       "DealerProductPriceResponseDto": {
         "type": "object",
@@ -17885,39 +18635,93 @@
       "CustomerProfileDto": {
         "type": "object",
         "properties": {
-          "user": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ProfileUserDto"
-              }
-            ]
+          "user_id": {
+            "type": "number",
+            "example": 1
           },
-          "address": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ProfileAddressDto"
-              }
-            ]
+          "name": {
+            "type": "object",
+            "example": "John Doe",
+            "nullable": true
           },
-          "stats": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CustomerProfileStatsDto"
-              }
-            ]
+          "email": {
+            "type": "object",
+            "example": "john@example.com",
+            "nullable": true
           },
-          "activity": {
-            "$ref": "#/components/schemas/ProfileActivityDto"
+          "phone": {
+            "type": "object",
+            "example": "+1 555 123 4567",
+            "nullable": true
+          },
+          "user_pic": {
+            "type": "object",
+            "example": "https://cdn.example.com/user.jpg",
+            "nullable": true
+          },
+          "email_subscribed": {
+            "type": "object",
+            "example": true,
+            "nullable": true
+          },
+          "address_id": {
+            "type": "object",
+            "example": 11,
+            "nullable": true
+          },
+          "line1": {
+            "type": "object",
+            "example": "123 Main St",
+            "nullable": true
+          },
+          "address_first_name": {
+            "type": "object",
+            "example": "John",
+            "nullable": true
+          },
+          "address_last_name": {
+            "type": "object",
+            "example": "Doe",
+            "nullable": true
+          },
+          "address_email": {
+            "type": "object",
+            "example": "john@example.com",
+            "nullable": true
+          },
+          "address_phone": {
+            "type": "object",
+            "example": "+1 555 123 4567",
+            "nullable": true
+          },
+          "city": {
+            "type": "object",
+            "example": "Toronto",
+            "nullable": true
+          },
+          "line2": {
+            "type": "object",
+            "example": "Unit 2",
+            "nullable": true
+          },
+          "postalcode": {
+            "type": "object",
+            "example": "A1A1A1",
+            "nullable": true
+          },
+          "province": {
+            "type": "object",
+            "example": "Ontario",
+            "nullable": true
+          },
+          "country": {
+            "type": "object",
+            "example": "Canada",
+            "nullable": true
           }
         },
         "required": [
-          "user",
-          "address",
-          "stats",
-          "activity"
+          "user_id"
         ]
       },
       "UpdateCustomerDashboardProfileDto": {
@@ -18796,13 +19600,242 @@
           "data"
         ]
       },
-      "CustomerObjectListDto": {
+      "CustomerCategoryDto": {
+        "type": "object",
+        "properties": {
+          "category_id": {
+            "type": "number",
+            "example": 12
+          },
+          "category_name": {
+            "type": "string",
+            "example": "Tires"
+          },
+          "slug": {
+            "type": "object",
+            "example": "tires",
+            "nullable": true
+          },
+          "category_image": {
+            "type": "object",
+            "example": "https://cdn.example.com/categories/tires.jpg",
+            "nullable": true
+          },
+          "product_count": {
+            "type": "number",
+            "example": 42
+          }
+        },
+        "required": [
+          "category_id",
+          "category_name"
+        ]
+      },
+      "CustomerBrandDto": {
+        "type": "object",
+        "properties": {
+          "car_brand_id": {
+            "type": "number",
+            "example": 5
+          },
+          "car_brand_name": {
+            "type": "string",
+            "example": "Toyota"
+          },
+          "brand_image": {
+            "type": "object",
+            "example": "https://cdn.example.com/brands/toyota.png",
+            "nullable": true
+          },
+          "brand_url": {
+            "type": "object",
+            "example": "https://toyota.com",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "object",
+            "example": "2026-03-01T10:00:00.000Z",
+            "nullable": true
+          }
+        },
+        "required": [
+          "car_brand_id",
+          "car_brand_name"
+        ]
+      },
+      "CustomerProductCardDto": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "mpn": {
+            "type": "object",
+            "nullable": true
+          },
+          "barcode": {
+            "type": "object",
+            "nullable": true
+          },
+          "price": {
+            "type": "object",
+            "nullable": true
+          },
+          "compare_at_price": {
+            "type": "object",
+            "nullable": true
+          },
+          "cost_price": {
+            "type": "object",
+            "nullable": true
+          },
+          "currency": {
+            "type": "object",
+            "nullable": true
+          },
+          "stock_qty": {
+            "type": "object",
+            "nullable": true
+          },
+          "stock_status": {
+            "type": "object",
+            "nullable": true
+          },
+          "status": {
+            "type": "object",
+            "nullable": true
+          },
+          "visibility": {
+            "type": "object",
+            "nullable": true
+          },
+          "featured": {
+            "type": "object",
+            "nullable": true
+          },
+          "is_active": {
+            "type": "object",
+            "nullable": true
+          },
+          "thumbnail_image": {
+            "type": "object",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "updated_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "category_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "category_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "brand_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "brand_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "model_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "model_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "selling_price": {
+            "type": "object",
+            "example": 199.99,
+            "nullable": true
+          },
+          "savings_amount": {
+            "type": "number",
+            "example": 50
+          },
+          "has_price_difference": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "product_id",
+          "title",
+          "slug",
+          "sku"
+        ]
+      },
+      "CustomerHomeDataDto": {
+        "type": "object",
+        "properties": {
+          "shop_by_categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerCategoryDto"
+            }
+          },
+          "shop_by_brands": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerBrandDto"
+            }
+          },
+          "new_products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerProductCardDto"
+            }
+          },
+          "featured_products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerProductCardDto"
+            }
+          }
+        },
+        "required": [
+          "shop_by_categories",
+          "shop_by_brands",
+          "new_products",
+          "featured_products"
+        ]
+      },
+      "CustomerHomeResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerHomeDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "CustomerBrandListResponseDto": {
         "type": "object",
         "properties": {
           "data": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/CustomerBrandDto"
             }
           }
         },
@@ -18810,28 +19843,111 @@
           "data"
         ]
       },
-      "CustomerObjectDto": {
+      "CustomerModelDto": {
+        "type": "object",
+        "properties": {
+          "model_id": {
+            "type": "number",
+            "example": 14
+          },
+          "car_brand_id": {
+            "type": "number",
+            "example": 5
+          },
+          "model_name": {
+            "type": "string",
+            "example": "Civic"
+          },
+          "model_engine": {
+            "type": "object",
+            "example": "1.8L",
+            "nullable": true
+          },
+          "model_image": {
+            "type": "object",
+            "example": "https://cdn.example.com/models/civic.png",
+            "nullable": true
+          },
+          "car_brand_name": {
+            "type": "object",
+            "example": "Honda",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "object",
+            "example": "2026-03-01T10:00:00.000Z",
+            "nullable": true
+          }
+        },
+        "required": [
+          "model_id",
+          "car_brand_id",
+          "model_name"
+        ]
+      },
+      "CustomerModelListResponseDto": {
         "type": "object",
         "properties": {
           "data": {
-            "type": "object"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerModelDto"
+            }
           }
         },
         "required": [
           "data"
         ]
       },
-      "CustomerSearchResponseDto": {
+      "CustomerProductSearchMetaDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 10
+          },
+          "total": {
+            "type": "number",
+            "example": 42
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 5
+          },
+          "sort": {
+            "type": "string",
+            "example": "relevance"
+          },
+          "took_ms": {
+            "type": "number",
+            "example": 18
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages",
+          "sort",
+          "took_ms"
+        ]
+      },
+      "CustomerProductSearchResponseDto": {
         "type": "object",
         "properties": {
           "query": {
             "type": "object",
-            "nullable": true
+            "nullable": true,
+            "example": "brake pad"
           },
           "items": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/CustomerProductCardDto"
             }
           },
           "facets": {
@@ -18841,7 +19957,7 @@
             }
           },
           "meta": {
-            "type": "object"
+            "$ref": "#/components/schemas/CustomerProductSearchMetaDto"
           }
         },
         "required": [
@@ -18850,11 +19966,322 @@
           "meta"
         ]
       },
+      "CustomerCategoryListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerCategoryDto"
+            }
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "CustomerCategoryDetailDataDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 12
+          },
+          "name": {
+            "type": "string",
+            "example": "Tires"
+          },
+          "slug": {
+            "type": "object",
+            "example": "tires",
+            "nullable": true
+          },
+          "image_url": {
+            "type": "object",
+            "example": "https://cdn.example.com/categories/tires.jpg",
+            "nullable": true
+          },
+          "hero_products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerProductCardDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "hero_products"
+        ]
+      },
+      "CustomerCategoryDetailResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerCategoryDetailDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "CustomerCategoryPriceRangeDto": {
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": "number",
+            "example": 0
+          },
+          "max": {
+            "type": "number",
+            "example": 1000
+          }
+        },
+        "required": [
+          "min",
+          "max"
+        ]
+      },
+      "CustomerCategoryFilterFacetDto": {
+        "type": "object",
+        "properties": {
+          "assignment_id": {
+            "type": "number",
+            "example": 1
+          },
+          "attribute_id": {
+            "type": "number",
+            "example": 7
+          },
+          "attribute_name": {
+            "type": "string",
+            "example": "Size"
+          },
+          "attribute_code": {
+            "type": "object",
+            "example": "size",
+            "nullable": true
+          },
+          "input_type": {
+            "type": "object",
+            "example": "select",
+            "nullable": true
+          },
+          "data_type": {
+            "type": "object",
+            "example": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "assignment_id",
+          "attribute_id",
+          "attribute_name"
+        ]
+      },
+      "CustomerCategoryFiltersDataDto": {
+        "type": "object",
+        "properties": {
+          "price_range": {
+            "$ref": "#/components/schemas/CustomerCategoryPriceRangeDto"
+          },
+          "facets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerCategoryFilterFacetDto"
+            }
+          }
+        },
+        "required": [
+          "price_range",
+          "facets"
+        ]
+      },
+      "CustomerCategoryFiltersResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerCategoryFiltersDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "CustomerCategoryAttributeOptionDto": {
+        "type": "object",
+        "properties": {
+          "value_id": {
+            "type": "number",
+            "example": 3
+          },
+          "label": {
+            "type": "object",
+            "example": "Small",
+            "nullable": true
+          },
+          "value": {
+            "type": "object",
+            "example": "small",
+            "nullable": true
+          },
+          "sort_order": {
+            "type": "object",
+            "example": 0,
+            "nullable": true
+          }
+        },
+        "required": [
+          "value_id"
+        ]
+      },
+      "CustomerCategoryAttributeDto": {
+        "type": "object",
+        "properties": {
+          "assignment_id": {
+            "type": "object",
+            "example": 1,
+            "nullable": true
+          },
+          "attribute_id": {
+            "type": "number",
+            "example": 7
+          },
+          "attribute_name": {
+            "type": "string",
+            "example": "Size"
+          },
+          "attribute_code": {
+            "type": "object",
+            "example": "size",
+            "nullable": true
+          },
+          "input_type": {
+            "type": "object",
+            "example": "select",
+            "nullable": true
+          },
+          "data_type": {
+            "type": "object",
+            "example": "string",
+            "nullable": true
+          },
+          "is_required": {
+            "type": "boolean",
+            "example": false
+          },
+          "is_filterable": {
+            "type": "boolean",
+            "example": true
+          },
+          "is_searchable": {
+            "type": "boolean",
+            "example": true
+          },
+          "display_group": {
+            "type": "object",
+            "example": "Specifications",
+            "nullable": true
+          },
+          "sort_order": {
+            "type": "object",
+            "example": 0,
+            "nullable": true
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerCategoryAttributeOptionDto"
+            }
+          }
+        },
+        "required": [
+          "attribute_id",
+          "attribute_name",
+          "is_required",
+          "is_filterable",
+          "is_searchable",
+          "options"
+        ]
+      },
+      "CustomerCategoryAttributesDataDto": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "object",
+            "example": {
+              "category_id": 12,
+              "category_name": "Tires",
+              "slug": "tires"
+            }
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerCategoryAttributeDto"
+            }
+          }
+        },
+        "required": [
+          "category",
+          "attributes"
+        ]
+      },
+      "CustomerCategoryAttributesResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerCategoryAttributesDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "CustomerSearchSuggestionListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductSearchSuggestionDto"
+            }
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
       "CustomerProductResponseDto": {
         "type": "object",
         "properties": {
           "data": {
-            "type": "object"
+            "$ref": "#/components/schemas/ProductDetailDto"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "CustomerProductCardListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerProductCardDto"
+            }
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "CustomerProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerProfileDto"
           }
         },
         "required": [
@@ -18895,9 +20322,125 @@
           "newPassword"
         ]
       },
+      "CustomerAddressDto": {
+        "type": "object",
+        "properties": {
+          "address_id": {
+            "type": "number",
+            "example": 11
+          },
+          "user_id": {
+            "type": "number",
+            "example": 1
+          },
+          "line1": {
+            "type": "string",
+            "example": "123 Main St"
+          },
+          "first_name": {
+            "type": "object",
+            "example": "John",
+            "nullable": true
+          },
+          "last_name": {
+            "type": "object",
+            "example": "Doe",
+            "nullable": true
+          },
+          "email": {
+            "type": "object",
+            "example": "john@example.com",
+            "nullable": true
+          },
+          "phone": {
+            "type": "object",
+            "example": "+14165550101",
+            "nullable": true
+          },
+          "city": {
+            "type": "object",
+            "example": "Toronto",
+            "nullable": true
+          },
+          "line2": {
+            "type": "object",
+            "example": "Unit 2",
+            "nullable": true
+          },
+          "postalcode": {
+            "type": "object",
+            "example": "A1A1A1",
+            "nullable": true
+          },
+          "province": {
+            "type": "object",
+            "example": "Ontario",
+            "nullable": true
+          },
+          "country": {
+            "type": "object",
+            "example": "Canada",
+            "nullable": true
+          },
+          "is_default": {
+            "type": "object",
+            "example": true,
+            "nullable": true
+          },
+          "is_active": {
+            "type": "object",
+            "example": true,
+            "nullable": true
+          }
+        },
+        "required": [
+          "address_id",
+          "user_id",
+          "line1"
+        ]
+      },
+      "CustomerAddressListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerAddressDto"
+            }
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
       "CreateCustomerAddressDto": {
         "type": "object",
         "properties": {
+          "first_name": {
+            "type": "string",
+            "example": "John",
+            "nullable": true
+          },
+          "last_name": {
+            "type": "string",
+            "example": "Doe",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "example": "+14165550101",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "example": "Toronto",
+            "nullable": true
+          },
           "line1": {
             "type": "string"
           },
@@ -18924,6 +20467,31 @@
       "UpdateCustomerAddressDto": {
         "type": "object",
         "properties": {
+          "first_name": {
+            "type": "string",
+            "example": "John",
+            "nullable": true
+          },
+          "last_name": {
+            "type": "string",
+            "example": "Doe",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "example": "+14165550101",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "example": "Toronto",
+            "nullable": true
+          },
           "line1": {
             "type": "string"
           },
@@ -18943,6 +20511,67 @@
             "type": "boolean"
           }
         }
+      },
+      "CustomerVehicleDto": {
+        "type": "object",
+        "properties": {
+          "vehicle_id": {
+            "type": "number",
+            "example": 14
+          },
+          "user_id": {
+            "type": "number",
+            "example": 1
+          },
+          "model_id": {
+            "type": "number",
+            "example": 9
+          },
+          "car_year": {
+            "type": "object",
+            "example": 2022,
+            "nullable": true
+          },
+          "is_primary": {
+            "type": "object",
+            "example": true,
+            "nullable": true
+          },
+          "is_active": {
+            "type": "object",
+            "example": true,
+            "nullable": true
+          },
+          "model_name": {
+            "type": "object",
+            "example": "Civic",
+            "nullable": true
+          },
+          "car_brand_name": {
+            "type": "object",
+            "example": "Honda",
+            "nullable": true
+          }
+        },
+        "required": [
+          "vehicle_id",
+          "user_id",
+          "model_id"
+        ]
+      },
+      "CustomerVehicleListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerVehicleDto"
+            }
+          }
+        },
+        "required": [
+          "data"
+        ]
       },
       "CreateCustomerVehicleDto": {
         "type": "object",
@@ -19379,28 +21008,127 @@
           "product_id"
         ]
       },
-      "CustomerPaginatedListDto": {
+      "CustomerOrderSummaryDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number",
+            "example": 101
+          },
+          "order_number": {
+            "type": "object",
+            "example": "ORD-1001",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "object",
+            "example": "2026-03-01T10:00:00.000Z",
+            "nullable": true
+          },
+          "total_cost": {
+            "type": "object",
+            "example": 249.99,
+            "nullable": true
+          },
+          "buying_qty": {
+            "type": "object",
+            "example": 2,
+            "nullable": true
+          },
+          "is_paid": {
+            "type": "object",
+            "example": true,
+            "nullable": true
+          },
+          "order_note": {
+            "type": "object",
+            "example": "Please leave at the door",
+            "nullable": true
+          },
+          "status_name": {
+            "type": "object",
+            "example": "Delivered",
+            "nullable": true
+          },
+          "product_id": {
+            "type": "object",
+            "example": 12,
+            "nullable": true
+          },
+          "slug": {
+            "type": "object",
+            "example": "brake-pad-front",
+            "nullable": true
+          },
+          "title": {
+            "type": "object",
+            "example": "Brake Pad Front",
+            "nullable": true
+          },
+          "sku": {
+            "type": "object",
+            "example": "SKU-001",
+            "nullable": true
+          }
+        },
+        "required": [
+          "order_id"
+        ]
+      },
+      "CustomerPaginationMetaDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "total": {
+            "type": "number",
+            "example": 42
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 3
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages"
+        ]
+      },
+      "CustomerOrderListResponseDto": {
         "type": "object",
         "properties": {
           "data": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/CustomerOrderSummaryDto"
             }
           },
           "meta": {
-            "type": "object",
-            "example": {
-              "page": 1,
-              "limit": 20,
-              "total": 0,
-              "totalPages": 0
-            }
+            "$ref": "#/components/schemas/CustomerPaginationMetaDto"
           }
         },
         "required": [
           "data",
           "meta"
+        ]
+      },
+      "CustomerOrderDetailResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
         ]
       },
       "CustomerApplicableCouponsDataDto": {

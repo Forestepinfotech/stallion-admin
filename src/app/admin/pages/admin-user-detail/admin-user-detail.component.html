@@ -136,22 +136,49 @@
               </span>
             </div>
 
-            <label class="flex items-center justify-between gap-4 rounded-2xl border p-4">
-              <div>
-                <div class="text-sm font-semibold text-gray-900">Marketing Emails</div>
-                <div class="mt-1 text-sm text-gray-500">Toggle generated subscription setting for this user.</div>
-              </div>
-              <input
-                type="checkbox"
-                class="h-5 w-5 accent-black"
-                [checked]="!!user.email_subscribed"
-                (change)="updateEmailSubscription($any($event.target).checked)"
-              />
-            </label>
+	            <label class="flex items-center justify-between gap-4 rounded-2xl border p-4">
+	              <div>
+	                <div class="text-sm font-semibold text-gray-900">Marketing Emails</div>
+	                <div class="mt-1 text-sm text-gray-500">Toggle generated subscription setting for this user.</div>
+	              </div>
+	              <input
+	                type="checkbox"
+	                class="h-5 w-5 accent-black"
+	                [checked]="!!user.email_subscribed"
+	                (change)="updateEmailSubscription($any($event.target).checked)"
+	              />
+	            </label>
 
-            <div class="grid gap-4 sm:grid-cols-2">
-              <div class="rounded-2xl border p-4">
-                <div class="text-xs uppercase tracking-wide text-gray-500">Email Verified</div>
+	            <label class="flex items-center justify-between gap-4 rounded-2xl border p-4">
+	              <div>
+	                <div class="text-sm font-semibold text-gray-900">Account Locked</div>
+	                <div class="mt-1 text-sm text-gray-500">
+	                  {{ isLocked ? 'Locked (reset to restore access).' : 'Not locked.' }}
+	                </div>
+	              </div>
+	              <div class="flex items-center gap-3">
+	                <button
+	                  *ngIf="isLocked"
+	                  type="button"
+	                  class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 disabled:opacity-50"
+	                  (click)="resetLock()"
+	                  [disabled]="savingUnlock"
+	                >
+	                  Reset lock
+	                </button>
+	                <input
+	                  type="checkbox"
+	                  class="h-5 w-5 accent-black"
+	                  [checked]="isLocked"
+	                  [disabled]="savingUnlock || savingLock"
+	                  (change)="onLockedToggle($any($event.target).checked)"
+	                />
+	              </div>
+	            </label>
+
+	            <div class="grid gap-4 sm:grid-cols-2">
+	              <div class="rounded-2xl border p-4">
+	                <div class="text-xs uppercase tracking-wide text-gray-500">Email Verified</div>
                 <div class="mt-2 text-sm font-semibold text-gray-900">{{ user.is_email_verified ? 'Yes' : 'No' }}</div>
               </div>
               <div class="rounded-2xl border p-4">

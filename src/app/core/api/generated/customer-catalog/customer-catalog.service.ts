@@ -17,13 +17,23 @@ import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
 
 import type {
+  CustomerBrandListResponseDto,
+  CustomerCatalogControllerBrandsParams,
+  CustomerCatalogControllerCatalogProductsParams,
   CustomerCatalogControllerCategoryProductsParams,
+  CustomerCatalogControllerModelsParams,
   CustomerCatalogControllerSearchParams,
   CustomerCatalogControllerSuggestionsParams,
-  CustomerObjectDto,
-  CustomerObjectListDto,
+  CustomerCategoryAttributesResponseDto,
+  CustomerCategoryDetailResponseDto,
+  CustomerCategoryFiltersResponseDto,
+  CustomerCategoryListResponseDto,
+  CustomerHomeResponseDto,
+  CustomerModelListResponseDto,
+  CustomerProductCardListResponseDto,
   CustomerProductResponseDto,
-  CustomerSearchResponseDto,
+  CustomerProductSearchResponseDto,
+  CustomerSearchSuggestionListResponseDto,
 } from "../schemas";
 
 interface HttpClientOptions {
@@ -92,16 +102,184 @@ function filterParams(
 @Injectable({ providedIn: "root" })
 export class CustomerCatalogService {
   private readonly http = inject(HttpClient);
-  customerCatalogControllerMenu<TData = CustomerObjectListDto>(
+  customerCatalogControllerHome<TData = CustomerHomeResponseDto>(
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerCatalogControllerMenu<TData = CustomerObjectListDto>(
+  customerCatalogControllerHome<TData = CustomerHomeResponseDto>(
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerCatalogControllerMenu<TData = CustomerObjectListDto>(
+  customerCatalogControllerHome<TData = CustomerHomeResponseDto>(
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerCatalogControllerMenu<TData = CustomerObjectListDto>(
+  customerCatalogControllerHome<TData = CustomerHomeResponseDto>(
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/customer/catalog/home`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/customer/catalog/home`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+      });
+    }
+
+    return this.http.get<TData>(`/customer/catalog/home`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+    });
+  }
+  customerCatalogControllerBrands<TData = CustomerBrandListResponseDto>(
+    params?: CustomerCatalogControllerBrandsParams,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  customerCatalogControllerBrands<TData = CustomerBrandListResponseDto>(
+    params?: CustomerCatalogControllerBrandsParams,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  customerCatalogControllerBrands<TData = CustomerBrandListResponseDto>(
+    params?: CustomerCatalogControllerBrandsParams,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  customerCatalogControllerBrands<TData = CustomerBrandListResponseDto>(
+    params?: CustomerCatalogControllerBrandsParams,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/customer/catalog/brands`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+        params: filteredParams,
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/customer/catalog/brands`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+        params: filteredParams,
+      });
+    }
+
+    return this.http.get<TData>(`/customer/catalog/brands`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+      params: filteredParams,
+    });
+  }
+  customerCatalogControllerModels<TData = CustomerModelListResponseDto>(
+    params?: CustomerCatalogControllerModelsParams,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  customerCatalogControllerModels<TData = CustomerModelListResponseDto>(
+    params?: CustomerCatalogControllerModelsParams,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  customerCatalogControllerModels<TData = CustomerModelListResponseDto>(
+    params?: CustomerCatalogControllerModelsParams,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  customerCatalogControllerModels<TData = CustomerModelListResponseDto>(
+    params?: CustomerCatalogControllerModelsParams,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/customer/catalog/models`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+        params: filteredParams,
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/customer/catalog/models`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+        params: filteredParams,
+      });
+    }
+
+    return this.http.get<TData>(`/customer/catalog/models`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+      params: filteredParams,
+    });
+  }
+  customerCatalogControllerCatalogProducts<
+    TData = CustomerProductSearchResponseDto,
+  >(
+    params?: CustomerCatalogControllerCatalogProductsParams,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  customerCatalogControllerCatalogProducts<
+    TData = CustomerProductSearchResponseDto,
+  >(
+    params?: CustomerCatalogControllerCatalogProductsParams,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  customerCatalogControllerCatalogProducts<
+    TData = CustomerProductSearchResponseDto,
+  >(
+    params?: CustomerCatalogControllerCatalogProductsParams,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  customerCatalogControllerCatalogProducts<
+    TData = CustomerProductSearchResponseDto,
+  >(
+    params?: CustomerCatalogControllerCatalogProductsParams,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/customer/catalog/products`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+        params: filteredParams,
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/customer/catalog/products`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+        params: filteredParams,
+      });
+    }
+
+    return this.http.get<TData>(`/customer/catalog/products`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+      params: filteredParams,
+    });
+  }
+  customerCatalogControllerMenu<TData = CustomerCategoryListResponseDto>(
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  customerCatalogControllerMenu<TData = CustomerCategoryListResponseDto>(
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  customerCatalogControllerMenu<TData = CustomerCategoryListResponseDto>(
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  customerCatalogControllerMenu<TData = CustomerCategoryListResponseDto>(
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     if (options?.observe === "events") {
@@ -123,16 +301,16 @@ export class CustomerCatalogService {
       observe: "body",
     });
   }
-  customerCatalogControllerCategories<TData = CustomerObjectListDto>(
+  customerCatalogControllerCategories<TData = CustomerCategoryListResponseDto>(
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerCatalogControllerCategories<TData = CustomerObjectListDto>(
+  customerCatalogControllerCategories<TData = CustomerCategoryListResponseDto>(
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerCatalogControllerCategories<TData = CustomerObjectListDto>(
+  customerCatalogControllerCategories<TData = CustomerCategoryListResponseDto>(
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerCatalogControllerCategories<TData = CustomerObjectListDto>(
+  customerCatalogControllerCategories<TData = CustomerCategoryListResponseDto>(
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     if (options?.observe === "events") {
@@ -154,19 +332,27 @@ export class CustomerCatalogService {
       observe: "body",
     });
   }
-  customerCatalogControllerCategoryDetail<TData = CustomerObjectDto>(
+  customerCatalogControllerCategoryDetail<
+    TData = CustomerCategoryDetailResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerCatalogControllerCategoryDetail<TData = CustomerObjectDto>(
+  customerCatalogControllerCategoryDetail<
+    TData = CustomerCategoryDetailResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerCatalogControllerCategoryDetail<TData = CustomerObjectDto>(
+  customerCatalogControllerCategoryDetail<
+    TData = CustomerCategoryDetailResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerCatalogControllerCategoryDetail<TData = CustomerObjectDto>(
+  customerCatalogControllerCategoryDetail<
+    TData = CustomerCategoryDetailResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -189,22 +375,30 @@ export class CustomerCatalogService {
       observe: "body",
     });
   }
-  customerCatalogControllerCategoryProducts<TData = CustomerSearchResponseDto>(
+  customerCatalogControllerCategoryProducts<
+    TData = CustomerProductSearchResponseDto,
+  >(
     slug: string,
     params?: CustomerCatalogControllerCategoryProductsParams,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerCatalogControllerCategoryProducts<TData = CustomerSearchResponseDto>(
+  customerCatalogControllerCategoryProducts<
+    TData = CustomerProductSearchResponseDto,
+  >(
     slug: string,
     params?: CustomerCatalogControllerCategoryProductsParams,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerCatalogControllerCategoryProducts<TData = CustomerSearchResponseDto>(
+  customerCatalogControllerCategoryProducts<
+    TData = CustomerProductSearchResponseDto,
+  >(
     slug: string,
     params?: CustomerCatalogControllerCategoryProductsParams,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerCatalogControllerCategoryProducts<TData = CustomerSearchResponseDto>(
+  customerCatalogControllerCategoryProducts<
+    TData = CustomerProductSearchResponseDto,
+  >(
     slug: string,
     params?: CustomerCatalogControllerCategoryProductsParams,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
@@ -236,19 +430,27 @@ export class CustomerCatalogService {
       params: filteredParams,
     });
   }
-  customerCatalogControllerCategoryFilters<TData = CustomerObjectDto>(
+  customerCatalogControllerCategoryFilters<
+    TData = CustomerCategoryFiltersResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerCatalogControllerCategoryFilters<TData = CustomerObjectDto>(
+  customerCatalogControllerCategoryFilters<
+    TData = CustomerCategoryFiltersResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerCatalogControllerCategoryFilters<TData = CustomerObjectDto>(
+  customerCatalogControllerCategoryFilters<
+    TData = CustomerCategoryFiltersResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerCatalogControllerCategoryFilters<TData = CustomerObjectDto>(
+  customerCatalogControllerCategoryFilters<
+    TData = CustomerCategoryFiltersResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -271,19 +473,27 @@ export class CustomerCatalogService {
       observe: "body",
     });
   }
-  customerCatalogControllerCategoryAttributes<TData = CustomerObjectDto>(
+  customerCatalogControllerCategoryAttributes<
+    TData = CustomerCategoryAttributesResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerCatalogControllerCategoryAttributes<TData = CustomerObjectDto>(
+  customerCatalogControllerCategoryAttributes<
+    TData = CustomerCategoryAttributesResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerCatalogControllerCategoryAttributes<TData = CustomerObjectDto>(
+  customerCatalogControllerCategoryAttributes<
+    TData = CustomerCategoryAttributesResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerCatalogControllerCategoryAttributes<TData = CustomerObjectDto>(
+  customerCatalogControllerCategoryAttributes<
+    TData = CustomerCategoryAttributesResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -306,19 +516,19 @@ export class CustomerCatalogService {
       observe: "body",
     });
   }
-  customerCatalogControllerSearch<TData = CustomerSearchResponseDto>(
+  customerCatalogControllerSearch<TData = CustomerProductSearchResponseDto>(
     params?: CustomerCatalogControllerSearchParams,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerCatalogControllerSearch<TData = CustomerSearchResponseDto>(
+  customerCatalogControllerSearch<TData = CustomerProductSearchResponseDto>(
     params?: CustomerCatalogControllerSearchParams,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerCatalogControllerSearch<TData = CustomerSearchResponseDto>(
+  customerCatalogControllerSearch<TData = CustomerProductSearchResponseDto>(
     params?: CustomerCatalogControllerSearchParams,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerCatalogControllerSearch<TData = CustomerSearchResponseDto>(
+  customerCatalogControllerSearch<TData = CustomerProductSearchResponseDto>(
     params?: CustomerCatalogControllerSearchParams,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -349,19 +559,27 @@ export class CustomerCatalogService {
       params: filteredParams,
     });
   }
-  customerCatalogControllerSuggestions<TData = CustomerObjectListDto>(
+  customerCatalogControllerSuggestions<
+    TData = CustomerSearchSuggestionListResponseDto,
+  >(
     params: CustomerCatalogControllerSuggestionsParams,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerCatalogControllerSuggestions<TData = CustomerObjectListDto>(
+  customerCatalogControllerSuggestions<
+    TData = CustomerSearchSuggestionListResponseDto,
+  >(
     params: CustomerCatalogControllerSuggestionsParams,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerCatalogControllerSuggestions<TData = CustomerObjectListDto>(
+  customerCatalogControllerSuggestions<
+    TData = CustomerSearchSuggestionListResponseDto,
+  >(
     params: CustomerCatalogControllerSuggestionsParams,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerCatalogControllerSuggestions<TData = CustomerObjectListDto>(
+  customerCatalogControllerSuggestions<
+    TData = CustomerSearchSuggestionListResponseDto,
+  >(
     params: CustomerCatalogControllerSuggestionsParams,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -427,19 +645,27 @@ export class CustomerCatalogService {
       observe: "body",
     });
   }
-  customerCatalogControllerProductCrossSells<TData = CustomerObjectListDto>(
+  customerCatalogControllerProductCrossSells<
+    TData = CustomerProductCardListResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerCatalogControllerProductCrossSells<TData = CustomerObjectListDto>(
+  customerCatalogControllerProductCrossSells<
+    TData = CustomerProductCardListResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerCatalogControllerProductCrossSells<TData = CustomerObjectListDto>(
+  customerCatalogControllerProductCrossSells<
+    TData = CustomerProductCardListResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerCatalogControllerProductCrossSells<TData = CustomerObjectListDto>(
+  customerCatalogControllerProductCrossSells<
+    TData = CustomerProductCardListResponseDto,
+  >(
     slug: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {

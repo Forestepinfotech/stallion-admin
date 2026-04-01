@@ -40,6 +40,8 @@ export class AdminUserDetailComponent implements OnInit {
   loading = false;
   loadError: string | null = null;
   savingRestriction = false;
+  savingUnlock = false;
+  savingLock = false;
 
   activities: ActivityItemDto[] = [];
   activitiesLoading = false;
@@ -68,6 +70,10 @@ export class AdminUserDetailComponent implements OnInit {
 
   get isRestricted(): boolean {
     return !Boolean(this.user?.is_active);
+  }
+
+  get isLocked(): boolean {
+    return this.isLockedUntil(this.user?.locked_until);
   }
 
   get canGoPrev(): boolean {
@@ -118,6 +124,56 @@ export class AdminUserDetailComponent implements OnInit {
         },
         error: (error: unknown) => {
           this.toast.error(this.getApiErrorMessage(error, 'Failed to update user restriction.'));
+        },
+      });
+  }
+
+  onLockedToggle(checked: boolean): void {
+    if (!this.user) return;
+    if (checked && !this.isLocked) this.lockUser();
+    if (!checked && this.isLocked) this.resetLock();
+  }
+
+  resetLock(): void {
+    if (!this.userId || this.savingUnlock) return;
+    this.savingUnlock = true;
+    this.usersApi
+      .usersControllerUnlock(this.userId)
+      .pipe(finalize(() => (this.savingUnlock = false)))
+      .subscribe({
+        next: (updated) => {
+          this.user = updated;
+          this.toast.success('User unlocked.');
+        },
+        error: (error: unknown) => {
+          this.toast.error(this.getApiErrorMessage(error, 'Failed to unlock user.'));
+        },
+      });
+  }
+
+  lockUser(): void {
+    if (!this.userId || this.savingLock) return;
+
+    const confirmed = window.confirm(
+      `Lock ${this.userName}? They will be unable to sign in until unlocked.`,
+    );
+    if (!confirmed) return;
+
+    const lockedUntil = this.buildManualLockUntilIso();
+    this.savingLock = true;
+    this.usersApi
+      .usersControllerUpdate(this.userId, {
+        failed_login_attempts: '999',
+        locked_until: lockedUntil,
+      })
+      .pipe(finalize(() => (this.savingLock = false)))
+      .subscribe({
+        next: (updated) => {
+          this.user = updated;
+          this.toast.success('User locked.');
+        },
+        error: (error: unknown) => {
+          this.toast.error(this.getApiErrorMessage(error, 'Failed to lock user.'));
         },
       });
   }
@@ -187,6 +243,20 @@ export class AdminUserDetailComponent implements OnInit {
           this.toast.error(this.loadError);
         },
       });
+  }
+
+  private isLockedUntil(value: unknown): boolean {
+    const normalized = String(value ?? '').trim();
+    if (!normalized) return false;
+    const parsed = Date.parse(normalized);
+    if (Number.isNaN(parsed)) return true;
+    return parsed > Date.now();
+  }
+
+  private buildManualLockUntilIso(): string {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() + 10);
+    return date.toISOString();
   }
 
   private loadActivities(params: DashboardControllerRecentActivityParams): void {

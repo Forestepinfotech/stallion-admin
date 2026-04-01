@@ -4,14 +4,29 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
+import type { UserAddressResponseDtoCity } from "./userAddressResponseDtoCity";
 import type { UserAddressResponseDtoCountry } from "./userAddressResponseDtoCountry";
 import type { UserAddressResponseDtoCreatedBy } from "./userAddressResponseDtoCreatedBy";
+import type { UserAddressResponseDtoEmail } from "./userAddressResponseDtoEmail";
+import type { UserAddressResponseDtoFirstName } from "./userAddressResponseDtoFirstName";
+import type { UserAddressResponseDtoLastName } from "./userAddressResponseDtoLastName";
 import type { UserAddressResponseDtoLine2 } from "./userAddressResponseDtoLine2";
+import type { UserAddressResponseDtoPhone } from "./userAddressResponseDtoPhone";
 import type { UserAddressResponseDtoProvince } from "./userAddressResponseDtoProvince";
 
 export interface UserAddressResponseDto {
   address_id: number;
   user_id: number;
+  /** @nullable */
+  first_name?: UserAddressResponseDtoFirstName;
+  /** @nullable */
+  last_name?: UserAddressResponseDtoLastName;
+  /** @nullable */
+  email?: UserAddressResponseDtoEmail;
+  /** @nullable */
+  phone?: UserAddressResponseDtoPhone;
+  /** @nullable */
+  city?: UserAddressResponseDtoCity;
   line1: string;
   /** @nullable */
   line2?: UserAddressResponseDtoLine2;

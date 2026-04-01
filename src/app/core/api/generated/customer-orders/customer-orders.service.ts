@@ -17,9 +17,9 @@ import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
 
 import type {
-  CustomerObjectDto,
+  CustomerOrderDetailResponseDto,
+  CustomerOrderListResponseDto,
   CustomerOrdersControllerListParams,
-  CustomerPaginatedListDto,
 } from "../schemas";
 
 interface HttpClientOptions {
@@ -88,19 +88,19 @@ function filterParams(
 @Injectable({ providedIn: "root" })
 export class CustomerOrdersService {
   private readonly http = inject(HttpClient);
-  customerOrdersControllerList<TData = CustomerPaginatedListDto>(
+  customerOrdersControllerList<TData = CustomerOrderListResponseDto>(
     params?: CustomerOrdersControllerListParams,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerOrdersControllerList<TData = CustomerPaginatedListDto>(
+  customerOrdersControllerList<TData = CustomerOrderListResponseDto>(
     params?: CustomerOrdersControllerListParams,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerOrdersControllerList<TData = CustomerPaginatedListDto>(
+  customerOrdersControllerList<TData = CustomerOrderListResponseDto>(
     params?: CustomerOrdersControllerListParams,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerOrdersControllerList<TData = CustomerPaginatedListDto>(
+  customerOrdersControllerList<TData = CustomerOrderListResponseDto>(
     params?: CustomerOrdersControllerListParams,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -131,19 +131,19 @@ export class CustomerOrdersService {
       params: filteredParams,
     });
   }
-  customerOrdersControllerGet<TData = CustomerObjectDto>(
+  customerOrdersControllerGet<TData = CustomerOrderDetailResponseDto>(
     orderId: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerOrdersControllerGet<TData = CustomerObjectDto>(
+  customerOrdersControllerGet<TData = CustomerOrderDetailResponseDto>(
     orderId: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerOrdersControllerGet<TData = CustomerObjectDto>(
+  customerOrdersControllerGet<TData = CustomerOrderDetailResponseDto>(
     orderId: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerOrdersControllerGet<TData = CustomerObjectDto>(
+  customerOrdersControllerGet<TData = CustomerOrderDetailResponseDto>(
     orderId: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {

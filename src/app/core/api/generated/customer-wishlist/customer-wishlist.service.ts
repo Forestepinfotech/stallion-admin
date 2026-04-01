@@ -16,7 +16,10 @@ import { Injectable, inject } from "@angular/core";
 
 import { Observable } from "rxjs";
 
-import type { AddToWishlistDto, CustomerObjectListDto } from "../schemas";
+import type {
+  AddToWishlistDto,
+  CustomerProductCardListResponseDto,
+} from "../schemas";
 
 interface HttpClientOptions {
   readonly headers?: HttpHeaders | Record<string, string | string[]>;
@@ -44,16 +47,22 @@ interface HttpClientOptions {
 @Injectable({ providedIn: "root" })
 export class CustomerWishlistService {
   private readonly http = inject(HttpClient);
-  customerWishlistControllerGetWishlist<TData = CustomerObjectListDto>(
-    options?: HttpClientOptions & { observe?: "body" },
-  ): Observable<TData>;
-  customerWishlistControllerGetWishlist<TData = CustomerObjectListDto>(
+  customerWishlistControllerGetWishlist<
+    TData = CustomerProductCardListResponseDto,
+  >(options?: HttpClientOptions & { observe?: "body" }): Observable<TData>;
+  customerWishlistControllerGetWishlist<
+    TData = CustomerProductCardListResponseDto,
+  >(
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerWishlistControllerGetWishlist<TData = CustomerObjectListDto>(
+  customerWishlistControllerGetWishlist<
+    TData = CustomerProductCardListResponseDto,
+  >(
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerWishlistControllerGetWishlist<TData = CustomerObjectListDto>(
+  customerWishlistControllerGetWishlist<
+    TData = CustomerProductCardListResponseDto,
+  >(
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     if (options?.observe === "events") {
@@ -75,19 +84,19 @@ export class CustomerWishlistService {
       observe: "body",
     });
   }
-  customerWishlistControllerAddItem<TData = CustomerObjectListDto>(
+  customerWishlistControllerAddItem<TData = CustomerProductCardListResponseDto>(
     productId: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerWishlistControllerAddItem<TData = CustomerObjectListDto>(
+  customerWishlistControllerAddItem<TData = CustomerProductCardListResponseDto>(
     productId: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerWishlistControllerAddItem<TData = CustomerObjectListDto>(
+  customerWishlistControllerAddItem<TData = CustomerProductCardListResponseDto>(
     productId: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerWishlistControllerAddItem<TData = CustomerObjectListDto>(
+  customerWishlistControllerAddItem<TData = CustomerProductCardListResponseDto>(
     productId: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -122,19 +131,27 @@ export class CustomerWishlistService {
       },
     );
   }
-  customerWishlistControllerRemoveItem<TData = CustomerObjectListDto>(
+  customerWishlistControllerRemoveItem<
+    TData = CustomerProductCardListResponseDto,
+  >(
     productId: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerWishlistControllerRemoveItem<TData = CustomerObjectListDto>(
+  customerWishlistControllerRemoveItem<
+    TData = CustomerProductCardListResponseDto,
+  >(
     productId: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerWishlistControllerRemoveItem<TData = CustomerObjectListDto>(
+  customerWishlistControllerRemoveItem<
+    TData = CustomerProductCardListResponseDto,
+  >(
     productId: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerWishlistControllerRemoveItem<TData = CustomerObjectListDto>(
+  customerWishlistControllerRemoveItem<
+    TData = CustomerProductCardListResponseDto,
+  >(
     productId: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -157,19 +174,27 @@ export class CustomerWishlistService {
       observe: "body",
     });
   }
-  customerWishlistControllerAddToWishlist<TData = CustomerObjectListDto>(
+  customerWishlistControllerAddToWishlist<
+    TData = CustomerProductCardListResponseDto,
+  >(
     addToWishlistDto: AddToWishlistDto,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerWishlistControllerAddToWishlist<TData = CustomerObjectListDto>(
+  customerWishlistControllerAddToWishlist<
+    TData = CustomerProductCardListResponseDto,
+  >(
     addToWishlistDto: AddToWishlistDto,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerWishlistControllerAddToWishlist<TData = CustomerObjectListDto>(
+  customerWishlistControllerAddToWishlist<
+    TData = CustomerProductCardListResponseDto,
+  >(
     addToWishlistDto: AddToWishlistDto,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerWishlistControllerAddToWishlist<TData = CustomerObjectListDto>(
+  customerWishlistControllerAddToWishlist<
+    TData = CustomerProductCardListResponseDto,
+  >(
     addToWishlistDto: AddToWishlistDto,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -192,19 +217,27 @@ export class CustomerWishlistService {
       observe: "body",
     });
   }
-  customerWishlistControllerMoveToCart<TData = CustomerObjectListDto>(
+  customerWishlistControllerMoveToCart<
+    TData = CustomerProductCardListResponseDto,
+  >(
     productId: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerWishlistControllerMoveToCart<TData = CustomerObjectListDto>(
+  customerWishlistControllerMoveToCart<
+    TData = CustomerProductCardListResponseDto,
+  >(
     productId: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerWishlistControllerMoveToCart<TData = CustomerObjectListDto>(
+  customerWishlistControllerMoveToCart<
+    TData = CustomerProductCardListResponseDto,
+  >(
     productId: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerWishlistControllerMoveToCart<TData = CustomerObjectListDto>(
+  customerWishlistControllerMoveToCart<
+    TData = CustomerProductCardListResponseDto,
+  >(
     productId: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {

@@ -20,8 +20,9 @@ import type {
   ChangeCustomerPasswordDto,
   CreateCustomerAddressDto,
   CreateCustomerVehicleDto,
-  CustomerObjectDto,
-  CustomerObjectListDto,
+  CustomerAddressListResponseDto,
+  CustomerProfileResponseDto,
+  CustomerVehicleListResponseDto,
   UpdateCustomerAddressDto,
   UpdateCustomerProfileDto,
   UpdateCustomerVehicleDto,
@@ -53,16 +54,16 @@ interface HttpClientOptions {
 @Injectable({ providedIn: "root" })
 export class CustomerAccountService {
   private readonly http = inject(HttpClient);
-  customerAccountControllerProfile<TData = CustomerObjectDto>(
+  customerAccountControllerProfile<TData = CustomerProfileResponseDto>(
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerAccountControllerProfile<TData = CustomerObjectDto>(
+  customerAccountControllerProfile<TData = CustomerProfileResponseDto>(
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerAccountControllerProfile<TData = CustomerObjectDto>(
+  customerAccountControllerProfile<TData = CustomerProfileResponseDto>(
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerAccountControllerProfile<TData = CustomerObjectDto>(
+  customerAccountControllerProfile<TData = CustomerProfileResponseDto>(
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     if (options?.observe === "events") {
@@ -84,19 +85,19 @@ export class CustomerAccountService {
       observe: "body",
     });
   }
-  customerAccountControllerUpdateProfile<TData = CustomerObjectDto>(
+  customerAccountControllerUpdateProfile<TData = CustomerProfileResponseDto>(
     updateCustomerProfileDto: UpdateCustomerProfileDto,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerAccountControllerUpdateProfile<TData = CustomerObjectDto>(
+  customerAccountControllerUpdateProfile<TData = CustomerProfileResponseDto>(
     updateCustomerProfileDto: UpdateCustomerProfileDto,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerAccountControllerUpdateProfile<TData = CustomerObjectDto>(
+  customerAccountControllerUpdateProfile<TData = CustomerProfileResponseDto>(
     updateCustomerProfileDto: UpdateCustomerProfileDto,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerAccountControllerUpdateProfile<TData = CustomerObjectDto>(
+  customerAccountControllerUpdateProfile<TData = CustomerProfileResponseDto>(
     updateCustomerProfileDto: UpdateCustomerProfileDto,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -178,16 +179,16 @@ export class CustomerAccountService {
       },
     );
   }
-  customerAccountControllerAddresses<TData = CustomerObjectListDto>(
+  customerAccountControllerAddresses<TData = CustomerAddressListResponseDto>(
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerAccountControllerAddresses<TData = CustomerObjectListDto>(
+  customerAccountControllerAddresses<TData = CustomerAddressListResponseDto>(
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerAccountControllerAddresses<TData = CustomerObjectListDto>(
+  customerAccountControllerAddresses<TData = CustomerAddressListResponseDto>(
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerAccountControllerAddresses<TData = CustomerObjectListDto>(
+  customerAccountControllerAddresses<TData = CustomerAddressListResponseDto>(
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     if (options?.observe === "events") {
@@ -209,19 +210,27 @@ export class CustomerAccountService {
       observe: "body",
     });
   }
-  customerAccountControllerCreateAddress<TData = CustomerObjectListDto>(
+  customerAccountControllerCreateAddress<
+    TData = CustomerAddressListResponseDto,
+  >(
     createCustomerAddressDto: CreateCustomerAddressDto,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerAccountControllerCreateAddress<TData = CustomerObjectListDto>(
+  customerAccountControllerCreateAddress<
+    TData = CustomerAddressListResponseDto,
+  >(
     createCustomerAddressDto: CreateCustomerAddressDto,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerAccountControllerCreateAddress<TData = CustomerObjectListDto>(
+  customerAccountControllerCreateAddress<
+    TData = CustomerAddressListResponseDto,
+  >(
     createCustomerAddressDto: CreateCustomerAddressDto,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerAccountControllerCreateAddress<TData = CustomerObjectListDto>(
+  customerAccountControllerCreateAddress<
+    TData = CustomerAddressListResponseDto,
+  >(
     createCustomerAddressDto: CreateCustomerAddressDto,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -256,22 +265,30 @@ export class CustomerAccountService {
       },
     );
   }
-  customerAccountControllerUpdateAddress<TData = void>(
+  customerAccountControllerUpdateAddress<
+    TData = CustomerAddressListResponseDto,
+  >(
     addressId: string,
     updateCustomerAddressDto: UpdateCustomerAddressDto,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerAccountControllerUpdateAddress<TData = void>(
+  customerAccountControllerUpdateAddress<
+    TData = CustomerAddressListResponseDto,
+  >(
     addressId: string,
     updateCustomerAddressDto: UpdateCustomerAddressDto,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerAccountControllerUpdateAddress<TData = void>(
+  customerAccountControllerUpdateAddress<
+    TData = CustomerAddressListResponseDto,
+  >(
     addressId: string,
     updateCustomerAddressDto: UpdateCustomerAddressDto,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerAccountControllerUpdateAddress<TData = void>(
+  customerAccountControllerUpdateAddress<
+    TData = CustomerAddressListResponseDto,
+  >(
     addressId: string,
     updateCustomerAddressDto: UpdateCustomerAddressDto,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
@@ -307,19 +324,27 @@ export class CustomerAccountService {
       },
     );
   }
-  customerAccountControllerDeleteAddress<TData = CustomerObjectListDto>(
+  customerAccountControllerDeleteAddress<
+    TData = CustomerAddressListResponseDto,
+  >(
     addressId: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerAccountControllerDeleteAddress<TData = CustomerObjectListDto>(
+  customerAccountControllerDeleteAddress<
+    TData = CustomerAddressListResponseDto,
+  >(
     addressId: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerAccountControllerDeleteAddress<TData = CustomerObjectListDto>(
+  customerAccountControllerDeleteAddress<
+    TData = CustomerAddressListResponseDto,
+  >(
     addressId: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerAccountControllerDeleteAddress<TData = CustomerObjectListDto>(
+  customerAccountControllerDeleteAddress<
+    TData = CustomerAddressListResponseDto,
+  >(
     addressId: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -348,16 +373,16 @@ export class CustomerAccountService {
       observe: "body",
     });
   }
-  customerAccountControllerVehicles<TData = CustomerObjectListDto>(
+  customerAccountControllerVehicles<TData = CustomerVehicleListResponseDto>(
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerAccountControllerVehicles<TData = CustomerObjectListDto>(
+  customerAccountControllerVehicles<TData = CustomerVehicleListResponseDto>(
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerAccountControllerVehicles<TData = CustomerObjectListDto>(
+  customerAccountControllerVehicles<TData = CustomerVehicleListResponseDto>(
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerAccountControllerVehicles<TData = CustomerObjectListDto>(
+  customerAccountControllerVehicles<TData = CustomerVehicleListResponseDto>(
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     if (options?.observe === "events") {
@@ -379,19 +404,27 @@ export class CustomerAccountService {
       observe: "body",
     });
   }
-  customerAccountControllerCreateVehicle<TData = CustomerObjectListDto>(
+  customerAccountControllerCreateVehicle<
+    TData = CustomerVehicleListResponseDto,
+  >(
     createCustomerVehicleDto: CreateCustomerVehicleDto,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerAccountControllerCreateVehicle<TData = CustomerObjectListDto>(
+  customerAccountControllerCreateVehicle<
+    TData = CustomerVehicleListResponseDto,
+  >(
     createCustomerVehicleDto: CreateCustomerVehicleDto,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerAccountControllerCreateVehicle<TData = CustomerObjectListDto>(
+  customerAccountControllerCreateVehicle<
+    TData = CustomerVehicleListResponseDto,
+  >(
     createCustomerVehicleDto: CreateCustomerVehicleDto,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerAccountControllerCreateVehicle<TData = CustomerObjectListDto>(
+  customerAccountControllerCreateVehicle<
+    TData = CustomerVehicleListResponseDto,
+  >(
     createCustomerVehicleDto: CreateCustomerVehicleDto,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -426,22 +459,30 @@ export class CustomerAccountService {
       },
     );
   }
-  customerAccountControllerUpdateVehicle<TData = void>(
+  customerAccountControllerUpdateVehicle<
+    TData = CustomerVehicleListResponseDto,
+  >(
     vehicleId: string,
     updateCustomerVehicleDto: UpdateCustomerVehicleDto,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerAccountControllerUpdateVehicle<TData = void>(
+  customerAccountControllerUpdateVehicle<
+    TData = CustomerVehicleListResponseDto,
+  >(
     vehicleId: string,
     updateCustomerVehicleDto: UpdateCustomerVehicleDto,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerAccountControllerUpdateVehicle<TData = void>(
+  customerAccountControllerUpdateVehicle<
+    TData = CustomerVehicleListResponseDto,
+  >(
     vehicleId: string,
     updateCustomerVehicleDto: UpdateCustomerVehicleDto,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerAccountControllerUpdateVehicle<TData = void>(
+  customerAccountControllerUpdateVehicle<
+    TData = CustomerVehicleListResponseDto,
+  >(
     vehicleId: string,
     updateCustomerVehicleDto: UpdateCustomerVehicleDto,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
@@ -477,19 +518,27 @@ export class CustomerAccountService {
       },
     );
   }
-  customerAccountControllerDeleteVehicle<TData = CustomerObjectListDto>(
+  customerAccountControllerDeleteVehicle<
+    TData = CustomerVehicleListResponseDto,
+  >(
     vehicleId: string,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerAccountControllerDeleteVehicle<TData = CustomerObjectListDto>(
+  customerAccountControllerDeleteVehicle<
+    TData = CustomerVehicleListResponseDto,
+  >(
     vehicleId: string,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerAccountControllerDeleteVehicle<TData = CustomerObjectListDto>(
+  customerAccountControllerDeleteVehicle<
+    TData = CustomerVehicleListResponseDto,
+  >(
     vehicleId: string,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerAccountControllerDeleteVehicle<TData = CustomerObjectListDto>(
+  customerAccountControllerDeleteVehicle<
+    TData = CustomerVehicleListResponseDto,
+  >(
     vehicleId: string,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {

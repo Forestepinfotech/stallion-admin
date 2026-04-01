@@ -337,17 +337,49 @@
               <input formControlName="country" class="mt-1 w-full rounded-2xl border px-4 py-3" placeholder="Optional" />
             </div>
 
-            <div>
-              <label class="text-sm font-medium text-gray-700">Status</label>
-              <select formControlName="status" class="mt-1 w-full rounded-2xl border px-4 py-3">
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Status</label>
+	              <select formControlName="status" class="mt-1 w-full rounded-2xl border px-4 py-3">
+	                <option value="Active">Active</option>
+	                <option value="Inactive">Inactive</option>
+	              </select>
+	            </div>
 
-            <div>
-              <label class="text-sm font-medium text-gray-700">Avatar</label>
-              <label
+	            <div class="md:col-span-2">
+	              <label class="flex items-center justify-between gap-4 rounded-2xl border bg-gray-50 p-4">
+	                <div>
+	                  <div class="text-sm font-semibold text-gray-900">Account Locked</div>
+	                  <div class="mt-1 text-sm text-gray-500">
+	                    <ng-container *ngIf="userForm.value.locked; else unlockedHint">
+	                      Locked until {{ selected?.lockedUntil || '—' }}
+	                    </ng-container>
+	                    <ng-template #unlockedHint>Not locked</ng-template>
+	                  </div>
+	                </div>
+	                <div class="flex items-center gap-3">
+	                  <button
+	                    *ngIf="editMode === 'edit' && selected?.isLocked"
+	                    type="button"
+	                    class="px-3 py-2 rounded-xl border text-sm hover:bg-white"
+	                    (click)="resetLock()"
+	                    [disabled]="savingUser"
+	                  >
+	                    Reset lock
+	                  </button>
+	                  <input
+	                    type="checkbox"
+	                    class="h-5 w-5 accent-black"
+	                    formControlName="locked"
+	                    [disabled]="editMode === 'create'"
+	                    (change)="onLockedToggle($any($event.target).checked)"
+	                  />
+	                </div>
+	              </label>
+	            </div>
+
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Avatar</label>
+	              <label
                 class="mt-1 flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-4 py-5 text-center transition"
                 [class.border-slate-300]="!avatarDragActive"
                 [class.bg-white]="!avatarDragActive"

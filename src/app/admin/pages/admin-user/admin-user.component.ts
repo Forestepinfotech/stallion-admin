@@ -45,6 +45,9 @@ type User = {
   status: Status;
   avatarUrl?: string;
   createdAt: string; // yyyy-mm-dd
+  failedLoginAttempts: number;
+  lockedUntil: string;
+  isLocked: boolean;
 };
 @Component({
   selector: 'app-admin-user',
@@ -114,6 +117,7 @@ export class AdminUserComponent implements OnInit {
       country: this.fb.nonNullable.control(''),
       status: this.fb.nonNullable.control<Status>('Active', Validators.required),
       avatarUrl: this.fb.control<string>(''),
+      locked: this.fb.nonNullable.control(false),
     });
 
     this.passwordForm = this.fb.nonNullable.group(
@@ -152,6 +156,7 @@ export class AdminUserComponent implements OnInit {
       country: '',
       status: 'Active',
       avatarUrl: '',
+      locked: false,
     });
 
     this.editOpen = true;
@@ -173,6 +178,7 @@ export class AdminUserComponent implements OnInit {
       country: u.country ?? '',
       status: u.status,
       avatarUrl: u.avatarUrl ?? '',
+      locked: u.isLocked,
     });
 
     this.editOpen = true;
@@ -224,8 +230,6 @@ export class AdminUserComponent implements OnInit {
       email_subscribed: true,
       is_active: v.status === 'Active',
       is_deleted: false,
-      failed_login_attempts: '0',
-      locked_until: '',
     } satisfies Partial<CreateUsersDto & UpdateUsersDto>;
 
     this.savingUser = true;
@@ -235,6 +239,8 @@ export class AdminUserComponent implements OnInit {
         ? this.usersApi.usersControllerCreate({
             ...(payloadCommon as Partial<CreateUsersDto> & { name?: string }),
             // optional fields managed by backend defaults
+            failed_login_attempts: '0',
+            locked_until: '',
           } as CreateUsersDto)
         : this.usersApi.usersControllerUpdate(
             this.selected!.id,
@@ -252,12 +258,24 @@ export class AdminUserComponent implements OnInit {
         switchMap((user) =>
           this.editMode === 'create' ? this.persistCreateAddress(user, v) : of(user),
         ),
+        switchMap((user) => {
+          const shouldUnlock =
+            this.editMode === 'edit' &&
+            this.selected?.isLocked === true &&
+            v.locked === false;
+          if (!shouldUnlock) return of(user);
+          return this.usersApi.usersControllerUnlock(this.selected!.id);
+        }),
         finalize(() => (this.savingUser = false)),
       )
       .subscribe({
         next: () => {
           this.clearPendingAvatarState();
-          this.toast.success('User saved');
+          if (this.editMode === 'edit' && this.selected?.isLocked && v.locked === false) {
+            this.toast.success('User saved and lock reset.');
+          } else {
+            this.toast.success('User saved');
+          }
           this.closeEdit();
           this.loadUsers();
         },
@@ -267,6 +285,115 @@ export class AdminUserComponent implements OnInit {
           this.toast.error('Failed to save user');
         },
       });
+  }
+
+  onLockedToggle(checked: boolean): void {
+    if (this.editMode !== 'edit' || !this.selected) {
+      this.userForm.patchValue({ locked: false }, { emitEvent: false });
+      return;
+    }
+
+    if (checked && !this.selected.isLocked) this.lockUser();
+    if (!checked && this.selected.isLocked) this.resetLock();
+  }
+
+  resetLock(): void {
+    if (this.editMode !== 'edit' || !this.selected || this.savingUser) return;
+
+    const userId = this.selected.id;
+    this.savingUser = true;
+    this.usersApi
+      .usersControllerUnlock(userId)
+      .pipe(finalize(() => (this.savingUser = false)))
+      .subscribe({
+        next: () => {
+          this.toast.success('User unlocked.');
+          this.applyUnlockedState(userId);
+          this.userForm.patchValue({ locked: false }, { emitEvent: false });
+        },
+        error: (err) => {
+          console.error(err);
+          this.toast.error(this.extractErrorMessage(err, 'Failed to unlock user.'));
+          this.userForm.patchValue({ locked: true }, { emitEvent: false });
+        },
+      });
+  }
+
+  lockUser(): void {
+    if (this.editMode !== 'edit' || !this.selected || this.savingUser) return;
+
+    const confirmed = window.confirm(
+      `Lock ${this.selected.name}? They will be unable to sign in until unlocked.`,
+    );
+    if (!confirmed) {
+      this.userForm.patchValue({ locked: false }, { emitEvent: false });
+      return;
+    }
+
+    const userId = this.selected.id;
+    const lockedUntil = this.buildManualLockUntilIso();
+    this.savingUser = true;
+    this.usersApi
+      .usersControllerUpdate(userId, {
+        failed_login_attempts: '999',
+        locked_until: lockedUntil,
+      })
+      .pipe(finalize(() => (this.savingUser = false)))
+      .subscribe({
+        next: () => {
+          this.toast.success('User locked.');
+          this.applyLockedState(userId, lockedUntil);
+          this.userForm.patchValue({ locked: true }, { emitEvent: false });
+        },
+        error: (err) => {
+          console.error(err);
+          this.toast.error(this.extractErrorMessage(err, 'Failed to lock user.'));
+          this.userForm.patchValue({ locked: false }, { emitEvent: false });
+        },
+      });
+  }
+
+  private applyUnlockedState(userId: string): void {
+    this.users = this.users.map((u) =>
+      u.id === userId
+        ? { ...u, failedLoginAttempts: 0, lockedUntil: '', isLocked: false }
+        : u,
+    );
+    if (this.selected?.id === userId) {
+      this.selected = {
+        ...this.selected,
+        failedLoginAttempts: 0,
+        lockedUntil: '',
+        isLocked: false,
+      };
+    }
+  }
+
+  private applyLockedState(userId: string, lockedUntil: string): void {
+    this.users = this.users.map((u) =>
+      u.id === userId
+        ? {
+            ...u,
+            failedLoginAttempts: Math.max(u.failedLoginAttempts, 1),
+            lockedUntil,
+            isLocked: true,
+          }
+        : u,
+    );
+    if (this.selected?.id === userId) {
+      this.selected = {
+        ...this.selected,
+        failedLoginAttempts: Math.max(this.selected.failedLoginAttempts, 1),
+        lockedUntil,
+        isLocked: true,
+      };
+    }
+  }
+
+  private buildManualLockUntilIso(): string {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() + 10);
+    return date.toISOString();
   }
 
   // Active/Inactive checkbox
@@ -520,6 +647,8 @@ export class AdminUserComponent implements OnInit {
       dtoRoleName ??
       this.roleOptions.find((r) => String(r.usertypeid) === String(dto.usertypeid))?.usertypename ??
       '—';
+    const lockedUntil = typeof dto.locked_until === 'string' ? dto.locked_until : '';
+    const failedLoginAttempts = Number(String(dto.failed_login_attempts ?? '0'));
     return {
       id: String(dto.user_id ?? crypto.randomUUID()),
       name: dto.name ?? dto.email?.split('@')[0] ?? 'User',
@@ -534,7 +663,20 @@ export class AdminUserComponent implements OnInit {
       status: dto.is_active ? 'Active' : 'Inactive',
       avatarUrl: this.mediaUrlService.resolve(dto.user_pic),
       createdAt: dto.last_login_at ?? this.isoDateOffset(0),
+      failedLoginAttempts: Number.isFinite(failedLoginAttempts) ? failedLoginAttempts : 0,
+      lockedUntil,
+      isLocked: this.isUserLocked(lockedUntil),
     };
+  }
+
+  private isUserLocked(lockedUntil: string): boolean {
+    const normalized = String(lockedUntil ?? '').trim();
+    if (!normalized) return false;
+    const parsed = Date.parse(normalized);
+    if (Number.isNaN(parsed)) {
+      return true;
+    }
+    return parsed > Date.now();
   }
 
   private readAddressField(value: unknown): string {

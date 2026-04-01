@@ -17,10 +17,11 @@ import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
 
 import type {
+  AdminProductFullResponseDto,
   AnswerProductQuestionDto,
   CreateProductQuestionDto,
-  CreateProductReviewDto,
   CreateProductsDto,
+  CreateStorefrontProductReviewDto,
   PaginatedProductQuestionDto,
   PaginatedProductReviewDto,
   PaginatedProductsResponseDto,
@@ -36,8 +37,8 @@ import type {
   ProductsResponseDto,
   SaveProductCrossSellsDto,
   SaveProductSpecificationsDto,
-  UpdateProductReviewDto,
   UpdateProductsDto,
+  UpdateStorefrontProductReviewDto,
 } from "../schemas";
 
 interface HttpClientOptions {
@@ -186,28 +187,28 @@ export class AdminProductsService {
   }
   productsControllerCreateReview<TData = ProductReviewDto>(
     productId: string,
-    createProductReviewDto: CreateProductReviewDto,
+    createStorefrontProductReviewDto: CreateStorefrontProductReviewDto,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
   productsControllerCreateReview<TData = ProductReviewDto>(
     productId: string,
-    createProductReviewDto: CreateProductReviewDto,
+    createStorefrontProductReviewDto: CreateStorefrontProductReviewDto,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
   productsControllerCreateReview<TData = ProductReviewDto>(
     productId: string,
-    createProductReviewDto: CreateProductReviewDto,
+    createStorefrontProductReviewDto: CreateStorefrontProductReviewDto,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
   productsControllerCreateReview<TData = ProductReviewDto>(
     productId: string,
-    createProductReviewDto: CreateProductReviewDto,
+    createStorefrontProductReviewDto: CreateStorefrontProductReviewDto,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     if (options?.observe === "events") {
       return this.http.post<TData>(
         `/products/${productId}/reviews`,
-        createProductReviewDto,
+        createStorefrontProductReviewDto,
         {
           ...(options as Omit<NonNullable<typeof options>, "observe">),
           observe: "events",
@@ -218,7 +219,7 @@ export class AdminProductsService {
     if (options?.observe === "response") {
       return this.http.post<TData>(
         `/products/${productId}/reviews`,
-        createProductReviewDto,
+        createStorefrontProductReviewDto,
         {
           ...(options as Omit<NonNullable<typeof options>, "observe">),
           observe: "response",
@@ -228,7 +229,7 @@ export class AdminProductsService {
 
     return this.http.post<TData>(
       `/products/${productId}/reviews`,
-      createProductReviewDto,
+      createStorefrontProductReviewDto,
       {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "body",
@@ -238,31 +239,31 @@ export class AdminProductsService {
   productsControllerUpdateReview<TData = ProductReviewDto>(
     productId: string,
     reviewId: string,
-    updateProductReviewDto: UpdateProductReviewDto,
+    updateStorefrontProductReviewDto: UpdateStorefrontProductReviewDto,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
   productsControllerUpdateReview<TData = ProductReviewDto>(
     productId: string,
     reviewId: string,
-    updateProductReviewDto: UpdateProductReviewDto,
+    updateStorefrontProductReviewDto: UpdateStorefrontProductReviewDto,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
   productsControllerUpdateReview<TData = ProductReviewDto>(
     productId: string,
     reviewId: string,
-    updateProductReviewDto: UpdateProductReviewDto,
+    updateStorefrontProductReviewDto: UpdateStorefrontProductReviewDto,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
   productsControllerUpdateReview<TData = ProductReviewDto>(
     productId: string,
     reviewId: string,
-    updateProductReviewDto: UpdateProductReviewDto,
+    updateStorefrontProductReviewDto: UpdateStorefrontProductReviewDto,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     if (options?.observe === "events") {
       return this.http.patch<TData>(
         `/products/${productId}/reviews/${reviewId}`,
-        updateProductReviewDto,
+        updateStorefrontProductReviewDto,
         {
           ...(options as Omit<NonNullable<typeof options>, "observe">),
           observe: "events",
@@ -273,7 +274,7 @@ export class AdminProductsService {
     if (options?.observe === "response") {
       return this.http.patch<TData>(
         `/products/${productId}/reviews/${reviewId}`,
-        updateProductReviewDto,
+        updateStorefrontProductReviewDto,
         {
           ...(options as Omit<NonNullable<typeof options>, "observe">),
           observe: "response",
@@ -283,7 +284,7 @@ export class AdminProductsService {
 
     return this.http.patch<TData>(
       `/products/${productId}/reviews/${reviewId}`,
-      updateProductReviewDto,
+      updateStorefrontProductReviewDto,
       {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "body",
@@ -1178,6 +1179,41 @@ export class AdminProductsService {
     }
 
     return this.http.delete<TData>(`/products/${productId}`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+    });
+  }
+  productsControllerAdminFull<TData = AdminProductFullResponseDto>(
+    productId: string,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  productsControllerAdminFull<TData = AdminProductFullResponseDto>(
+    productId: string,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  productsControllerAdminFull<TData = AdminProductFullResponseDto>(
+    productId: string,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  productsControllerAdminFull<TData = AdminProductFullResponseDto>(
+    productId: string,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/products/${productId}/admin-full`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/products/${productId}/admin-full`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+      });
+    }
+
+    return this.http.get<TData>(`/products/${productId}/admin-full`, {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
     });

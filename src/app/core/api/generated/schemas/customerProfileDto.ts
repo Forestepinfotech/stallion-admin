@@ -4,14 +4,55 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
-import type { CustomerProfileStatsDto } from "./customerProfileStatsDto";
-import type { ProfileActivityDto } from "./profileActivityDto";
-import type { ProfileAddressDto } from "./profileAddressDto";
-import type { ProfileUserDto } from "./profileUserDto";
+import type { CustomerProfileDtoAddressEmail } from "./customerProfileDtoAddressEmail";
+import type { CustomerProfileDtoAddressFirstName } from "./customerProfileDtoAddressFirstName";
+import type { CustomerProfileDtoAddressId } from "./customerProfileDtoAddressId";
+import type { CustomerProfileDtoAddressLastName } from "./customerProfileDtoAddressLastName";
+import type { CustomerProfileDtoAddressPhone } from "./customerProfileDtoAddressPhone";
+import type { CustomerProfileDtoCity } from "./customerProfileDtoCity";
+import type { CustomerProfileDtoCountry } from "./customerProfileDtoCountry";
+import type { CustomerProfileDtoEmail } from "./customerProfileDtoEmail";
+import type { CustomerProfileDtoEmailSubscribed } from "./customerProfileDtoEmailSubscribed";
+import type { CustomerProfileDtoLine1 } from "./customerProfileDtoLine1";
+import type { CustomerProfileDtoLine2 } from "./customerProfileDtoLine2";
+import type { CustomerProfileDtoName } from "./customerProfileDtoName";
+import type { CustomerProfileDtoPhone } from "./customerProfileDtoPhone";
+import type { CustomerProfileDtoPostalcode } from "./customerProfileDtoPostalcode";
+import type { CustomerProfileDtoProvince } from "./customerProfileDtoProvince";
+import type { CustomerProfileDtoUserPic } from "./customerProfileDtoUserPic";
 
 export interface CustomerProfileDto {
-  user: ProfileUserDto | null;
-  address: ProfileAddressDto | null;
-  stats: CustomerProfileStatsDto | null;
-  activity: ProfileActivityDto;
+  user_id: number;
+  /** @nullable */
+  name?: CustomerProfileDtoName;
+  /** @nullable */
+  email?: CustomerProfileDtoEmail;
+  /** @nullable */
+  phone?: CustomerProfileDtoPhone;
+  /** @nullable */
+  user_pic?: CustomerProfileDtoUserPic;
+  /** @nullable */
+  email_subscribed?: CustomerProfileDtoEmailSubscribed;
+  /** @nullable */
+  address_id?: CustomerProfileDtoAddressId;
+  /** @nullable */
+  line1?: CustomerProfileDtoLine1;
+  /** @nullable */
+  address_first_name?: CustomerProfileDtoAddressFirstName;
+  /** @nullable */
+  address_last_name?: CustomerProfileDtoAddressLastName;
+  /** @nullable */
+  address_email?: CustomerProfileDtoAddressEmail;
+  /** @nullable */
+  address_phone?: CustomerProfileDtoAddressPhone;
+  /** @nullable */
+  city?: CustomerProfileDtoCity;
+  /** @nullable */
+  line2?: CustomerProfileDtoLine2;
+  /** @nullable */
+  postalcode?: CustomerProfileDtoPostalcode;
+  /** @nullable */
+  province?: CustomerProfileDtoProvince;
+  /** @nullable */
+  country?: CustomerProfileDtoCountry;
 }
