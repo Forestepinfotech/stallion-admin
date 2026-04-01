@@ -74,7 +74,7 @@ const RESERVED_ATTRIBUTE_FIELDS = [
 ] as const;
 
 const CROSS_SELL_SEARCH_DEBOUNCE_MS = 2000;
-const COPY_FROM_SEARCH_DEBOUNCE_MS = 450;
+const COPY_FROM_SEARCH_DEBOUNCE_MS = 20000;
 
 @Component({
   selector: 'app-admin-products',
