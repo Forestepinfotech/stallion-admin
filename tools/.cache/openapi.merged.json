@@ -9250,6 +9250,286 @@
         ]
       }
     },
+    "/customer/products/{slug}/reviews": {
+      "get": {
+        "operationId": "CustomerCatalogController_productReviews",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedProductReviewDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-catalog"
+        ]
+      },
+      "post": {
+        "operationId": "CustomerCatalogController_addProductReview",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStorefrontProductReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductReviewDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-catalog"
+        ]
+      }
+    },
+    "/customer/products/{slug}/reviews/{review_id}": {
+      "patch": {
+        "operationId": "CustomerCatalogController_updateProductReview",
+        "parameters": [
+          {
+            "name": "review_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStorefrontProductReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductReviewDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-catalog"
+        ]
+      },
+      "delete": {
+        "operationId": "CustomerCatalogController_deleteProductReview",
+        "parameters": [
+          {
+            "name": "review_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review deleted"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-catalog"
+        ]
+      }
+    },
+    "/customer/categories/attributes": {
+      "get": {
+        "operationId": "CustomerCatalogController_categoryAttributesLookup",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": false,
+            "in": "query",
+            "description": "Optional category slug (or category name). If omitted, provide brand_id or brand to infer the category.",
+            "schema": {
+              "example": "rim-wheels",
+              "type": "string"
+            }
+          },
+          {
+            "name": "brand_id",
+            "required": false,
+            "in": "query",
+            "description": "Infer category by brand id (most common active category for that brand).",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "brand",
+            "required": false,
+            "in": "query",
+            "description": "Infer category by brand name (or id as string) when slug is omitted/unknown.",
+            "schema": {
+              "example": "Honda",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Assigned category attributes with optional category inference via brand.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCategoryAttributesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-catalog"
+        ]
+      }
+    },
+    "/customer/categories/filters": {
+      "get": {
+        "operationId": "CustomerCatalogController_categoryFiltersLookup",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": false,
+            "in": "query",
+            "description": "Optional category slug (or category name). If omitted, provide brand_id or brand to infer the category.",
+            "schema": {
+              "example": "rim-wheels",
+              "type": "string"
+            }
+          },
+          {
+            "name": "brand_id",
+            "required": false,
+            "in": "query",
+            "description": "Infer category by brand id (most common active category for that brand).",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "brand",
+            "required": false,
+            "in": "query",
+            "description": "Infer category by brand name (or id as string) when slug is omitted/unknown.",
+            "schema": {
+              "example": "Honda",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer filters with optional category inference via brand",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCategoryFiltersResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-catalog"
+        ]
+      }
+    },
     "/customer/catalog/home": {
       "get": {
         "operationId": "CustomerCatalogController_home",
@@ -9423,6 +9703,46 @@
             }
           },
           {
+            "name": "min_price",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use price_min",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "max_price",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use price_max",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "minPrice",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use price_min",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use price_max",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "year",
             "required": false,
             "in": "query",
@@ -9450,9 +9770,29 @@
             "name": "sort",
             "required": false,
             "in": "query",
+            "description": "Sort key. Supports: relevance, newest, price_asc, price_desc, title_asc, title_desc, featured_title_asc; also accepts Shopify-style values (e.g. title-ascending).",
             "schema": {
               "example": "relevance",
               "type": "string"
+            }
+          },
+          {
+            "name": "attr",
+            "required": false,
+            "in": "query",
+            "description": "Custom attribute filters as a JSON object (stringified). Keys should match attribute codes.",
+            "schema": {
+              "$ref": "#/components/schemas/Object"
+            }
+          },
+          {
+            "name": "attributes",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use attr",
+            "schema": {
+              "$ref": "#/components/schemas/Object"
             }
           },
           {
@@ -9637,6 +9977,46 @@
             }
           },
           {
+            "name": "min_price",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use price_min",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "max_price",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use price_max",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "minPrice",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use price_min",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use price_max",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "year",
             "required": false,
             "in": "query",
@@ -9664,9 +10044,29 @@
             "name": "sort",
             "required": false,
             "in": "query",
+            "description": "Sort key. Supports: relevance, newest, price_asc, price_desc, title_asc, title_desc, featured_title_asc; also accepts Shopify-style values (e.g. title-ascending).",
             "schema": {
               "example": "relevance",
               "type": "string"
+            }
+          },
+          {
+            "name": "attr",
+            "required": false,
+            "in": "query",
+            "description": "Custom attribute filters as a JSON object (stringified). Keys should match attribute codes.",
+            "schema": {
+              "$ref": "#/components/schemas/Object"
+            }
+          },
+          {
+            "name": "attributes",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use attr",
+            "schema": {
+              "$ref": "#/components/schemas/Object"
             }
           },
           {
@@ -9718,6 +10118,26 @@
               "example": "boot",
               "type": "string"
             }
+          },
+          {
+            "name": "brand_id",
+            "required": false,
+            "in": "query",
+            "description": "Optional fallback when the category slug is unknown: infer category by brand id.",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "brand",
+            "required": false,
+            "in": "query",
+            "description": "Optional fallback when the category slug is unknown: infer category by brand name (or id as string).",
+            "schema": {
+              "example": "Honda",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -9748,6 +10168,26 @@
             "description": "SEO-friendly category identifier. Use the same slug returned by the categories API.",
             "schema": {
               "example": "wheel",
+              "type": "string"
+            }
+          },
+          {
+            "name": "brand_id",
+            "required": false,
+            "in": "query",
+            "description": "Optional fallback when the category slug is unknown: infer category by brand id.",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "brand",
+            "required": false,
+            "in": "query",
+            "description": "Optional fallback when the category slug is unknown: infer category by brand name (or id as string).",
+            "schema": {
+              "example": "Honda",
               "type": "string"
             }
           }
@@ -9830,6 +10270,46 @@
             }
           },
           {
+            "name": "min_price",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use price_min",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "max_price",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use price_max",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "minPrice",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use price_min",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use price_max",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "year",
             "required": false,
             "in": "query",
@@ -9857,9 +10337,29 @@
             "name": "sort",
             "required": false,
             "in": "query",
+            "description": "Sort key. Supports: relevance, newest, price_asc, price_desc, title_asc, title_desc, featured_title_asc; also accepts Shopify-style values (e.g. title-ascending).",
             "schema": {
               "example": "relevance",
               "type": "string"
+            }
+          },
+          {
+            "name": "attr",
+            "required": false,
+            "in": "query",
+            "description": "Custom attribute filters as a JSON object (stringified). Keys should match attribute codes.",
+            "schema": {
+              "$ref": "#/components/schemas/Object"
+            }
+          },
+          {
+            "name": "attributes",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Use attr",
+            "schema": {
+              "$ref": "#/components/schemas/Object"
             }
           },
           {
@@ -13972,6 +14472,18 @@
             "type": "object",
             "nullable": true
           },
+          "min_order_qty": {
+            "type": "object",
+            "nullable": true
+          },
+          "min_retail_qty": {
+            "type": "object",
+            "nullable": true
+          },
+          "min_dealer_qty": {
+            "type": "object",
+            "nullable": true
+          },
           "stock_status": {
             "type": "object",
             "nullable": true
@@ -14293,6 +14805,35 @@
           "items"
         ]
       },
+      "ProductMediaItemDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "image"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://cdn.example.com/p1.jpg"
+          },
+          "alt_text": {
+            "type": "string",
+            "example": "Front angle"
+          },
+          "is_primary": {
+            "type": "boolean",
+            "example": true
+          },
+          "sort_order": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "type",
+          "url"
+        ]
+      },
       "ProductDetailDto": {
         "type": "object",
         "properties": {
@@ -14322,7 +14863,9 @@
           },
           "compare_at_price": {
             "type": "object",
-            "nullable": true
+            "nullable": true,
+            "example": 599,
+            "description": "Computed compare-at price used for strike-through pricing when higher than selling_price."
           },
           "cost_price": {
             "type": "object",
@@ -14333,6 +14876,18 @@
             "nullable": true
           },
           "stock_qty": {
+            "type": "object",
+            "nullable": true
+          },
+          "min_order_qty": {
+            "type": "object",
+            "nullable": true
+          },
+          "min_retail_qty": {
+            "type": "object",
+            "nullable": true
+          },
+          "min_dealer_qty": {
             "type": "object",
             "nullable": true
           },
@@ -14392,6 +14947,102 @@
             "type": "object",
             "nullable": true
           },
+          "selling_price": {
+            "type": "object",
+            "nullable": true,
+            "example": 499,
+            "description": "Computed storefront selling price (normalized from price/new_cost)."
+          },
+          "savings_amount": {
+            "type": "number",
+            "example": 100,
+            "description": "Computed savings amount (compare_at_price - selling_price)."
+          },
+          "savings_percent": {
+            "type": "number",
+            "example": 20,
+            "description": "Computed savings percent (rounded) when compare_at_price > selling_price."
+          },
+          "has_price_difference": {
+            "type": "boolean",
+            "example": true,
+            "description": "True when compare_at_price > selling_price."
+          },
+          "avg_rating": {
+            "type": "object",
+            "nullable": true,
+            "example": 4.8,
+            "description": "Average rating across reviews (0-5)."
+          },
+          "reviews_count": {
+            "type": "object",
+            "nullable": true,
+            "example": 128,
+            "description": "Total reviews count."
+          },
+          "media_gallery": {
+            "description": "Normalized gallery for PDP (thumbnail + media links + gallery_images).",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductMediaItemDto"
+            }
+          },
+          "specifications_table": {
+            "description": "Convenience list of unique specification key/value pairs for quick PDP display.",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "dynamic_attributes": {
+            "description": "Dynamic product attributes derived from specifications, de-duplicated by attribute (best for PDP spec cards).",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "dynamic_attribute_map": {
+            "type": "object",
+            "description": "Dynamic attribute map keyed by attribute_code (or name) for quick access.",
+            "example": {
+              "bolt_pattern": "6×120",
+              "offset": "18",
+              "diameter": "20"
+            }
+          },
+          "custom_attributes": {
+            "description": "Custom (admin-entered) attributes from the product `attributes` JSON, flattened to key/value pairs.",
+            "example": [
+              {
+                "key": "color",
+                "value": "black"
+              },
+              {
+                "key": "size",
+                "value": "195/65R15"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "custom_attribute_map": {
+            "type": "object",
+            "description": "Custom attribute map for quick access (same data as custom_attributes).",
+            "example": {
+              "color": "black",
+              "size": "195/65R15",
+              "year": "2025,2026"
+            }
+          },
+          "fitment_notes": {
+            "description": "Legacy fitment notes coming from product attributes JSON (not the same as top-level fitments from product_fitment).",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "condition": {
             "type": "object",
             "nullable": true
@@ -14417,10 +15068,6 @@
             "nullable": true
           },
           "low_stock_threshold": {
-            "type": "object",
-            "nullable": true
-          },
-          "min_order_qty": {
             "type": "object",
             "nullable": true
           },
@@ -14653,7 +15300,9 @@
           },
           "compare_at_price": {
             "type": "object",
-            "nullable": true
+            "nullable": true,
+            "example": 599,
+            "description": "Computed compare-at price used for strike-through pricing when higher than selling_price."
           },
           "cost_price": {
             "type": "object",
@@ -14664,6 +15313,18 @@
             "nullable": true
           },
           "stock_qty": {
+            "type": "object",
+            "nullable": true
+          },
+          "min_order_qty": {
+            "type": "object",
+            "nullable": true
+          },
+          "min_retail_qty": {
+            "type": "object",
+            "nullable": true
+          },
+          "min_dealer_qty": {
             "type": "object",
             "nullable": true
           },
@@ -14723,6 +15384,102 @@
             "type": "object",
             "nullable": true
           },
+          "selling_price": {
+            "type": "object",
+            "nullable": true,
+            "example": 499,
+            "description": "Computed storefront selling price (normalized from price/new_cost)."
+          },
+          "savings_amount": {
+            "type": "number",
+            "example": 100,
+            "description": "Computed savings amount (compare_at_price - selling_price)."
+          },
+          "savings_percent": {
+            "type": "number",
+            "example": 20,
+            "description": "Computed savings percent (rounded) when compare_at_price > selling_price."
+          },
+          "has_price_difference": {
+            "type": "boolean",
+            "example": true,
+            "description": "True when compare_at_price > selling_price."
+          },
+          "avg_rating": {
+            "type": "object",
+            "nullable": true,
+            "example": 4.8,
+            "description": "Average rating across reviews (0-5)."
+          },
+          "reviews_count": {
+            "type": "object",
+            "nullable": true,
+            "example": 128,
+            "description": "Total reviews count."
+          },
+          "media_gallery": {
+            "description": "Normalized gallery for PDP (thumbnail + media links + gallery_images).",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductMediaItemDto"
+            }
+          },
+          "specifications_table": {
+            "description": "Convenience list of unique specification key/value pairs for quick PDP display.",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "dynamic_attributes": {
+            "description": "Dynamic product attributes derived from specifications, de-duplicated by attribute (best for PDP spec cards).",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "dynamic_attribute_map": {
+            "type": "object",
+            "description": "Dynamic attribute map keyed by attribute_code (or name) for quick access.",
+            "example": {
+              "bolt_pattern": "6×120",
+              "offset": "18",
+              "diameter": "20"
+            }
+          },
+          "custom_attributes": {
+            "description": "Custom (admin-entered) attributes from the product `attributes` JSON, flattened to key/value pairs.",
+            "example": [
+              {
+                "key": "color",
+                "value": "black"
+              },
+              {
+                "key": "size",
+                "value": "195/65R15"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "custom_attribute_map": {
+            "type": "object",
+            "description": "Custom attribute map for quick access (same data as custom_attributes).",
+            "example": {
+              "color": "black",
+              "size": "195/65R15",
+              "year": "2025,2026"
+            }
+          },
+          "fitment_notes": {
+            "description": "Legacy fitment notes coming from product attributes JSON (not the same as top-level fitments from product_fitment).",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "condition": {
             "type": "object",
             "nullable": true
@@ -14748,10 +15505,6 @@
             "nullable": true
           },
           "low_stock_threshold": {
-            "type": "object",
-            "nullable": true
-          },
-          "min_order_qty": {
             "type": "object",
             "nullable": true
           },
@@ -14944,35 +15697,6 @@
           "data"
         ]
       },
-      "ProductMediaItemDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "image"
-          },
-          "url": {
-            "type": "string",
-            "example": "https://cdn.example.com/p1.jpg"
-          },
-          "alt_text": {
-            "type": "string",
-            "example": "Front angle"
-          },
-          "is_primary": {
-            "type": "boolean",
-            "example": true
-          },
-          "sort_order": {
-            "type": "number",
-            "example": 0
-          }
-        },
-        "required": [
-          "type",
-          "url"
-        ]
-      },
       "CreateProductsDto": {
         "type": "object",
         "properties": {
@@ -15054,6 +15778,16 @@
           "min_order_qty": {
             "type": "number",
             "default": 1
+          },
+          "min_retail_qty": {
+            "type": "number",
+            "default": 1,
+            "description": "Minimum quantity for retail/customer checkout."
+          },
+          "min_dealer_qty": {
+            "type": "number",
+            "default": 1,
+            "description": "Minimum quantity for dealer checkout/cart."
           },
           "stock_status": {
             "type": "string",
@@ -15178,6 +15912,13 @@
           },
           "attributes": {
             "type": "object"
+          },
+          "fitment_notes": {
+            "description": "Optional free-text fitment notes (not the same as product_fitment rows). Stored as attributes.fitment_notes.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "selling_price": {
             "type": "number"
@@ -15286,6 +16027,16 @@
             "type": "number",
             "default": 1
           },
+          "min_retail_qty": {
+            "type": "number",
+            "default": 1,
+            "description": "Minimum quantity for retail/customer checkout."
+          },
+          "min_dealer_qty": {
+            "type": "number",
+            "default": 1,
+            "description": "Minimum quantity for dealer checkout/cart."
+          },
           "stock_status": {
             "type": "string",
             "default": "in_stock"
@@ -15409,6 +16160,13 @@
           },
           "attributes": {
             "type": "object"
+          },
+          "fitment_notes": {
+            "description": "Optional free-text fitment notes (not the same as product_fitment rows). Stored as attributes.fitment_notes.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "selling_price": {
             "type": "number"
@@ -19700,6 +20458,219 @@
           "data"
         ]
       },
+      "CustomerCategoryAttributeOptionDto": {
+        "type": "object",
+        "properties": {
+          "value_id": {
+            "type": "number",
+            "example": 3
+          },
+          "label": {
+            "type": "object",
+            "example": "Small",
+            "nullable": true
+          },
+          "value": {
+            "type": "object",
+            "example": "small",
+            "nullable": true
+          },
+          "sort_order": {
+            "type": "object",
+            "example": 0,
+            "nullable": true
+          }
+        },
+        "required": [
+          "value_id"
+        ]
+      },
+      "CustomerCategoryAttributeDto": {
+        "type": "object",
+        "properties": {
+          "assignment_id": {
+            "type": "object",
+            "example": 1,
+            "nullable": true
+          },
+          "attribute_id": {
+            "type": "number",
+            "example": 7
+          },
+          "attribute_name": {
+            "type": "string",
+            "example": "Size"
+          },
+          "attribute_code": {
+            "type": "object",
+            "example": "size",
+            "nullable": true
+          },
+          "input_type": {
+            "type": "object",
+            "example": "select",
+            "nullable": true
+          },
+          "data_type": {
+            "type": "object",
+            "example": "string",
+            "nullable": true
+          },
+          "is_required": {
+            "type": "boolean",
+            "example": false
+          },
+          "is_filterable": {
+            "type": "boolean",
+            "example": true
+          },
+          "is_searchable": {
+            "type": "boolean",
+            "example": true
+          },
+          "display_group": {
+            "type": "object",
+            "example": "Specifications",
+            "nullable": true
+          },
+          "sort_order": {
+            "type": "object",
+            "example": 0,
+            "nullable": true
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerCategoryAttributeOptionDto"
+            }
+          }
+        },
+        "required": [
+          "attribute_id",
+          "attribute_name",
+          "is_required",
+          "is_filterable",
+          "is_searchable",
+          "options"
+        ]
+      },
+      "CustomerCategoryAttributesDataDto": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "object",
+            "example": {
+              "category_id": 12,
+              "category_name": "Tires",
+              "slug": "tires"
+            }
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerCategoryAttributeDto"
+            }
+          }
+        },
+        "required": [
+          "category",
+          "attributes"
+        ]
+      },
+      "CustomerCategoryAttributesResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerCategoryAttributesDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "CustomerCategoryPriceRangeDto": {
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": "number",
+            "example": 0
+          },
+          "max": {
+            "type": "number",
+            "example": 1000
+          }
+        },
+        "required": [
+          "min",
+          "max"
+        ]
+      },
+      "CustomerCategoryFilterFacetDto": {
+        "type": "object",
+        "properties": {
+          "assignment_id": {
+            "type": "number",
+            "example": 1
+          },
+          "attribute_id": {
+            "type": "number",
+            "example": 7
+          },
+          "attribute_name": {
+            "type": "string",
+            "example": "Size"
+          },
+          "attribute_code": {
+            "type": "object",
+            "example": "size",
+            "nullable": true
+          },
+          "input_type": {
+            "type": "object",
+            "example": "select",
+            "nullable": true
+          },
+          "data_type": {
+            "type": "object",
+            "example": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "assignment_id",
+          "attribute_id",
+          "attribute_name"
+        ]
+      },
+      "CustomerCategoryFiltersDataDto": {
+        "type": "object",
+        "properties": {
+          "price_range": {
+            "$ref": "#/components/schemas/CustomerCategoryPriceRangeDto"
+          },
+          "facets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerCategoryFilterFacetDto"
+            }
+          }
+        },
+        "required": [
+          "price_range",
+          "facets"
+        ]
+      },
+      "CustomerCategoryFiltersResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerCategoryFiltersDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
       "CustomerCategoryDto": {
         "type": "object",
         "properties": {
@@ -19803,6 +20774,18 @@
             "nullable": true
           },
           "stock_qty": {
+            "type": "object",
+            "nullable": true
+          },
+          "min_order_qty": {
+            "type": "object",
+            "nullable": true
+          },
+          "min_retail_qty": {
+            "type": "object",
+            "nullable": true
+          },
+          "min_dealer_qty": {
             "type": "object",
             "nullable": true
           },
@@ -19999,6 +20982,10 @@
           "data"
         ]
       },
+      "Object": {
+        "type": "object",
+        "properties": {}
+      },
       "CustomerProductSearchMetaDto": {
         "type": "object",
         "properties": {
@@ -20119,219 +21106,6 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CustomerCategoryDetailDataDto"
-          }
-        },
-        "required": [
-          "data"
-        ]
-      },
-      "CustomerCategoryPriceRangeDto": {
-        "type": "object",
-        "properties": {
-          "min": {
-            "type": "number",
-            "example": 0
-          },
-          "max": {
-            "type": "number",
-            "example": 1000
-          }
-        },
-        "required": [
-          "min",
-          "max"
-        ]
-      },
-      "CustomerCategoryFilterFacetDto": {
-        "type": "object",
-        "properties": {
-          "assignment_id": {
-            "type": "number",
-            "example": 1
-          },
-          "attribute_id": {
-            "type": "number",
-            "example": 7
-          },
-          "attribute_name": {
-            "type": "string",
-            "example": "Size"
-          },
-          "attribute_code": {
-            "type": "object",
-            "example": "size",
-            "nullable": true
-          },
-          "input_type": {
-            "type": "object",
-            "example": "select",
-            "nullable": true
-          },
-          "data_type": {
-            "type": "object",
-            "example": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "assignment_id",
-          "attribute_id",
-          "attribute_name"
-        ]
-      },
-      "CustomerCategoryFiltersDataDto": {
-        "type": "object",
-        "properties": {
-          "price_range": {
-            "$ref": "#/components/schemas/CustomerCategoryPriceRangeDto"
-          },
-          "facets": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomerCategoryFilterFacetDto"
-            }
-          }
-        },
-        "required": [
-          "price_range",
-          "facets"
-        ]
-      },
-      "CustomerCategoryFiltersResponseDto": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/CustomerCategoryFiltersDataDto"
-          }
-        },
-        "required": [
-          "data"
-        ]
-      },
-      "CustomerCategoryAttributeOptionDto": {
-        "type": "object",
-        "properties": {
-          "value_id": {
-            "type": "number",
-            "example": 3
-          },
-          "label": {
-            "type": "object",
-            "example": "Small",
-            "nullable": true
-          },
-          "value": {
-            "type": "object",
-            "example": "small",
-            "nullable": true
-          },
-          "sort_order": {
-            "type": "object",
-            "example": 0,
-            "nullable": true
-          }
-        },
-        "required": [
-          "value_id"
-        ]
-      },
-      "CustomerCategoryAttributeDto": {
-        "type": "object",
-        "properties": {
-          "assignment_id": {
-            "type": "object",
-            "example": 1,
-            "nullable": true
-          },
-          "attribute_id": {
-            "type": "number",
-            "example": 7
-          },
-          "attribute_name": {
-            "type": "string",
-            "example": "Size"
-          },
-          "attribute_code": {
-            "type": "object",
-            "example": "size",
-            "nullable": true
-          },
-          "input_type": {
-            "type": "object",
-            "example": "select",
-            "nullable": true
-          },
-          "data_type": {
-            "type": "object",
-            "example": "string",
-            "nullable": true
-          },
-          "is_required": {
-            "type": "boolean",
-            "example": false
-          },
-          "is_filterable": {
-            "type": "boolean",
-            "example": true
-          },
-          "is_searchable": {
-            "type": "boolean",
-            "example": true
-          },
-          "display_group": {
-            "type": "object",
-            "example": "Specifications",
-            "nullable": true
-          },
-          "sort_order": {
-            "type": "object",
-            "example": 0,
-            "nullable": true
-          },
-          "options": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomerCategoryAttributeOptionDto"
-            }
-          }
-        },
-        "required": [
-          "attribute_id",
-          "attribute_name",
-          "is_required",
-          "is_filterable",
-          "is_searchable",
-          "options"
-        ]
-      },
-      "CustomerCategoryAttributesDataDto": {
-        "type": "object",
-        "properties": {
-          "category": {
-            "type": "object",
-            "example": {
-              "category_id": 12,
-              "category_name": "Tires",
-              "slug": "tires"
-            }
-          },
-          "attributes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomerCategoryAttributeDto"
-            }
-          }
-        },
-        "required": [
-          "category",
-          "attributes"
-        ]
-      },
-      "CustomerCategoryAttributesResponseDto": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/CustomerCategoryAttributesDataDto"
           }
         },
         "required": [

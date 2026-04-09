@@ -33,6 +33,10 @@ export interface CreateProductsDto {
   stock_qty?: number;
   low_stock_threshold?: number;
   min_order_qty?: number;
+  /** Minimum quantity for retail/customer checkout. */
+  min_retail_qty?: number;
+  /** Minimum quantity for dealer checkout/cart. */
+  min_dealer_qty?: number;
   stock_status?: string;
   supplier?: string;
   inventory_source?: string;
@@ -65,6 +69,8 @@ export interface CreateProductsDto {
   package_contents?: string[];
   notes?: CreateProductsDtoNotesItem[];
   attributes?: CreateProductsDtoAttributes;
+  /** Optional free-text fitment notes (not the same as product_fitment rows). Stored as attributes.fitment_notes. */
+  fitment_notes?: string[];
   selling_price?: number;
   unit_cost?: number;
   on_hand_qty?: number;

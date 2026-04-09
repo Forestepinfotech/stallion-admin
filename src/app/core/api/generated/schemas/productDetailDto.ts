@@ -6,6 +6,7 @@
  */
 import type { ProductCrossSellDto } from "./productCrossSellDto";
 import type { ProductDetailDtoAttributes } from "./productDetailDtoAttributes";
+import type { ProductDetailDtoAvgRating } from "./productDetailDtoAvgRating";
 import type { ProductDetailDtoBrandId } from "./productDetailDtoBrandId";
 import type { ProductDetailDtoBrandName } from "./productDetailDtoBrandName";
 import type { ProductDetailDtoBreadcrumbsItem } from "./productDetailDtoBreadcrumbsItem";
@@ -16,7 +17,11 @@ import type { ProductDetailDtoCondition } from "./productDetailDtoCondition";
 import type { ProductDetailDtoCostPrice } from "./productDetailDtoCostPrice";
 import type { ProductDetailDtoCreatedAt } from "./productDetailDtoCreatedAt";
 import type { ProductDetailDtoCurrency } from "./productDetailDtoCurrency";
+import type { ProductDetailDtoCustomAttributeMap } from "./productDetailDtoCustomAttributeMap";
+import type { ProductDetailDtoCustomAttributesItem } from "./productDetailDtoCustomAttributesItem";
 import type { ProductDetailDtoDescription } from "./productDetailDtoDescription";
+import type { ProductDetailDtoDynamicAttributeMap } from "./productDetailDtoDynamicAttributeMap";
+import type { ProductDetailDtoDynamicAttributesItem } from "./productDetailDtoDynamicAttributesItem";
 import type { ProductDetailDtoFeatured } from "./productDetailDtoFeatured";
 import type { ProductDetailDtoFitmentsItem } from "./productDetailDtoFitmentsItem";
 import type { ProductDetailDtoFulfillmentNote } from "./productDetailDtoFulfillmentNote";
@@ -29,7 +34,9 @@ import type { ProductDetailDtoLeadTimeDays } from "./productDetailDtoLeadTimeDay
 import type { ProductDetailDtoLength } from "./productDetailDtoLength";
 import type { ProductDetailDtoLowStockThreshold } from "./productDetailDtoLowStockThreshold";
 import type { ProductDetailDtoMediaItem } from "./productDetailDtoMediaItem";
+import type { ProductDetailDtoMinDealerQty } from "./productDetailDtoMinDealerQty";
 import type { ProductDetailDtoMinOrderQty } from "./productDetailDtoMinOrderQty";
+import type { ProductDetailDtoMinRetailQty } from "./productDetailDtoMinRetailQty";
 import type { ProductDetailDtoModelId } from "./productDetailDtoModelId";
 import type { ProductDetailDtoModelName } from "./productDetailDtoModelName";
 import type { ProductDetailDtoMpn } from "./productDetailDtoMpn";
@@ -39,12 +46,15 @@ import type { ProductDetailDtoRequiresSerial } from "./productDetailDtoRequiresS
 import type { ProductDetailDtoReturnable } from "./productDetailDtoReturnable";
 import type { ProductDetailDtoReturnPolicyNote } from "./productDetailDtoReturnPolicyNote";
 import type { ProductDetailDtoReturnWindowDays } from "./productDetailDtoReturnWindowDays";
+import type { ProductDetailDtoReviewsCount } from "./productDetailDtoReviewsCount";
+import type { ProductDetailDtoSellingPrice } from "./productDetailDtoSellingPrice";
 import type { ProductDetailDtoSeoDescription } from "./productDetailDtoSeoDescription";
 import type { ProductDetailDtoSeoTitle } from "./productDetailDtoSeoTitle";
 import type { ProductDetailDtoSerialTrackingNote } from "./productDetailDtoSerialTrackingNote";
 import type { ProductDetailDtoShippingClass } from "./productDetailDtoShippingClass";
 import type { ProductDetailDtoShortDescription } from "./productDetailDtoShortDescription";
 import type { ProductDetailDtoSpecificationsItem } from "./productDetailDtoSpecificationsItem";
+import type { ProductDetailDtoSpecificationsTableItem } from "./productDetailDtoSpecificationsTableItem";
 import type { ProductDetailDtoStatus } from "./productDetailDtoStatus";
 import type { ProductDetailDtoStockQty } from "./productDetailDtoStockQty";
 import type { ProductDetailDtoStockStatus } from "./productDetailDtoStockStatus";
@@ -58,6 +68,7 @@ import type { ProductDetailDtoWarehouseBin } from "./productDetailDtoWarehouseBi
 import type { ProductDetailDtoWarranty } from "./productDetailDtoWarranty";
 import type { ProductDetailDtoWeight } from "./productDetailDtoWeight";
 import type { ProductDetailDtoWidth } from "./productDetailDtoWidth";
+import type { ProductMediaItemDto } from "./productMediaItemDto";
 
 export interface ProductDetailDto {
   product_id: number;
@@ -70,7 +81,10 @@ export interface ProductDetailDto {
   barcode?: string | null;
   /** @nullable */
   price?: ProductDetailDtoPrice;
-  /** @nullable */
+  /**
+   * Computed compare-at price used for strike-through pricing when higher than selling_price.
+   * @nullable
+   */
   compare_at_price?: ProductDetailDtoCompareAtPrice;
   /** @nullable */
   cost_price?: ProductDetailDtoCostPrice;
@@ -78,6 +92,12 @@ export interface ProductDetailDto {
   currency?: ProductDetailDtoCurrency;
   /** @nullable */
   stock_qty?: ProductDetailDtoStockQty;
+  /** @nullable */
+  min_order_qty?: ProductDetailDtoMinOrderQty;
+  /** @nullable */
+  min_retail_qty?: ProductDetailDtoMinRetailQty;
+  /** @nullable */
+  min_dealer_qty?: ProductDetailDtoMinDealerQty;
   /** @nullable */
   stock_status?: ProductDetailDtoStockStatus;
   /** @nullable */
@@ -106,6 +126,41 @@ export interface ProductDetailDto {
   model_id?: ProductDetailDtoModelId;
   /** @nullable */
   model_name?: ProductDetailDtoModelName;
+  /**
+   * Computed storefront selling price (normalized from price/new_cost).
+   * @nullable
+   */
+  selling_price?: ProductDetailDtoSellingPrice;
+  /** Computed savings amount (compare_at_price - selling_price). */
+  savings_amount?: number;
+  /** Computed savings percent (rounded) when compare_at_price > selling_price. */
+  savings_percent?: number;
+  /** True when compare_at_price > selling_price. */
+  has_price_difference?: boolean;
+  /**
+   * Average rating across reviews (0-5).
+   * @nullable
+   */
+  avg_rating?: ProductDetailDtoAvgRating;
+  /**
+   * Total reviews count.
+   * @nullable
+   */
+  reviews_count?: ProductDetailDtoReviewsCount;
+  /** Normalized gallery for PDP (thumbnail + media links + gallery_images). */
+  media_gallery?: ProductMediaItemDto[];
+  /** Convenience list of unique specification key/value pairs for quick PDP display. */
+  specifications_table?: ProductDetailDtoSpecificationsTableItem[];
+  /** Dynamic product attributes derived from specifications, de-duplicated by attribute (best for PDP spec cards). */
+  dynamic_attributes?: ProductDetailDtoDynamicAttributesItem[];
+  /** Dynamic attribute map keyed by attribute_code (or name) for quick access. */
+  dynamic_attribute_map?: ProductDetailDtoDynamicAttributeMap;
+  /** Custom (admin-entered) attributes from the product `attributes` JSON, flattened to key/value pairs. */
+  custom_attributes?: ProductDetailDtoCustomAttributesItem[];
+  /** Custom attribute map for quick access (same data as custom_attributes). */
+  custom_attribute_map?: ProductDetailDtoCustomAttributeMap;
+  /** Legacy fitment notes coming from product attributes JSON (not the same as top-level fitments from product_fitment). */
+  fitment_notes?: string[];
   /** @nullable */
   condition?: ProductDetailDtoCondition;
   /** @nullable */
@@ -120,8 +175,6 @@ export interface ProductDetailDto {
   lead_time_days?: ProductDetailDtoLeadTimeDays;
   /** @nullable */
   low_stock_threshold?: ProductDetailDtoLowStockThreshold;
-  /** @nullable */
-  min_order_qty?: ProductDetailDtoMinOrderQty;
   /** @nullable */
   inventory_source?: ProductDetailDtoInventorySource;
   /** @nullable */

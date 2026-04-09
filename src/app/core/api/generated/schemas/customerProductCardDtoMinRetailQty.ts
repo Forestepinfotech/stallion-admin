@@ -6,9 +6,8 @@
  */
 
 /**
- * Computed compare-at price used for strike-through pricing when higher than selling_price.
  * @nullable
  */
-export type AdminProductFullDtoCompareAtPrice = {
+export type CustomerProductCardDtoMinRetailQty = {
   [key: string]: unknown;
 } | null;

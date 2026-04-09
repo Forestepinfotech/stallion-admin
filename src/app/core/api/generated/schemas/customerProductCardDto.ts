@@ -15,6 +15,9 @@ import type { CustomerProductCardDtoCreatedAt } from "./customerProductCardDtoCr
 import type { CustomerProductCardDtoCurrency } from "./customerProductCardDtoCurrency";
 import type { CustomerProductCardDtoFeatured } from "./customerProductCardDtoFeatured";
 import type { CustomerProductCardDtoIsActive } from "./customerProductCardDtoIsActive";
+import type { CustomerProductCardDtoMinDealerQty } from "./customerProductCardDtoMinDealerQty";
+import type { CustomerProductCardDtoMinOrderQty } from "./customerProductCardDtoMinOrderQty";
+import type { CustomerProductCardDtoMinRetailQty } from "./customerProductCardDtoMinRetailQty";
 import type { CustomerProductCardDtoModelId } from "./customerProductCardDtoModelId";
 import type { CustomerProductCardDtoModelName } from "./customerProductCardDtoModelName";
 import type { CustomerProductCardDtoMpn } from "./customerProductCardDtoMpn";
@@ -46,6 +49,12 @@ export interface CustomerProductCardDto {
   currency?: CustomerProductCardDtoCurrency;
   /** @nullable */
   stock_qty?: CustomerProductCardDtoStockQty;
+  /** @nullable */
+  min_order_qty?: CustomerProductCardDtoMinOrderQty;
+  /** @nullable */
+  min_retail_qty?: CustomerProductCardDtoMinRetailQty;
+  /** @nullable */
+  min_dealer_qty?: CustomerProductCardDtoMinDealerQty;
   /** @nullable */
   stock_status?: CustomerProductCardDtoStockStatus;
   /** @nullable */

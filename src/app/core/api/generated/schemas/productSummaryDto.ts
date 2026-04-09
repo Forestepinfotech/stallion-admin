@@ -15,6 +15,9 @@ import type { ProductSummaryDtoCreatedAt } from "./productSummaryDtoCreatedAt";
 import type { ProductSummaryDtoCurrency } from "./productSummaryDtoCurrency";
 import type { ProductSummaryDtoFeatured } from "./productSummaryDtoFeatured";
 import type { ProductSummaryDtoIsActive } from "./productSummaryDtoIsActive";
+import type { ProductSummaryDtoMinDealerQty } from "./productSummaryDtoMinDealerQty";
+import type { ProductSummaryDtoMinOrderQty } from "./productSummaryDtoMinOrderQty";
+import type { ProductSummaryDtoMinRetailQty } from "./productSummaryDtoMinRetailQty";
 import type { ProductSummaryDtoModelId } from "./productSummaryDtoModelId";
 import type { ProductSummaryDtoModelName } from "./productSummaryDtoModelName";
 import type { ProductSummaryDtoMpn } from "./productSummaryDtoMpn";
@@ -45,6 +48,12 @@ export interface ProductSummaryDto {
   currency?: ProductSummaryDtoCurrency;
   /** @nullable */
   stock_qty?: ProductSummaryDtoStockQty;
+  /** @nullable */
+  min_order_qty?: ProductSummaryDtoMinOrderQty;
+  /** @nullable */
+  min_retail_qty?: ProductSummaryDtoMinRetailQty;
+  /** @nullable */
+  min_dealer_qty?: ProductSummaryDtoMinDealerQty;
   /** @nullable */
   stock_status?: ProductSummaryDtoStockStatus;
   /** @nullable */

@@ -6,7 +6,7 @@
     "start": "npm run config:gen && ng serve",
     "build": "npm run config:gen && ng build --configuration production",
     "build:dev": "npm run config:gen && ng build --configuration development",
-    "watch": "ng build --watch --configuration development --poll=2000",
+    "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "api:spec": "node tools/sync-openapi.mjs",
     "api:gen": "npm run api:spec && orval --config orval.config.cjs",

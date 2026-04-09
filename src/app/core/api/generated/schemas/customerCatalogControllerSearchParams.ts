@@ -4,6 +4,7 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
+import type { Object } from "./object";
 
 export type CustomerCatalogControllerSearchParams = {
   q?: string;
@@ -13,10 +14,37 @@ export type CustomerCatalogControllerSearchParams = {
   shipping_class?: string;
   price_min?: number;
   price_max?: number;
+  /**
+   * Use price_min
+   */
+  min_price?: number;
+  /**
+   * Use price_max
+   */
+  max_price?: number;
+  /**
+   * Use price_min
+   */
+  minPrice?: number;
+  /**
+   * Use price_max
+   */
+  maxPrice?: number;
   year?: number;
   featured?: boolean;
   in_stock?: boolean;
+  /**
+   * Sort key. Supports: relevance, newest, price_asc, price_desc, title_asc, title_desc, featured_title_asc; also accepts Shopify-style values (e.g. title-ascending).
+   */
   sort?: string;
+  /**
+   * Custom attribute filters as a JSON object (stringified). Keys should match attribute codes.
+   */
+  attr?: Object;
+  /**
+   * Use attr
+   */
+  attributes?: Object;
   page?: number;
   limit?: number;
 };

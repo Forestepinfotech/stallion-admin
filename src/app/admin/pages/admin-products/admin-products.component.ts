@@ -64,6 +64,7 @@ interface CrossSellSearchOption {
 
 const RESERVED_ATTRIBUTE_FIELDS = [
   'fitments',
+  'fitment_notes',
   'package_items',
   'notes',
   'universal_fit',
@@ -71,6 +72,8 @@ const RESERVED_ATTRIBUTE_FIELDS = [
   'supplier_sku',
   'procurement_type',
   'min_order_qty',
+  'min_retail_qty',
+  'min_dealer_qty',
   'return_window_days',
   'return_policy_note',
   'non_returnable_reason',
@@ -247,8 +250,12 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       returnable: [this.getDefaultFormValue().returnable],
       supplierSku: [this.getDefaultFormValue().supplierSku],
       procurementType: [this.getDefaultFormValue().procurementType],
-      minOrderQty: [
-        this.getDefaultFormValue().minOrderQty,
+      minRetailQty: [
+        this.getDefaultFormValue().minRetailQty,
+        [Validators.min(1)],
+      ],
+      minDealerQty: [
+        this.getDefaultFormValue().minDealerQty,
         [Validators.min(1)],
       ],
       returnWindowDays: [
@@ -1263,7 +1270,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   }
 
   private buildAttributesObject(): Record<string, unknown> {
-    const customAttributes = this.attributeRows.reduce<Record<string, unknown>>(
+    return this.attributeRows.reduce<Record<string, unknown>>(
       (accumulator, item) => {
         const key = item.key.trim();
         const value = item.value.trim();
@@ -1276,11 +1283,6 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       },
       {},
     );
-
-    return {
-      ...customAttributes,
-      ...this.buildOperationalAttributes(),
-    };
   }
 
   private toCreatePayload(
@@ -1292,6 +1294,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       attributes: Record<string, unknown>;
     },
   ): CreateProductsDto {
+    const minRetailQty = this.toNumberOrNull(payload.minRetailQty) ?? 1;
+    const minDealerQty = this.toNumberOrNull(payload.minDealerQty) ?? 1;
+
     return {
       title: payload.title ?? '',
       slug: payload.slug || undefined,
@@ -1315,8 +1320,13 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       currency: payload.currency ?? 'CAD',
       stock_qty: Number(payload.stockQty) || 0,
       low_stock_threshold: Number(payload.safetyStock) || 0,
+      min_retail_qty: minRetailQty,
+      min_dealer_qty: minDealerQty,
       stock_status: payload.stockStatus ?? 'in_stock',
       supplier: payload.supplier || undefined,
+      inventory_source: undefined,
+      internal_reference_code: String(payload.supplierSku ?? '').trim() || undefined,
+      stock_strategy: String(payload.procurementType ?? '').trim() || undefined,
       warehouse_bin: payload.warehouseBin || undefined,
       lead_time_days: Number(payload.leadTimeDays) || 0,
       shipping_class: payload.shippingClass || undefined,
@@ -1326,11 +1336,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       height: Number(payload.heightCm) || 0,
       warranty: payload.warranty || undefined,
       returnable: payload.returnable ?? true,
-      min_order_qty: Number(payload.minOrderQty) || 1,
-      return_window_days:
-        payload.returnable && this.toNumberOrNull(payload.returnWindowDays) !== null
-          ? Number(payload.returnWindowDays)
-          : undefined,
+      return_window_days: payload.returnable
+        ? (this.toNumberOrNull(payload.returnWindowDays) ?? undefined)
+        : undefined,
       non_returnable_reasons:
         payload.returnable || this.nonReturnableReasons.length === 0
           ? undefined
@@ -1354,12 +1362,12 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       seo_description: payload.seoDescription || undefined,
       tags: payload.tags,
       package_contents: payload.packageItems,
-      attributes: {
-        ...payload.attributes,
-        fitments: payload.fitments,
-        package_items: payload.packageItems,
-        notes: payload.notes,
-      },
+      notes: payload.notes
+        .map((note) => note.trim())
+        .filter(Boolean)
+        .map((note) => ({ note })),
+      attributes: payload.attributes,
+      fitment_notes: payload.fitments,
     };
   }
 
@@ -1483,7 +1491,8 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     const categoryId = this.toNumberOrNull(detail.category_id);
     const brandId = this.toNumberOrNull(detail.brand_id);
     const modelId = this.toNumberOrNull(detail.model_id);
-    const attributes = this.extractEditableAttributes(detail.attributes);
+    const attributeMap = this.extractEditableAttributes(detail.attributes);
+    const customAttributes: Record<string, string> = { ...attributeMap };
     const media = this.extractDetailMedia(detail);
 
     this.pendingCategoryId = categoryId;
@@ -1491,17 +1500,14 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     this.tags = Array.isArray(detail.tags)
       ? detail.tags.filter((item) => typeof item === 'string')
       : [];
-    this.packageItems = this.extractPackageContents(detail, attributes);
-    this.notes = this.extractNotes(detail, attributes);
-    this.fitments = this.extractFitments(
-      detail.fitments,
-      attributes['fitments'],
-    );
+    this.packageItems = this.extractPackageContents(detail, attributeMap);
+    this.notes = this.extractNotes(detail, attributeMap);
+    this.fitments = this.extractFitmentNotes(detail, attributeMap);
     this.nonReturnableReasons = this.extractNonReturnableReasons(detail);
     this.galleryImages = media.galleryImages;
     this.videoUrls = media.videoUrls;
     for (const key of RESERVED_ATTRIBUTE_FIELDS) {
-      delete attributes[key];
+      delete customAttributes[key];
     }
 
     this.brandSearch = this.toText(detail.brand_name);
@@ -1550,25 +1556,33 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
           false,
         ),
         returnable: this.toBooleanValue(detail.returnable, true),
-        supplierSku: this.toText(attributes['supplier_sku']),
+        supplierSku:
+          this.toText(detail.internal_reference_code) ||
+          this.toText(attributeMap['supplier_sku']),
         procurementType:
-          this.toText(attributes['procurement_type']) || 'stocked',
-        minOrderQty:
-          this.toNumberOrNull(detail.min_order_qty) ??
-          this.toNumberOrNull(attributes['min_order_qty']) ??
+          this.toText(detail.stock_strategy) ||
+          this.toText(attributeMap['procurement_type']) ||
+          'stocked',
+        minRetailQty:
+          this.toNumberOrNull(detail.min_retail_qty) ??
+          this.toNumberOrNull(attributeMap['min_retail_qty']) ??
+          1,
+        minDealerQty:
+          this.toNumberOrNull(detail.min_dealer_qty) ??
+          this.toNumberOrNull(attributeMap['min_dealer_qty']) ??
           1,
         returnWindowDays:
           this.toNumberOrNull(detail.return_window_days) ??
-          this.toNumberOrNull(attributes['return_window_days']),
+          this.toNumberOrNull(attributeMap['return_window_days']),
         returnPolicyNote:
           this.toText(detail.return_policy_note) ||
-          this.toText(attributes['return_policy_note']),
+          this.toText(attributeMap['return_policy_note']),
         serialTrackingNote:
           this.toText(detail.serial_tracking_note) ||
-          this.toText(attributes['serial_tracking_note']),
+          this.toText(attributeMap['serial_tracking_note']),
         fulfillmentNote:
           this.toText(detail.fulfillment_note) ||
-          this.toText(attributes['fulfillment_note']),
+          this.toText(attributeMap['fulfillment_note']),
         imageUrl: media.primaryImageUrl,
         seoTitle: this.toText(detail.seo_title),
         seoDescription: this.toText(detail.seo_description),
@@ -1577,9 +1591,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     );
 
     if (categoryId !== null) {
-      this.loadCategoryAttributes(categoryId, attributes);
+      this.loadCategoryAttributes(categoryId, customAttributes);
     } else {
-      this.attributeRows = Object.entries(attributes).map(([key, value]) => ({
+      this.attributeRows = Object.entries(customAttributes).map(([key, value]) => ({
         key,
         value,
       }));
@@ -2155,6 +2169,23 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     return this.extractStringArray(attributeFitments);
   }
 
+  private extractFitmentNotes(
+    detail: ProductDetailDto,
+    attributes: Record<string, string>,
+  ): string[] {
+    if (Array.isArray(detail.fitment_notes) && detail.fitment_notes.length > 0) {
+      return detail.fitment_notes
+        .map((item) => (typeof item === 'string' ? item.trim() : String(item)))
+        .filter(Boolean);
+    }
+
+    if (String(attributes['fitment_notes'] ?? '').trim()) {
+      return this.extractStringArray(String(attributes['fitment_notes']));
+    }
+
+    return this.extractFitments(detail.fitments, attributes['fitments']);
+  }
+
   private extractAttributeStringArray(source: unknown, key: string): string[] {
     if (!source || typeof source !== 'object' || Array.isArray(source)) {
       return [];
@@ -2174,48 +2205,6 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     }
 
     return [];
-  }
-
-  private buildOperationalAttributes(): Record<string, unknown> {
-    const payload = this.form.getRawValue();
-    const attributes: Record<string, unknown> = {};
-
-    if (String(payload.supplierSku ?? '').trim()) {
-      attributes['supplier_sku'] = String(payload.supplierSku).trim();
-    }
-    attributes['universal_fit'] = String(Boolean(payload.universalFit));
-    attributes['requires_serial'] = String(Boolean(payload.requiresSerial));
-    if (String(payload.procurementType ?? '').trim()) {
-      attributes['procurement_type'] = String(payload.procurementType).trim();
-    }
-    if (this.toNumberOrNull(payload.minOrderQty) !== null) {
-      attributes['min_order_qty'] = String(
-        this.toNumberOrNull(payload.minOrderQty),
-      );
-    }
-    if (this.toNumberOrNull(payload.returnWindowDays) !== null) {
-      attributes['return_window_days'] = String(
-        this.toNumberOrNull(payload.returnWindowDays),
-      );
-    }
-    if (String(payload.returnPolicyNote ?? '').trim()) {
-      attributes['return_policy_note'] = String(
-        payload.returnPolicyNote,
-      ).trim();
-    }
-    if (this.nonReturnableReasons.length > 0) {
-      attributes['non_returnable_reason'] = [...this.nonReturnableReasons];
-    }
-    if (String(payload.serialTrackingNote ?? '').trim()) {
-      attributes['serial_tracking_note'] = String(
-        payload.serialTrackingNote,
-      ).trim();
-    }
-    if (String(payload.fulfillmentNote ?? '').trim()) {
-      attributes['fulfillment_note'] = String(payload.fulfillmentNote).trim();
-    }
-
-    return attributes;
   }
 
   private buildCrossSellPayload(): ProductCrossSellItemDto[] {
@@ -2242,10 +2231,22 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     const value = this.form.getRawValue();
 
     if (
-      this.toNumberOrNull(value.minOrderQty) === null ||
-      Number(value.minOrderQty) < 1
+      this.toNumberOrNull(value.minRetailQty) === null ||
+      Number(value.minRetailQty) < 1
     ) {
-      this.toastService.warning('Minimum order quantity must be at least 1.');
+      this.toastService.warning(
+        'Minimum retail quantity must be at least 1.',
+      );
+      return false;
+    }
+
+    if (
+      this.toNumberOrNull(value.minDealerQty) === null ||
+      Number(value.minDealerQty) < 1
+    ) {
+      this.toastService.warning(
+        'Minimum dealer quantity must be at least 1.',
+      );
       return false;
     }
 
@@ -2445,7 +2446,8 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       returnable: true,
       supplierSku: '',
       procurementType: 'stocked',
-      minOrderQty: 1,
+      minRetailQty: 1,
+      minDealerQty: 4,
       returnWindowDays: 30 as number | null,
       returnPolicyNote:
         'Return accepted within 30 days in unused condition with original packaging.',

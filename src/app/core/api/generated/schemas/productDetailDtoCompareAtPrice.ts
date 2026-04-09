@@ -6,6 +6,7 @@
  */
 
 /**
+ * Computed compare-at price used for strike-through pricing when higher than selling_price.
  * @nullable
  */
 export type ProductDetailDtoCompareAtPrice = { [key: string]: unknown } | null;

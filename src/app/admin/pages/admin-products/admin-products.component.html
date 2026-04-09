@@ -318,9 +318,14 @@
             </select>
           </label>
           <label class="field">
-            <span>Min Order Qty</span>
-            <input type="number" formControlName="minOrderQty" [class.is-invalid]="hasError('minOrderQty')" />
-            <small *ngIf="hasError('minOrderQty')" class="field-error">{{ getErrorMessage('minOrderQty', 'Minimum order qty') }}</small>
+            <span>Min Retail Qty</span>
+            <input type="number" formControlName="minRetailQty" [class.is-invalid]="hasError('minRetailQty')" />
+            <small *ngIf="hasError('minRetailQty')" class="field-error">{{ getErrorMessage('minRetailQty', 'Minimum retail qty') }}</small>
+          </label>
+          <label class="field">
+            <span>Min Dealer Qty</span>
+            <input type="number" formControlName="minDealerQty" [class.is-invalid]="hasError('minDealerQty')" />
+            <small *ngIf="hasError('minDealerQty')" class="field-error">{{ getErrorMessage('minDealerQty', 'Minimum dealer qty') }}</small>
           </label>
         </div>
 

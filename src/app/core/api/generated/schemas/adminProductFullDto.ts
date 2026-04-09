@@ -6,6 +6,7 @@
  */
 import type { AdminProductConnectionsDto } from "./adminProductConnectionsDto";
 import type { AdminProductFullDtoAttributes } from "./adminProductFullDtoAttributes";
+import type { AdminProductFullDtoAvgRating } from "./adminProductFullDtoAvgRating";
 import type { AdminProductFullDtoBrandId } from "./adminProductFullDtoBrandId";
 import type { AdminProductFullDtoBrandName } from "./adminProductFullDtoBrandName";
 import type { AdminProductFullDtoBreadcrumbsItem } from "./adminProductFullDtoBreadcrumbsItem";
@@ -16,7 +17,11 @@ import type { AdminProductFullDtoCondition } from "./adminProductFullDtoConditio
 import type { AdminProductFullDtoCostPrice } from "./adminProductFullDtoCostPrice";
 import type { AdminProductFullDtoCreatedAt } from "./adminProductFullDtoCreatedAt";
 import type { AdminProductFullDtoCurrency } from "./adminProductFullDtoCurrency";
+import type { AdminProductFullDtoCustomAttributeMap } from "./adminProductFullDtoCustomAttributeMap";
+import type { AdminProductFullDtoCustomAttributesItem } from "./adminProductFullDtoCustomAttributesItem";
 import type { AdminProductFullDtoDescription } from "./adminProductFullDtoDescription";
+import type { AdminProductFullDtoDynamicAttributeMap } from "./adminProductFullDtoDynamicAttributeMap";
+import type { AdminProductFullDtoDynamicAttributesItem } from "./adminProductFullDtoDynamicAttributesItem";
 import type { AdminProductFullDtoFeatured } from "./adminProductFullDtoFeatured";
 import type { AdminProductFullDtoFitmentsItem } from "./adminProductFullDtoFitmentsItem";
 import type { AdminProductFullDtoFulfillmentNote } from "./adminProductFullDtoFulfillmentNote";
@@ -29,7 +34,9 @@ import type { AdminProductFullDtoLeadTimeDays } from "./adminProductFullDtoLeadT
 import type { AdminProductFullDtoLength } from "./adminProductFullDtoLength";
 import type { AdminProductFullDtoLowStockThreshold } from "./adminProductFullDtoLowStockThreshold";
 import type { AdminProductFullDtoMediaItem } from "./adminProductFullDtoMediaItem";
+import type { AdminProductFullDtoMinDealerQty } from "./adminProductFullDtoMinDealerQty";
 import type { AdminProductFullDtoMinOrderQty } from "./adminProductFullDtoMinOrderQty";
+import type { AdminProductFullDtoMinRetailQty } from "./adminProductFullDtoMinRetailQty";
 import type { AdminProductFullDtoModelId } from "./adminProductFullDtoModelId";
 import type { AdminProductFullDtoModelName } from "./adminProductFullDtoModelName";
 import type { AdminProductFullDtoMpn } from "./adminProductFullDtoMpn";
@@ -39,12 +46,15 @@ import type { AdminProductFullDtoRequiresSerial } from "./adminProductFullDtoReq
 import type { AdminProductFullDtoReturnable } from "./adminProductFullDtoReturnable";
 import type { AdminProductFullDtoReturnPolicyNote } from "./adminProductFullDtoReturnPolicyNote";
 import type { AdminProductFullDtoReturnWindowDays } from "./adminProductFullDtoReturnWindowDays";
+import type { AdminProductFullDtoReviewsCount } from "./adminProductFullDtoReviewsCount";
+import type { AdminProductFullDtoSellingPrice } from "./adminProductFullDtoSellingPrice";
 import type { AdminProductFullDtoSeoDescription } from "./adminProductFullDtoSeoDescription";
 import type { AdminProductFullDtoSeoTitle } from "./adminProductFullDtoSeoTitle";
 import type { AdminProductFullDtoSerialTrackingNote } from "./adminProductFullDtoSerialTrackingNote";
 import type { AdminProductFullDtoShippingClass } from "./adminProductFullDtoShippingClass";
 import type { AdminProductFullDtoShortDescription } from "./adminProductFullDtoShortDescription";
 import type { AdminProductFullDtoSpecificationsItem } from "./adminProductFullDtoSpecificationsItem";
+import type { AdminProductFullDtoSpecificationsTableItem } from "./adminProductFullDtoSpecificationsTableItem";
 import type { AdminProductFullDtoStatus } from "./adminProductFullDtoStatus";
 import type { AdminProductFullDtoStockQty } from "./adminProductFullDtoStockQty";
 import type { AdminProductFullDtoStockStatus } from "./adminProductFullDtoStockStatus";
@@ -59,6 +69,7 @@ import type { AdminProductFullDtoWarranty } from "./adminProductFullDtoWarranty"
 import type { AdminProductFullDtoWeight } from "./adminProductFullDtoWeight";
 import type { AdminProductFullDtoWidth } from "./adminProductFullDtoWidth";
 import type { ProductCrossSellDto } from "./productCrossSellDto";
+import type { ProductMediaItemDto } from "./productMediaItemDto";
 
 export interface AdminProductFullDto {
   product_id: number;
@@ -71,7 +82,10 @@ export interface AdminProductFullDto {
   barcode?: string | null;
   /** @nullable */
   price?: AdminProductFullDtoPrice;
-  /** @nullable */
+  /**
+   * Computed compare-at price used for strike-through pricing when higher than selling_price.
+   * @nullable
+   */
   compare_at_price?: AdminProductFullDtoCompareAtPrice;
   /** @nullable */
   cost_price?: AdminProductFullDtoCostPrice;
@@ -79,6 +93,12 @@ export interface AdminProductFullDto {
   currency?: AdminProductFullDtoCurrency;
   /** @nullable */
   stock_qty?: AdminProductFullDtoStockQty;
+  /** @nullable */
+  min_order_qty?: AdminProductFullDtoMinOrderQty;
+  /** @nullable */
+  min_retail_qty?: AdminProductFullDtoMinRetailQty;
+  /** @nullable */
+  min_dealer_qty?: AdminProductFullDtoMinDealerQty;
   /** @nullable */
   stock_status?: AdminProductFullDtoStockStatus;
   /** @nullable */
@@ -107,6 +127,41 @@ export interface AdminProductFullDto {
   model_id?: AdminProductFullDtoModelId;
   /** @nullable */
   model_name?: AdminProductFullDtoModelName;
+  /**
+   * Computed storefront selling price (normalized from price/new_cost).
+   * @nullable
+   */
+  selling_price?: AdminProductFullDtoSellingPrice;
+  /** Computed savings amount (compare_at_price - selling_price). */
+  savings_amount?: number;
+  /** Computed savings percent (rounded) when compare_at_price > selling_price. */
+  savings_percent?: number;
+  /** True when compare_at_price > selling_price. */
+  has_price_difference?: boolean;
+  /**
+   * Average rating across reviews (0-5).
+   * @nullable
+   */
+  avg_rating?: AdminProductFullDtoAvgRating;
+  /**
+   * Total reviews count.
+   * @nullable
+   */
+  reviews_count?: AdminProductFullDtoReviewsCount;
+  /** Normalized gallery for PDP (thumbnail + media links + gallery_images). */
+  media_gallery?: ProductMediaItemDto[];
+  /** Convenience list of unique specification key/value pairs for quick PDP display. */
+  specifications_table?: AdminProductFullDtoSpecificationsTableItem[];
+  /** Dynamic product attributes derived from specifications, de-duplicated by attribute (best for PDP spec cards). */
+  dynamic_attributes?: AdminProductFullDtoDynamicAttributesItem[];
+  /** Dynamic attribute map keyed by attribute_code (or name) for quick access. */
+  dynamic_attribute_map?: AdminProductFullDtoDynamicAttributeMap;
+  /** Custom (admin-entered) attributes from the product `attributes` JSON, flattened to key/value pairs. */
+  custom_attributes?: AdminProductFullDtoCustomAttributesItem[];
+  /** Custom attribute map for quick access (same data as custom_attributes). */
+  custom_attribute_map?: AdminProductFullDtoCustomAttributeMap;
+  /** Legacy fitment notes coming from product attributes JSON (not the same as top-level fitments from product_fitment). */
+  fitment_notes?: string[];
   /** @nullable */
   condition?: AdminProductFullDtoCondition;
   /** @nullable */
@@ -121,8 +176,6 @@ export interface AdminProductFullDto {
   lead_time_days?: AdminProductFullDtoLeadTimeDays;
   /** @nullable */
   low_stock_threshold?: AdminProductFullDtoLowStockThreshold;
-  /** @nullable */
-  min_order_qty?: AdminProductFullDtoMinOrderQty;
   /** @nullable */
   inventory_source?: AdminProductFullDtoInventorySource;
   /** @nullable */
