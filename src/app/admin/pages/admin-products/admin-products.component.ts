@@ -94,7 +94,6 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   readonly conditionOptions = ['new', 'refurbished', 'open_box'];
   readonly visibilityOptions = ['catalog_search', 'catalog_only', 'draft'];
   readonly stockStatusOptions = ['in_stock', 'backorder', 'preorder'];
-  readonly shippingClassOptions = ['standard', 'oversize', 'hazmat'];
   readonly statusOptions = ['draft', 'active', 'inactive'];
   readonly currencyOptions = ['CAD', 'USD', 'EUR'];
   readonly procurementTypeOptions = [
@@ -234,10 +233,6 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       leadTimeDays: [
         this.getDefaultFormValue().leadTimeDays,
         [Validators.min(0)],
-      ],
-      shippingClass: [
-        this.getDefaultFormValue().shippingClass,
-        Validators.required,
       ],
       weightKg: [this.getDefaultFormValue().weightKg, [Validators.min(0)]],
       lengthCm: [this.getDefaultFormValue().lengthCm, [Validators.min(0)]],
@@ -1329,7 +1324,6 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       stock_strategy: String(payload.procurementType ?? '').trim() || undefined,
       warehouse_bin: payload.warehouseBin || undefined,
       lead_time_days: Number(payload.leadTimeDays) || 0,
-      shipping_class: payload.shippingClass || undefined,
       weight: Number(payload.weightKg) || 0,
       length: Number(payload.lengthCm) || 0,
       width: Number(payload.widthCm) || 0,
@@ -1540,7 +1534,6 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         supplier: this.toText(detail.supplier) || 'Primary Warehouse',
         warehouseBin: this.toText(detail.warehouse_bin) || 'A-01-01',
         leadTimeDays: this.toNumberOrZero(detail.lead_time_days),
-        shippingClass: this.toText(detail.shipping_class) || 'standard',
         weightKg: this.toNumberOrZero(detail.weight),
         lengthCm: this.toNumberOrZero(detail.length),
         widthCm: this.toNumberOrZero(detail.width),
@@ -2434,7 +2427,6 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       supplier: 'Primary Warehouse',
       warehouseBin: 'A-01-01',
       leadTimeDays: 2,
-      shippingClass: 'standard',
       weightKg: 0,
       lengthCm: 0,
       widthCm: 0,

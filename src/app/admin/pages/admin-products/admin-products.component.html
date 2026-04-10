@@ -465,23 +465,16 @@
           </label>
         </div>
 
-        <div class="field-grid field-grid--three">
-          <label class="field">
-            <span>Warehouse Bin</span>
-            <input formControlName="warehouseBin" />
-          </label>
-          <label class="field">
-            <span>Warranty</span>
-            <input formControlName="warranty" />
-          </label>
-          <label class="field">
-            <span>Shipping Class *</span>
-            <select formControlName="shippingClass" [class.is-invalid]="hasError('shippingClass')">
-              <option *ngFor="let item of shippingClassOptions" [value]="item">{{ item }}</option>
-            </select>
-            <small *ngIf="hasError('shippingClass')" class="field-error">{{ getErrorMessage('shippingClass', 'Shipping class') }}</small>
-          </label>
-        </div>
+	        <div class="field-grid field-grid--three">
+	          <label class="field">
+	            <span>Warehouse Bin</span>
+	            <input formControlName="warehouseBin" />
+	          </label>
+	          <label class="field">
+	            <span>Warranty</span>
+	            <input formControlName="warranty" />
+	          </label>
+	        </div>
       </article>
 
       <article class="product-card">
@@ -934,17 +927,16 @@
         </div>
       </article>
 
-      <article class="sidebar-card">
-        <div class="sidebar-card__title">Operational Snapshot</div>
-        <div class="ops-list">
-          <div><span>Stock</span><strong>{{ form.value.stockQty || 0 }}</strong></div>
-          <div><span>Safety Stock</span><strong>{{ form.value.safetyStock || 0 }}</strong></div>
-          <div><span>Shipping</span><strong>{{ form.value.shippingClass }}</strong></div>
-          <div><span>Warehouse Bin</span><strong>{{ form.value.warehouseBin || "-" }}</strong></div>
-          <div><span>Stock Strategy</span><strong>{{ selectedProcurementTypeLabel }}</strong></div>
-          <div><span>Returns</span><strong>{{ form.value.returnable ? ((form.value.returnWindowDays || 0) + ' days') : 'No returns' }}</strong></div>
-        </div>
-      </article>
+	      <article class="sidebar-card">
+	        <div class="sidebar-card__title">Operational Snapshot</div>
+	        <div class="ops-list">
+	          <div><span>Stock</span><strong>{{ form.value.stockQty || 0 }}</strong></div>
+	          <div><span>Safety Stock</span><strong>{{ form.value.safetyStock || 0 }}</strong></div>
+	          <div><span>Warehouse Bin</span><strong>{{ form.value.warehouseBin || "-" }}</strong></div>
+	          <div><span>Stock Strategy</span><strong>{{ selectedProcurementTypeLabel }}</strong></div>
+	          <div><span>Returns</span><strong>{{ form.value.returnable ? ((form.value.returnWindowDays || 0) + ' days') : 'No returns' }}</strong></div>
+	        </div>
+	      </article>
     </aside>
   </form>
 </div>
