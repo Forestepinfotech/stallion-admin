@@ -19,6 +19,7 @@ export interface AdminOrderReturnItemDto {
   sku?: AdminOrderReturnItemDtoSku;
   requested_qty: number;
   approved_qty: number;
+  received_qty: number;
   /** @nullable */
   reason_name?: AdminOrderReturnItemDtoReasonName;
   /** @nullable */

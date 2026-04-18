@@ -4,33 +4,66 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
+import type { AdminOrderDetailDtoAddressEmail } from "./adminOrderDetailDtoAddressEmail";
+import type { AdminOrderDetailDtoAddressFirstName } from "./adminOrderDetailDtoAddressFirstName";
 import type { AdminOrderDetailDtoAddressId } from "./adminOrderDetailDtoAddressId";
+import type { AdminOrderDetailDtoAddressLastName } from "./adminOrderDetailDtoAddressLastName";
+import type { AdminOrderDetailDtoAddressPhone } from "./adminOrderDetailDtoAddressPhone";
+import type { AdminOrderDetailDtoApprovalStatus } from "./adminOrderDetailDtoApprovalStatus";
+import type { AdminOrderDetailDtoApprovedAt } from "./adminOrderDetailDtoApprovedAt";
+import type { AdminOrderDetailDtoApprovedBy } from "./adminOrderDetailDtoApprovedBy";
+import type { AdminOrderDetailDtoCity } from "./adminOrderDetailDtoCity";
 import type { AdminOrderDetailDtoCountry } from "./adminOrderDetailDtoCountry";
 import type { AdminOrderDetailDtoCountryId } from "./adminOrderDetailDtoCountryId";
 import type { AdminOrderDetailDtoCustomerEmail } from "./adminOrderDetailDtoCustomerEmail";
 import type { AdminOrderDetailDtoCustomerName } from "./adminOrderDetailDtoCustomerName";
 import type { AdminOrderDetailDtoCustomerPhone } from "./adminOrderDetailDtoCustomerPhone";
+import type { AdminOrderDetailDtoFulfillmentStatus } from "./adminOrderDetailDtoFulfillmentStatus";
 import type { AdminOrderDetailDtoLine1 } from "./adminOrderDetailDtoLine1";
 import type { AdminOrderDetailDtoLine2 } from "./adminOrderDetailDtoLine2";
 import type { AdminOrderDetailDtoOrderNote } from "./adminOrderDetailDtoOrderNote";
+import type { AdminOrderDetailDtoOverallStatus } from "./adminOrderDetailDtoOverallStatus";
+import type { AdminOrderDetailDtoPaymentDisputed } from "./adminOrderDetailDtoPaymentDisputed";
+import type { AdminOrderDetailDtoPaymentDisputeStatus } from "./adminOrderDetailDtoPaymentDisputeStatus";
+import type { AdminOrderDetailDtoPaymentStatus } from "./adminOrderDetailDtoPaymentStatus";
 import type { AdminOrderDetailDtoPostalcode } from "./adminOrderDetailDtoPostalcode";
 import type { AdminOrderDetailDtoProvince } from "./adminOrderDetailDtoProvince";
+import type { AdminOrderDetailDtoRefundState } from "./adminOrderDetailDtoRefundState";
+import type { AdminOrderDetailDtoReturnState } from "./adminOrderDetailDtoReturnState";
 import type { AdminOrderDetailDtoStatusId } from "./adminOrderDetailDtoStatusId";
 import type { AdminOrderDetailDtoStatusName } from "./adminOrderDetailDtoStatusName";
+import type { AdminOrderDetailDtoUsertype } from "./adminOrderDetailDtoUsertype";
 import type { AdminOrderItemDto } from "./adminOrderItemDto";
+import type { AdminOrderLogDto } from "./adminOrderLogDto";
+import type { AdminOrderRefundDto } from "./adminOrderRefundDto";
 import type { AdminOrderReturnDto } from "./adminOrderReturnDto";
 import type { AdminOrderShipmentDto } from "./adminOrderShipmentDto";
 import type { AdminOrderSummaryDto } from "./adminOrderSummaryDto";
+import type { AdminRefundTrackingDto } from "./adminRefundTrackingDto";
 
 export interface AdminOrderDetailDto {
   order_id: number;
   order_number: string;
   user_id: number;
   /** @nullable */
+  usertype?: AdminOrderDetailDtoUsertype;
+  /** @nullable */
   country_id?: AdminOrderDetailDtoCountryId;
   /** @nullable */
   address_id?: AdminOrderDetailDtoAddressId;
   is_paid: boolean;
+  /** @nullable */
+  requires_admin_approval?: boolean | null;
+  /** @nullable */
+  is_approved?: boolean | null;
+  /** @nullable */
+  approved_at?: AdminOrderDetailDtoApprovedAt;
+  /** @nullable */
+  approved_by?: AdminOrderDetailDtoApprovedBy;
+  /** @nullable */
+  payment_disputed?: AdminOrderDetailDtoPaymentDisputed;
+  /** @nullable */
+  payment_dispute_status?: AdminOrderDetailDtoPaymentDisputeStatus;
   is_active: boolean;
   /** @nullable */
   order_note?: AdminOrderDetailDtoOrderNote;
@@ -50,6 +83,16 @@ export interface AdminOrderDetailDto {
   /** @nullable */
   customer_phone?: AdminOrderDetailDtoCustomerPhone;
   /** @nullable */
+  address_first_name?: AdminOrderDetailDtoAddressFirstName;
+  /** @nullable */
+  address_last_name?: AdminOrderDetailDtoAddressLastName;
+  /** @nullable */
+  address_email?: AdminOrderDetailDtoAddressEmail;
+  /** @nullable */
+  address_phone?: AdminOrderDetailDtoAddressPhone;
+  /** @nullable */
+  city?: AdminOrderDetailDtoCity;
+  /** @nullable */
   line1?: AdminOrderDetailDtoLine1;
   /** @nullable */
   line2?: AdminOrderDetailDtoLine2;
@@ -63,4 +106,17 @@ export interface AdminOrderDetailDto {
   shipments: AdminOrderShipmentDto[];
   returns: AdminOrderReturnDto[];
   summary: AdminOrderSummaryDto;
+  logs: AdminOrderLogDto[];
+  refunds: AdminOrderRefundDto[];
+  refund_tracking: AdminRefundTrackingDto;
+  payment_status: AdminOrderDetailDtoPaymentStatus;
+  approval_status: AdminOrderDetailDtoApprovalStatus;
+  fulfillment_status: AdminOrderDetailDtoFulfillmentStatus;
+  refund_state: AdminOrderDetailDtoRefundState;
+  return_state: AdminOrderDetailDtoReturnState;
+  overall_status: AdminOrderDetailDtoOverallStatus;
+  status_label: string;
+  status_message: string;
+  /** True if at least one item is currently eligible for return. */
+  return_eligible: boolean;
 }

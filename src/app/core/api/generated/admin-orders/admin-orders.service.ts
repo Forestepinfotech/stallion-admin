@@ -18,10 +18,14 @@ import { Observable } from "rxjs";
 
 import type {
   AdminOrderDetailResponseDto,
+  AdminOrderTrackingResponseDto,
+  ApproveOrderShipmentDto,
   CreateOrdersDto,
+  OrderApprovalModeResponseDto,
   OrdersControllerListParams,
   OrdersResponseDto,
   PaginatedOrdersResponseDto,
+  UpdateOrderApprovalModeDto,
   UpdateOrdersDto,
 } from "../schemas";
 
@@ -91,6 +95,84 @@ function filterParams(
 @Injectable({ providedIn: "root" })
 export class AdminOrdersService {
   private readonly http = inject(HttpClient);
+  ordersControllerGetApprovalMode<TData = OrderApprovalModeResponseDto>(
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  ordersControllerGetApprovalMode<TData = OrderApprovalModeResponseDto>(
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  ordersControllerGetApprovalMode<TData = OrderApprovalModeResponseDto>(
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  ordersControllerGetApprovalMode<TData = OrderApprovalModeResponseDto>(
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/orders/approval-mode`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/orders/approval-mode`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+      });
+    }
+
+    return this.http.get<TData>(`/orders/approval-mode`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+    });
+  }
+  ordersControllerUpdateApprovalMode<TData = OrderApprovalModeResponseDto>(
+    updateOrderApprovalModeDto: UpdateOrderApprovalModeDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  ordersControllerUpdateApprovalMode<TData = OrderApprovalModeResponseDto>(
+    updateOrderApprovalModeDto: UpdateOrderApprovalModeDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  ordersControllerUpdateApprovalMode<TData = OrderApprovalModeResponseDto>(
+    updateOrderApprovalModeDto: UpdateOrderApprovalModeDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  ordersControllerUpdateApprovalMode<TData = OrderApprovalModeResponseDto>(
+    updateOrderApprovalModeDto: UpdateOrderApprovalModeDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.patch<TData>(
+        `/orders/approval-mode`,
+        updateOrderApprovalModeDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.patch<TData>(
+        `/orders/approval-mode`,
+        updateOrderApprovalModeDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.patch<TData>(
+      `/orders/approval-mode`,
+      updateOrderApprovalModeDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
   ordersControllerList<TData = PaginatedOrdersResponseDto>(
     params?: OrdersControllerListParams,
     options?: HttpClientOptions & { observe?: "body" },
@@ -277,5 +359,126 @@ export class AdminOrdersService {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
     });
+  }
+  ordersControllerTracking<TData = AdminOrderTrackingResponseDto>(
+    orderId: string,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  ordersControllerTracking<TData = AdminOrderTrackingResponseDto>(
+    orderId: string,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  ordersControllerTracking<TData = AdminOrderTrackingResponseDto>(
+    orderId: string,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  ordersControllerTracking<TData = AdminOrderTrackingResponseDto>(
+    orderId: string,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/orders/${orderId}/tracking`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/orders/${orderId}/tracking`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+      });
+    }
+
+    return this.http.get<TData>(`/orders/${orderId}/tracking`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+    });
+  }
+  ordersControllerApprove<TData = void>(
+    orderId: string,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  ordersControllerApprove<TData = void>(
+    orderId: string,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  ordersControllerApprove<TData = void>(
+    orderId: string,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  ordersControllerApprove<TData = void>(
+    orderId: string,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.post<TData>(`/orders/${orderId}/approve`, undefined, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.post<TData>(`/orders/${orderId}/approve`, undefined, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+      });
+    }
+
+    return this.http.post<TData>(`/orders/${orderId}/approve`, undefined, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+    });
+  }
+  ordersControllerShip<TData = void>(
+    orderId: string,
+    approveOrderShipmentDto: ApproveOrderShipmentDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  ordersControllerShip<TData = void>(
+    orderId: string,
+    approveOrderShipmentDto: ApproveOrderShipmentDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  ordersControllerShip<TData = void>(
+    orderId: string,
+    approveOrderShipmentDto: ApproveOrderShipmentDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  ordersControllerShip<TData = void>(
+    orderId: string,
+    approveOrderShipmentDto: ApproveOrderShipmentDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.post<TData>(
+        `/orders/${orderId}/ship`,
+        approveOrderShipmentDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.post<TData>(
+        `/orders/${orderId}/ship`,
+        approveOrderShipmentDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.post<TData>(
+      `/orders/${orderId}/ship`,
+      approveOrderShipmentDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
   }
 }

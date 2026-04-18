@@ -7,8 +7,9 @@
 
 export interface UpdateReturnStatusDto {
   status?: string;
-  refund_status?: string;
-  refund_amount?: number;
-  refund_eta_note?: string;
   admin_note?: string;
+  /** Optional netParcel service_code for generating a return label when approving. */
+  return_label_service_code?: number;
+  /** Optional netParcel service_name for generating a return label when approving. */
+  return_label_service_name?: string;
 }

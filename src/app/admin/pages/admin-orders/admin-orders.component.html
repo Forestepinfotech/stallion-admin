@@ -1,9 +1,15 @@
 <div class="space-y-6">
-  <div class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
-    <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+  <div
+    class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl"
+  >
+    <div
+      class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between"
+    >
       <div>
         <h1 class="text-2xl md:text-3xl font-semibold">Orders</h1>
-        <p class="mt-1 text-sm text-white/70">Review placed orders and open full order details.</p>
+        <p class="mt-1 text-sm text-white/70">
+          Review placed orders and open full order details.
+        </p>
       </div>
 
       <button
@@ -15,7 +21,11 @@
       </button>
     </div>
 
-    <form class="mt-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3" [formGroup]="filterForm" (ngSubmit)="applyFilters()">
+    <form
+      class="mt-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3"
+      [formGroup]="filterForm"
+      (ngSubmit)="applyFilters()"
+    >
       <div class="xl:col-span-2">
         <div class="relative">
           <input
@@ -23,8 +33,17 @@
             placeholder="Search by order number"
             class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 pl-11 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
           />
-          <svg class="w-5 h-5 text-white/70 absolute left-4 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none">
-            <path d="M21 21l-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <svg
+            class="w-5 h-5 text-white/70 absolute left-4 top-1/2 -translate-y-1/2"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M21 21l-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
           </svg>
         </div>
       </div>
@@ -75,14 +94,18 @@
         formControlName="isPaid"
         class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
       >
-        <option *ngFor="let option of booleanOptions" [value]="option.value">{{ option.label }} Paid</option>
+        <option *ngFor="let option of booleanOptions" [value]="option.value">
+          {{ option.label }} Paid
+        </option>
       </select>
 
       <select
         formControlName="isActive"
         class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
       >
-        <option *ngFor="let option of booleanOptions" [value]="option.value">{{ option.label }} Active</option>
+        <option *ngFor="let option of booleanOptions" [value]="option.value">
+          {{ option.label }} Active
+        </option>
       </select>
 
       <input
@@ -107,39 +130,151 @@
           <option value="grand_total">Grand Total</option>
           <option value="status_id">Status</option>
         </select>
-        <button type="submit" class="flex-1 rounded-2xl bg-white text-black font-medium px-4 py-3 hover:bg-gray-100 transition">Filter</button>
-        <button type="button" (click)="resetFilters()" class="flex-1 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 font-medium text-white hover:bg-white/15 transition">Reset</button>
+        <button
+          type="submit"
+          class="flex-1 rounded-2xl bg-white text-black font-medium px-4 py-3 hover:bg-gray-100 transition"
+        >
+          Filter
+        </button>
+        <button
+          type="button"
+          (click)="resetFilters()"
+          class="flex-1 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 font-medium text-white hover:bg-white/15 transition"
+        >
+          Reset
+        </button>
       </div>
     </form>
   </div>
 
   <div class="rounded-3xl border bg-white shadow-sm overflow-hidden">
-    <div class="px-6 py-5 border-b flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div
+      class="px-6 py-5 border-b flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+    >
       <div>
         <div class="text-lg font-semibold text-gray-900">Order List</div>
-        <div class="text-sm text-gray-500">Browse orders and open the full detail screen for each record.</div>
+        <div class="text-sm text-gray-500">
+          Browse orders and open the full detail screen for each record.
+        </div>
       </div>
 
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <label class="flex items-center gap-2 text-sm text-gray-600" [formGroup]="filterForm">
+        <label
+          class="flex items-center gap-2 text-sm text-gray-600"
+          [formGroup]="filterForm"
+        >
           <span>Rows</span>
-          <select formControlName="limit" (change)="onPageSizeChange()" class="rounded-xl border px-3 py-2 text-sm text-gray-900">
-            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          <select
+            formControlName="limit"
+            (change)="onPageSizeChange()"
+            class="rounded-xl border px-3 py-2 text-sm text-gray-900"
+          >
+            <option *ngFor="let size of pageSizeOptions" [value]="size">
+              {{ size }}
+            </option>
           </select>
         </label>
         <div class="text-sm text-gray-600">
-          Showing <span class="font-semibold text-gray-900">{{ showingFrom }}-{{ showingTo }}</span> of
+          Showing
+          <span class="font-semibold text-gray-900"
+            >{{ showingFrom }}-{{ showingTo }}</span
+          >
+          of
           <span class="font-semibold text-gray-900">{{ totalOrders }}</span>
         </div>
       </div>
     </div>
 
-    <div *ngIf="loading" class="px-6 py-10 text-center text-sm text-gray-500">Loading orders...</div>
+    <div class="px-6 py-4 border-b bg-gray-50/60 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="button"
+          (click)="setQuickView('all')"
+          class="rounded-full border px-3 py-1.5 text-xs font-medium"
+          [ngClass]="quickView === 'all' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 hover:bg-gray-50'"
+        >
+          All
+        </button>
+        <button
+          type="button"
+          (click)="setQuickView('awaiting_approval')"
+          class="rounded-full border px-3 py-1.5 text-xs font-medium"
+          [ngClass]="quickView === 'awaiting_approval' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 hover:bg-gray-50'"
+        >
+          Awaiting approval
+        </button>
+        <button
+          type="button"
+          (click)="setQuickView('ready_to_ship')"
+          class="rounded-full border px-3 py-1.5 text-xs font-medium"
+          [ngClass]="quickView === 'ready_to_ship' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 hover:bg-gray-50'"
+        >
+          Ready to ship
+        </button>
+        <button
+          type="button"
+          (click)="setQuickView('packing')"
+          class="rounded-full border px-3 py-1.5 text-xs font-medium"
+          [ngClass]="quickView === 'packing' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 hover:bg-gray-50'"
+        >
+          Packing
+        </button>
+        <button
+          type="button"
+          (click)="setQuickView('shipped')"
+          class="rounded-full border px-3 py-1.5 text-xs font-medium"
+          [ngClass]="quickView === 'shipped' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 hover:bg-gray-50'"
+        >
+          Shipped
+        </button>
+        <button
+          type="button"
+          (click)="setQuickView('return_requested')"
+          class="rounded-full border px-3 py-1.5 text-xs font-medium"
+          [ngClass]="quickView === 'return_requested' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 hover:bg-gray-50'"
+        >
+          Return requested
+        </button>
+        <button
+          type="button"
+          (click)="setQuickView('refund_requested')"
+          class="rounded-full border px-3 py-1.5 text-xs font-medium"
+          [ngClass]="quickView === 'refund_requested' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 hover:bg-gray-50'"
+        >
+          Refund pending
+        </button>
+      </div>
 
-    <div *ngIf="!loading && loadError" class="m-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+      <div *ngIf="selected.size > 0" class="flex flex-wrap items-center gap-3">
+        <div class="text-sm text-gray-700">
+          <span class="font-semibold text-gray-900">{{ selected.size }}</span> selected
+        </div>
+        <button
+          type="button"
+          (click)="bulkApproveSelected()"
+          class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black disabled:opacity-40"
+          [disabled]="bulkApproving"
+        >
+          {{ bulkApproving ? 'Approving…' : 'Bulk approve' }}
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="px-6 py-10 text-center text-sm text-gray-500">
+      Loading orders...
+    </div>
+
+    <div
+      *ngIf="!loading && loadError"
+      class="m-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700"
+    >
       <div class="font-semibold text-red-800">Unable to load orders</div>
       <div class="mt-1">{{ loadError }}</div>
-      <button type="button" (click)="refresh()" class="mt-3 rounded-xl border border-red-200 bg-white px-3 py-2 font-medium text-red-700 transition hover:bg-red-100">
+      <button
+        type="button"
+        (click)="refresh()"
+        class="mt-3 rounded-xl border border-red-200 bg-white px-3 py-2 font-medium text-red-700 transition hover:bg-red-100"
+      >
         Try Again
       </button>
     </div>
@@ -147,85 +282,235 @@
     <ng-container *ngIf="!loading && !loadError">
       <div class="hidden md:block">
         <table class="w-full">
-          <thead class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          <thead
+            class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+          >
             <tr>
+              <th class="px-6 py-3 w-10">
+                <input
+                  type="checkbox"
+                  class="rounded"
+                  [checked]="selected.size > 0 && selected.size === displayedOrders().length"
+                  (change)="toggleAll($any($event.target).checked)"
+                />
+              </th>
               <th class="px-6 py-3">Order</th>
               <th class="px-6 py-3">Customer</th>
-              <th class="px-6 py-3">Products</th>
-              <th class="px-6 py-3">Qty</th>
-              <th class="px-6 py-3">Total</th>
-              <th class="px-6 py-3">Paid</th>
               <th class="px-6 py-3">Status</th>
+              <th class="px-6 py-3">Payment</th>
+              <th class="px-6 py-3">Fulfillment</th>
+              <th class="px-6 py-3">Returns</th>
+              <th class="px-6 py-3">Refunds</th>
+              <th class="px-6 py-3">Total</th>
               <th class="px-6 py-3 text-right">Action</th>
             </tr>
           </thead>
           <tbody class="divide-y">
-            <tr *ngFor="let order of orders; trackBy: trackByOrderId" class="hover:bg-gray-50 transition">
+            <tr
+              *ngFor="let order of displayedOrders(); trackBy: trackByOrderId"
+              class="hover:bg-gray-50 transition"
+            >
               <td class="px-6 py-4">
-                <div class="font-semibold text-gray-900">{{ order.order_number }}</div>
+                <input
+                  type="checkbox"
+                  class="rounded"
+                  [checked]="isSelected(order.order_id)"
+                  (change)="toggleOne(order.order_id, $any($event.target).checked)"
+                />
+              </td>
+              <td class="px-6 py-4">
+                <div class="font-semibold text-gray-900">
+                  {{ order.order_number }}
+                </div>
                 <div class="text-xs text-gray-500">#{{ order.order_id }}</div>
+                <div class="mt-1 text-xs text-gray-500">
+                  {{ order.created_at | date: "medium" }}
+                </div>
               </td>
               <td class="px-6 py-4">
-                <div class="text-sm font-semibold text-gray-900">{{ order.customer_name || ('User #' + order.user_id) }}</div>
-                <div class="text-xs text-gray-500">{{ order.customer_email }}</div>
+                <div class="text-sm font-semibold text-gray-900">
+                  {{ order.customer_name || "User #" + order.user_id }}
+                </div>
+                <div class="text-xs text-gray-500">
+                  {{ order.customer_email }}
+                </div>
+                <div class="mt-2 text-xs text-gray-600">
+                  {{ order.items_count }} item(s) • Qty {{ order.total_qty }}
+                </div>
               </td>
               <td class="px-6 py-4">
-                <div class="text-sm text-gray-700">{{ order.product_titles.join(', ') || '-' }}</div>
-                <div class="text-xs text-gray-500 mt-1">{{ order.items_count }} item(s)</div>
+                <div class="font-semibold text-gray-900 text-sm">
+                  {{ order.status_label }}
+                </div>
+                <div class="mt-1 text-xs text-gray-600">
+                  {{ order.status_message }}
+                </div>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <app-status-badge
+                    [label]="approvalBadgeFor(order).label"
+                    [variant]="approvalBadgeFor(order).variant"
+                  ></app-status-badge>
+                </div>
               </td>
-              <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ order.total_qty }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ order.grand_total | currency:'USD':'symbol':'1.0-2' }}</td>
               <td class="px-6 py-4">
-                <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="order.is_paid ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'">
-                  {{ order.is_paid ? 'Paid' : 'Pending' }}
-                </span>
+                <app-status-badge
+                  [label]="paymentBadgeFor(order).label"
+                  [variant]="paymentBadgeFor(order).variant"
+                ></app-status-badge>
               </td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ order.status_name || ('Status #' + order.status_id) }}</td>
+              <td class="px-6 py-4">
+                <app-status-badge
+                  [label]="fulfillmentBadgeFor(order).label"
+                  [variant]="fulfillmentBadgeFor(order).variant"
+                ></app-status-badge>
+              </td>
+              <td class="px-6 py-4">
+                <app-status-badge
+                  [label]="returnBadgeFor(order).label"
+                  [variant]="returnBadgeFor(order).variant"
+                ></app-status-badge>
+              </td>
+              <td class="px-6 py-4">
+                <app-status-badge
+                  [label]="refundBadgeFor(order).label"
+                  [variant]="refundBadgeFor(order).variant"
+                ></app-status-badge>
+              </td>
+              <td class="px-6 py-4 text-sm font-semibold text-gray-900">
+                {{ order.grand_total | currency: "USD" : "symbol" : "1.0-2" }}
+              </td>
               <td class="px-6 py-4 text-right">
-                <a [routerLink]="['/admin/orders', order.order_id]" class="px-3 py-2 rounded-xl border hover:bg-gray-50 text-sm inline-flex">
-                  View
-                </a>
+                <div class="inline-flex items-center gap-2">
+                  <button
+                    *ngIf="actionsFor(order).canApprove"
+                    type="button"
+                    (click)="approveFromList(order.order_id)"
+                    class="px-3 py-2 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-black"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    *ngIf="!actionsFor(order).canApprove && actionsFor(order).canShip"
+                    type="button"
+                    (click)="openShipping(order.order_id)"
+                    class="px-3 py-2 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-black"
+                  >
+                    Ship
+                  </button>
+                  <a
+                    [routerLink]="['/admin/orders', order.order_id]"
+                    class="px-3 py-2 rounded-xl border hover:bg-gray-50 text-sm inline-flex"
+                  >
+                    View
+                  </a>
+                </div>
               </td>
             </tr>
-            <tr *ngIf="orders.length === 0">
-              <td colspan="8" class="px-6 py-10 text-center text-sm text-gray-500">No orders found for the current filters.</td>
+            <tr *ngIf="displayedOrders().length === 0">
+              <td
+                colspan="11"
+                class="px-6 py-10 text-center text-sm text-gray-500"
+              >
+                No orders found for the current filters.
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <div class="md:hidden p-4 space-y-3">
-        <div *ngFor="let order of orders; trackBy: trackByOrderId" class="rounded-3xl border p-4 shadow-sm">
+        <div
+          *ngFor="let order of displayedOrders(); trackBy: trackByOrderId"
+          class="rounded-3xl border p-4 shadow-sm"
+        >
           <div class="flex items-start justify-between gap-3">
             <div>
-              <div class="font-semibold text-gray-900">{{ order.order_number }}</div>
-              <div class="text-xs text-gray-500">Order #{{ order.order_id }}</div>
+              <div class="font-semibold text-gray-900">
+                {{ order.order_number }}
+              </div>
+              <div class="text-xs text-gray-500">
+                Order #{{ order.order_id }}
+              </div>
             </div>
-            <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="order.is_paid ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'">
-              {{ order.is_paid ? 'Paid' : 'Pending' }}
-            </span>
+            <app-status-badge
+              [label]="paymentBadgeFor(order).label"
+              [variant]="paymentBadgeFor(order).variant"
+            ></app-status-badge>
           </div>
           <div class="mt-3 text-sm text-gray-700">
-            <div>{{ order.customer_name || ('User #' + order.user_id) }}</div>
-            <div class="mt-1">{{ order.product_titles.join(', ') || '-' }}</div>
-            <div class="mt-1">Qty {{ order.total_qty }} • {{ order.grand_total | currency:'USD':'symbol':'1.0-2' }}</div>
+            <div>{{ order.customer_name || "User #" + order.user_id }}</div>
+            <div class="mt-1">{{ order.product_titles.join(", ") || "-" }}</div>
+            <div class="mt-1">
+              Qty {{ order.total_qty }} •
+              {{ order.grand_total | currency: "USD" : "symbol" : "1.0-2" }}
+            </div>
+          </div>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <app-status-badge
+              [label]="approvalBadgeFor(order).label"
+              [variant]="approvalBadgeFor(order).variant"
+            ></app-status-badge>
+            <app-status-badge
+              [label]="fulfillmentBadgeFor(order).label"
+              [variant]="fulfillmentBadgeFor(order).variant"
+            ></app-status-badge>
+            <app-status-badge
+              [label]="returnBadgeFor(order).label"
+              [variant]="returnBadgeFor(order).variant"
+            ></app-status-badge>
           </div>
           <div class="mt-4 flex justify-end">
-            <a [routerLink]="['/admin/orders', order.order_id]" class="px-3 py-2 rounded-xl border text-sm inline-flex">View</a>
+            <button
+              *ngIf="actionsFor(order).canShip"
+              type="button"
+              (click)="openShipping(order.order_id)"
+              class="mr-2 px-3 py-2 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-black"
+            >
+              Ship
+            </button>
+            <a
+              [routerLink]="['/admin/orders', order.order_id]"
+              class="px-3 py-2 rounded-xl border text-sm inline-flex"
+              >View</a
+            >
           </div>
         </div>
       </div>
 
-      <div class="border-t px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        class="border-t px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      >
         <div class="text-sm text-gray-500">
-          Page <span class="font-semibold text-gray-900">{{ meta.page }}</span> of
+          Page
+          <span class="font-semibold text-gray-900">{{ meta.page }}</span> of
           <span class="font-semibold text-gray-900">{{ totalPages }}</span>
         </div>
         <div class="flex gap-3">
-          <button type="button" (click)="changePage(meta.page - 1)" [disabled]="!canGoPrev" class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
-          <button type="button" (click)="changePage(meta.page + 1)" [disabled]="!canGoNext" class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+          <button
+            type="button"
+            (click)="changePage(meta.page - 1)"
+            [disabled]="!canGoPrev"
+            class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Previous
+          </button>
+          <button
+            type="button"
+            (click)="changePage(meta.page + 1)"
+            [disabled]="!canGoNext"
+            class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Next
+          </button>
         </div>
       </div>
     </ng-container>
   </div>
 </div>
+
+<app-shipping-approval-drawer
+  [open]="shippingDrawerOpen"
+  [orderId]="shippingDrawerOrderId"
+  (closed)="closeShipping()"
+  (changed)="refresh()"
+></app-shipping-approval-drawer>

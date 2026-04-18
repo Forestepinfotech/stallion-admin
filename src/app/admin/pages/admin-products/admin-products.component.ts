@@ -180,8 +180,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     private readonly assetUploadService: AssetUploadService,
     private readonly mediaUrlService: MediaUrlService,
   ) {
+    const defaults = this.getDefaultFormValue();
     this.form = this.fb.group({
-      categoryId: [this.getDefaultFormValue().categoryId, Validators.required],
+      categoryId: [{ value: defaults.categoryId, disabled: true }, Validators.required],
       title: [
         this.getDefaultFormValue().title,
         [Validators.required, Validators.minLength(3)],
@@ -254,11 +255,11 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         [Validators.min(1)],
       ],
       returnWindowDays: [
-        this.getDefaultFormValue().returnWindowDays,
+        defaults.returnWindowDays,
         [Validators.min(1)],
       ],
-      returnPolicyNote: [this.getDefaultFormValue().returnPolicyNote],
-      serialTrackingNote: [this.getDefaultFormValue().serialTrackingNote],
+      returnPolicyNote: [defaults.returnPolicyNote],
+      serialTrackingNote: [{ value: defaults.serialTrackingNote, disabled: defaults.requiresSerial !== true }],
       fulfillmentNote: [this.getDefaultFormValue().fulfillmentNote],
       imageUrl: [this.getDefaultFormValue().imageUrl],
       seoTitle: [this.getDefaultFormValue().seoTitle],
@@ -269,6 +270,14 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.form.get('categoryId')!.valueChanges.subscribe((categoryId) => {
       this.handleCategoryChange(this.toNumberOrNull(categoryId));
+    });
+
+    this.form.get('returnable')!.valueChanges.subscribe((value) => {
+      this.syncReturnableControls(Boolean(value));
+    });
+
+    this.form.get('requiresSerial')!.valueChanges.subscribe((value) => {
+      this.syncSerialTrackingControls(Boolean(value));
     });
 
     this.form.get('brandId')!.valueChanges.subscribe((brandId) => {
@@ -309,6 +318,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
 
     this.loadCategories();
     this.loadBrands();
+
+    this.syncReturnableControls(Boolean(this.form.get('returnable')!.value));
+    this.syncSerialTrackingControls(Boolean(this.form.get('requiresSerial')!.value));
   }
 
   ngOnDestroy(): void {
@@ -1101,6 +1113,17 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     });
   }
 
+  openGallery(): void {
+    if (!this.isEditMode || this.editingProductId === null) {
+      this.toastService.warning('Open an existing product to manage its gallery.');
+      return;
+    }
+
+    this.router.navigate(['/admin/gallery'], {
+      queryParams: { productId: this.editingProductId },
+    });
+  }
+
   private handleCategoryChange(categoryId: number | null): void {
     this.categoryAttributes = [];
 
@@ -1129,6 +1152,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
 
   private loadCategories(): void {
     this.loadingCategories = true;
+    this.form.get('categoryId')?.disable({ emitEvent: false });
     this.productCategoryService
       .productCategoryControllerList({
         params: {
@@ -1137,7 +1161,12 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
           is_deleted: false,
         },
       })
-      .pipe(finalize(() => (this.loadingCategories = false)))
+      .pipe(
+        finalize(() => {
+          this.loadingCategories = false;
+          this.form.get('categoryId')?.enable({ emitEvent: false });
+        }),
+      )
       .subscribe({
         next: (response) => {
           this.categories = (response.data ?? [])
@@ -1582,6 +1611,9 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       },
       { emitEvent: false },
     );
+
+    this.syncReturnableControls(Boolean(this.form.get('returnable')!.value));
+    this.syncSerialTrackingControls(Boolean(this.form.get('requiresSerial')!.value));
 
     if (categoryId !== null) {
       this.loadCategoryAttributes(categoryId, customAttributes);
@@ -2504,8 +2536,38 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       ...this.getDefaultFormValue(),
       categoryId: firstCategoryId,
     });
+    this.syncReturnableControls(Boolean(this.form.get('returnable')!.value));
+    this.syncSerialTrackingControls(Boolean(this.form.get('requiresSerial')!.value));
     this.form.markAsPristine();
     this.form.markAsUntouched();
+  }
+
+  private syncReturnableControls(returnable: boolean): void {
+    const returnWindowControl = this.form.get('returnWindowDays');
+    const returnPolicyControl = this.form.get('returnPolicyNote');
+
+    if (returnable) {
+      returnWindowControl?.enable({ emitEvent: false });
+      returnPolicyControl?.enable({ emitEvent: false });
+      return;
+    }
+
+    returnWindowControl?.disable({ emitEvent: false });
+    returnPolicyControl?.disable({ emitEvent: false });
+    returnWindowControl?.setValue(null, { emitEvent: false });
+    returnPolicyControl?.setValue('', { emitEvent: false });
+  }
+
+  private syncSerialTrackingControls(requiresSerial: boolean): void {
+    const serialControl = this.form.get('serialTrackingNote');
+
+    if (requiresSerial) {
+      serialControl?.enable({ emitEvent: false });
+      return;
+    }
+
+    serialControl?.disable({ emitEvent: false });
+    serialControl?.setValue('', { emitEvent: false });
   }
 
   private toNullableNumber(value: unknown): number | null {

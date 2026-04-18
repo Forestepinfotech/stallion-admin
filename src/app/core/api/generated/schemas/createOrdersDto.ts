@@ -13,7 +13,6 @@ export interface CreateOrdersDto {
   buying_qty: number;
   buying_tax: number;
   total_cost: number;
-  is_paid: boolean;
   is_active: boolean;
   is_deleted: boolean;
   created_by?: number;

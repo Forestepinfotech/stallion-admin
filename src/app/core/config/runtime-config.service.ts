@@ -5,6 +5,7 @@ import { RuntimeConfig } from './runtime-config.model';
 
 const DEFAULT_CONFIG: RuntimeConfig = {
   apiBaseUrl: 'http://178.128.228.186',
+  adminGalleryApiBaseUrl: 'http://178.128.228.186',
   mediaBaseUrl: 'https://stallio-public.tor1.digitaloceanspaces.com',
   tokenRefreshLeewaySeconds: 20,
 };

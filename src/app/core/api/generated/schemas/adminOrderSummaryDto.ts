@@ -9,6 +9,7 @@ export interface AdminOrderSummaryDto {
   items_count: number;
   total_qty: number;
   subtotal: number;
+  shipping_total: number;
   tax_total: number;
   discount_total: number;
   grand_total: number;

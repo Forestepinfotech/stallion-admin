@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "dev": "ng serve",
+    "dev:config": "npm run config:gen && ng serve",
     "start": "npm run config:gen && ng serve",
     "build": "npm run config:gen && ng build --configuration production",
     "build:dev": "npm run config:gen && ng build --configuration development",

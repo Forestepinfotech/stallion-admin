@@ -5,11 +5,13 @@
  * OpenAPI spec version: 1.0
  */
 import type { CustomerCouponSummaryDtoCouponNotice } from "./customerCouponSummaryDtoCouponNotice";
+import type { CustomerCouponSummaryDtoShippingNotice } from "./customerCouponSummaryDtoShippingNotice";
 
 export interface CustomerCouponSummaryDto {
   currency: string;
   subtotal: number;
   shipping_total: number;
+  tax_total: number;
   coupon_discount: number;
   shipping_discount: number;
   discount_total: number;
@@ -17,4 +19,9 @@ export interface CustomerCouponSummaryDto {
   description: string;
   /** @nullable */
   coupon_notice: CustomerCouponSummaryDtoCouponNotice;
+  /**
+   * When present, shipping could not be estimated (missing/unsupported address or rate lookup failure).
+   * @nullable
+   */
+  shipping_notice?: CustomerCouponSummaryDtoShippingNotice;
 }

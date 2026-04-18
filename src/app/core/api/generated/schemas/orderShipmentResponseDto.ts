@@ -4,11 +4,47 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
+import type { OrderShipmentResponseDtoCurrency } from "./orderShipmentResponseDtoCurrency";
+import type { OrderShipmentResponseDtoLabelUrl } from "./orderShipmentResponseDtoLabelUrl";
+import type { OrderShipmentResponseDtoMetadata } from "./orderShipmentResponseDtoMetadata";
+import type { OrderShipmentResponseDtoOrigin } from "./orderShipmentResponseDtoOrigin";
+import type { OrderShipmentResponseDtoPackages } from "./orderShipmentResponseDtoPackages";
+import type { OrderShipmentResponseDtoProvider } from "./orderShipmentResponseDtoProvider";
+import type { OrderShipmentResponseDtoServiceCode } from "./orderShipmentResponseDtoServiceCode";
+import type { OrderShipmentResponseDtoServiceName } from "./orderShipmentResponseDtoServiceName";
+import type { OrderShipmentResponseDtoShippingCost } from "./orderShipmentResponseDtoShippingCost";
 
 export interface OrderShipmentResponseDto {
   order_id: number;
   carrier: string;
+  /** @nullable */
+  provider?: OrderShipmentResponseDtoProvider;
+  /** @nullable */
+  service_code?: OrderShipmentResponseDtoServiceCode;
+  /** @nullable */
+  service_name?: OrderShipmentResponseDtoServiceName;
   tracking_number: string;
+  /** @nullable */
+  shipping_cost?: OrderShipmentResponseDtoShippingCost;
+  /** @nullable */
+  currency?: OrderShipmentResponseDtoCurrency;
+  /** @nullable */
+  label_url?: OrderShipmentResponseDtoLabelUrl;
+  /**
+   * Origin/source address snapshot (e.g. warehouse).
+   * @nullable
+   */
+  origin?: OrderShipmentResponseDtoOrigin;
+  /**
+   * Package list snapshot.
+   * @nullable
+   */
+  packages?: OrderShipmentResponseDtoPackages;
+  /**
+   * Raw provider response / extra fields.
+   * @nullable
+   */
+  metadata?: OrderShipmentResponseDtoMetadata;
   shipped_at?: string;
   delivered_at?: string;
   is_deleted: boolean;

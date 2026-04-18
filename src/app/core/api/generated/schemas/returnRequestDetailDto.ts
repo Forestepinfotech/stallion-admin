@@ -4,10 +4,18 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
+import type { ReturnEventDto } from "./returnEventDto";
 import type { ReturnOrderItemDto } from "./returnOrderItemDto";
 import type { ReturnRequestDetailDtoAdminNote } from "./returnRequestDetailDtoAdminNote";
+import type { ReturnRequestDetailDtoApprovedAt } from "./returnRequestDetailDtoApprovedAt";
+import type { ReturnRequestDetailDtoCancelledAt } from "./returnRequestDetailDtoCancelledAt";
 import type { ReturnRequestDetailDtoCustomerNote } from "./returnRequestDetailDtoCustomerNote";
+import type { ReturnRequestDetailDtoReceivedAt } from "./returnRequestDetailDtoReceivedAt";
+import type { ReturnRequestDetailDtoRefundedAt } from "./returnRequestDetailDtoRefundedAt";
 import type { ReturnRequestDetailDtoRefundEtaNote } from "./returnRequestDetailDtoRefundEtaNote";
+import type { ReturnRequestDetailDtoRejectedAt } from "./returnRequestDetailDtoRejectedAt";
+import type { ReturnRequestDetailDtoReturnLabel } from "./returnRequestDetailDtoReturnLabel";
+import type { ReturnRequestDetailDtoReviewedAt } from "./returnRequestDetailDtoReviewedAt";
 import type { ReturnRequestItemDto } from "./returnRequestItemDto";
 
 export interface ReturnRequestDetailDto {
@@ -23,9 +31,32 @@ export interface ReturnRequestDetailDto {
   refund_eta_note?: ReturnRequestDetailDtoRefundEtaNote;
   /** @nullable */
   admin_note?: ReturnRequestDetailDtoAdminNote;
+  /** @nullable */
+  reviewed_at?: ReturnRequestDetailDtoReviewedAt;
+  /** @nullable */
+  approved_at?: ReturnRequestDetailDtoApprovedAt;
+  /** @nullable */
+  rejected_at?: ReturnRequestDetailDtoRejectedAt;
+  /** @nullable */
+  cancelled_at?: ReturnRequestDetailDtoCancelledAt;
+  /** @nullable */
+  received_at?: ReturnRequestDetailDtoReceivedAt;
+  /** @nullable */
+  refunded_at?: ReturnRequestDetailDtoRefundedAt;
   currency: string;
   requested_amount: number;
   refund_amount: number;
   items: ReturnRequestItemDto[];
   order_items: ReturnOrderItemDto[];
+  events: ReturnEventDto[];
+  /**
+   * Prepaid return shipping label (available after admin approves the return).
+   * @nullable
+   */
+  return_label?: ReturnRequestDetailDtoReturnLabel;
+  /**
+   * Customer return instructions (available after admin approves the return).
+   * @nullable
+   */
+  return_instructions?: string[] | null;
 }

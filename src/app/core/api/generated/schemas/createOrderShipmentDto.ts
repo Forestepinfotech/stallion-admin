@@ -4,11 +4,47 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
+import type { CreateOrderShipmentDtoCurrency } from "./createOrderShipmentDtoCurrency";
+import type { CreateOrderShipmentDtoLabelUrl } from "./createOrderShipmentDtoLabelUrl";
+import type { CreateOrderShipmentDtoMetadata } from "./createOrderShipmentDtoMetadata";
+import type { CreateOrderShipmentDtoOrigin } from "./createOrderShipmentDtoOrigin";
+import type { CreateOrderShipmentDtoPackages } from "./createOrderShipmentDtoPackages";
+import type { CreateOrderShipmentDtoProvider } from "./createOrderShipmentDtoProvider";
+import type { CreateOrderShipmentDtoServiceCode } from "./createOrderShipmentDtoServiceCode";
+import type { CreateOrderShipmentDtoServiceName } from "./createOrderShipmentDtoServiceName";
+import type { CreateOrderShipmentDtoShippingCost } from "./createOrderShipmentDtoShippingCost";
 
 export interface CreateOrderShipmentDto {
   order_id: number;
   carrier: string;
+  /** @nullable */
+  provider?: CreateOrderShipmentDtoProvider;
+  /** @nullable */
+  service_code?: CreateOrderShipmentDtoServiceCode;
+  /** @nullable */
+  service_name?: CreateOrderShipmentDtoServiceName;
   tracking_number: string;
+  /** @nullable */
+  shipping_cost?: CreateOrderShipmentDtoShippingCost;
+  /** @nullable */
+  currency?: CreateOrderShipmentDtoCurrency;
+  /** @nullable */
+  label_url?: CreateOrderShipmentDtoLabelUrl;
+  /**
+   * Origin/source address snapshot (e.g. warehouse).
+   * @nullable
+   */
+  origin?: CreateOrderShipmentDtoOrigin;
+  /**
+   * Package list snapshot.
+   * @nullable
+   */
+  packages?: CreateOrderShipmentDtoPackages;
+  /**
+   * Raw provider response / extra fields.
+   * @nullable
+   */
+  metadata?: CreateOrderShipmentDtoMetadata;
   shipped_at?: string;
   delivered_at?: string;
   is_deleted: boolean;

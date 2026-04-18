@@ -6,7 +6,13 @@
  */
 
 export interface CreateCustomerReturnItemDto {
-  order_id: number;
+  /** Order line item id (order_group_items.order_item_id). */
+  order_item_id: number;
+  /**
+   * Deprecated alias for order_item_id.
+   * @deprecated
+   */
+  order_id?: number;
   qty: number;
   reason_id: number;
   description?: string;

@@ -959,121 +959,11 @@
         "tags": [
           "admin-user-passkey"
         ]
-      },
-      "post": {
-        "operationId": "UserPasskeyController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateUserPasskeyDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserPasskeyResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "admin-user-passkey"
-        ]
       }
     },
     "/user-passkey/{passkey_id}": {
       "get": {
         "operationId": "UserPasskeyController_get",
-        "parameters": [
-          {
-            "name": "passkey_id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserPasskeyResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "admin-user-passkey"
-        ]
-      },
-      "patch": {
-        "operationId": "UserPasskeyController_update",
-        "parameters": [
-          {
-            "name": "passkey_id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateUserPasskeyDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserPasskeyResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "admin-user-passkey"
-        ]
-      },
-      "delete": {
-        "operationId": "UserPasskeyController_remove",
         "parameters": [
           {
             "name": "passkey_id",
@@ -6076,6 +5966,66 @@
         ]
       }
     },
+    "/orders/approval-mode": {
+      "get": {
+        "operationId": "OrdersController_getApprovalMode",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderApprovalModeResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-orders"
+        ]
+      },
+      "patch": {
+        "operationId": "OrdersController_updateApprovalMode",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderApprovalModeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderApprovalModeResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-orders"
+        ]
+      }
+    },
     "/orders": {
       "get": {
         "operationId": "OrdersController_list",
@@ -6181,6 +6131,24 @@
           },
           {
             "name": "is_paid",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "requires_admin_approval",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "is_approved",
             "required": false,
             "in": "query",
             "schema": {
@@ -6425,6 +6393,425 @@
         ],
         "tags": [
           "admin-orders"
+        ]
+      }
+    },
+    "/orders/{order_id}/tracking": {
+      "get": {
+        "operationId": "OrdersController_tracking",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminOrderTrackingResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-orders"
+        ]
+      }
+    },
+    "/orders/{order_id}/approve": {
+      "post": {
+        "operationId": "OrdersController_approve",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Approve an order after payment is received."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-orders"
+        ]
+      }
+    },
+    "/orders/{order_id}/ship": {
+      "post": {
+        "operationId": "OrdersController_ship",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveOrderShipmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Create a shipment via netParcel (manual admin action). Returns netParcel shipment (label/tracking) and stores it in order_shipment."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-orders"
+        ]
+      }
+    },
+    "/orders/{order_id}/shipments": {
+      "post": {
+        "operationId": "OrdersFulfillmentController_createDraft",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateShipmentDraftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentMutationResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-order-fulfillment"
+        ]
+      }
+    },
+    "/orders/{order_id}/shipments/{shipment_id}/review/approve": {
+      "post": {
+        "operationId": "OrdersFulfillmentController_approveReview",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "shipment_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveShipmentReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentMutationResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-order-fulfillment"
+        ]
+      }
+    },
+    "/orders/{order_id}/shipments/{shipment_id}/pack": {
+      "post": {
+        "operationId": "OrdersFulfillmentController_pack",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "shipment_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmPackedDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentMutationResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-order-fulfillment"
+        ]
+      }
+    },
+    "/orders/{order_id}/shipments/{shipment_id}/label": {
+      "post": {
+        "operationId": "OrdersFulfillmentController_purchaseLabel",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "shipment_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "idempotency-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseLabelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentMutationResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-order-fulfillment"
+        ]
+      }
+    },
+    "/orders/{order_id}/shipments/{shipment_id}/mark-shipped": {
+      "post": {
+        "operationId": "OrdersFulfillmentController_markShipped",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "shipment_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkShippedDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentMutationResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-order-fulfillment"
+        ]
+      }
+    },
+    "/orders/{order_id}/shipments/{shipment_id}/mark-delivered": {
+      "post": {
+        "operationId": "OrdersFulfillmentController_markDelivered",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "shipment_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkDeliveredDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentMutationResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-order-fulfillment"
         ]
       }
     },
@@ -8890,6 +9277,541 @@
         ]
       }
     },
+    "/netparcel/rates": {
+      "post": {
+        "operationId": "AdminNetParcelController_rates",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NetParcelFetchRatesRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Proxy netParcel fetch_rates response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetParcelFetchRatesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-netparcel"
+        ]
+      }
+    },
+    "/netparcel/ship": {
+      "post": {
+        "operationId": "AdminNetParcelController_ship",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NetParcelShipRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Proxy netParcel ship response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetParcelShipResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-netparcel"
+        ]
+      }
+    },
+    "/netparcel/cancel": {
+      "post": {
+        "operationId": "AdminNetParcelController_cancel",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NetParcelCancelShipmentRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Proxy netParcel cancel shipment response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetParcelCancelShipmentResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-netparcel"
+        ]
+      }
+    },
+    "/netparcel/order": {
+      "post": {
+        "operationId": "AdminNetParcelController_order",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NetParcelOrderRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Proxy netParcel order lookup response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetParcelOrderResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-netparcel"
+        ]
+      }
+    },
+    "/gallery": {
+      "get": {
+        "operationId": "MediaGalleryController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Max 100",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search URL or alt text",
+            "schema": {
+              "example": "brake",
+              "type": "string"
+            }
+          },
+          {
+            "name": "media_type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "image",
+                "video"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sort by created_at",
+            "schema": {
+              "enum": [
+                "newest",
+                "oldest",
+                "date_desc",
+                "date_asc",
+                "desc",
+                "asc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "schema": {
+              "example": "2026-04-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "schema": {
+              "example": "2026-04-10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "is_active",
+            "required": false,
+            "in": "query",
+            "description": "Filter by active status",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedMediaGalleryResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-gallery"
+        ]
+      },
+      "post": {
+        "operationId": "MediaGalleryController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMediaGalleryItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaGalleryItemResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-gallery"
+        ]
+      }
+    },
+    "/gallery/{media_asset_id}": {
+      "delete": {
+        "operationId": "MediaGalleryController_remove",
+        "parameters": [
+          {
+            "name": "media_asset_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaGalleryItemResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-gallery"
+        ]
+      }
+    },
+    "/import/excel": {
+      "post": {
+        "operationId": "ExcelImportController_importExcel",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "dryRun": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExcelImportResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-excel-import"
+        ]
+      }
+    },
+    "/payments/order/{order_id}": {
+      "get": {
+        "operationId": "AdminPaymentsController_getForOrder",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment attempts for an order (by order_id)."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-payments"
+        ]
+      }
+    },
+    "/payments/order/{order_id}/refresh": {
+      "post": {
+        "operationId": "AdminPaymentsController_refresh",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Refresh latest payment intent status from Stripe."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-payments"
+        ]
+      }
+    },
+    "/payments/order/{order_id}/confirm": {
+      "post": {
+        "operationId": "AdminPaymentsController_confirmFromGateway",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirm payment with gateway (Stripe) and set order paid/unpaid based on confirmation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminConfirmOrderPaymentResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-payments"
+        ]
+      }
+    },
+    "/payments/order/{order_id}/refunds": {
+      "get": {
+        "operationId": "AdminPaymentsController_listRefunds",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Refund history for an order."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-payments"
+        ]
+      }
+    },
+    "/payments/refund": {
+      "post": {
+        "operationId": "AdminPaymentsController_refund",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRefundOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRefundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-payments"
+        ]
+      }
+    },
     "/admin/returns/reasons": {
       "get": {
         "operationId": "AdminReturnsController_listReasons",
@@ -9216,6 +10138,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "idempotency-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -9247,6 +10177,278 @@
         ],
         "tags": [
           "admin-returns"
+        ]
+      }
+    },
+    "/admin/returns/requests/{return_request_id}/refund": {
+      "patch": {
+        "operationId": "AdminReturnsController_updateRefund",
+        "parameters": [
+          {
+            "name": "return_request_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReturnRefundDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReturnMutationResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-returns"
+        ]
+      }
+    },
+    "/admin/returns/requests/{return_request_id}/receive": {
+      "patch": {
+        "operationId": "AdminReturnsController_receive",
+        "parameters": [
+          {
+            "name": "return_request_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReceiveReturnDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReturnMutationResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-returns"
+        ]
+      }
+    },
+    "/customer/netparcel/rates": {
+      "post": {
+        "operationId": "CustomerNetParcelController_rates",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NetParcelFetchRatesRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Proxy netParcel fetch_rates response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetParcelFetchRatesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-netparcel"
+        ]
+      }
+    },
+    "/customer/payments/checkout": {
+      "post": {
+        "operationId": "CustomerPaymentsController_createCheckout",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCheckoutSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutSessionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-payments"
+        ]
+      }
+    },
+    "/customer/payments/checkout/cancel": {
+      "post": {
+        "operationId": "CustomerPaymentsController_cancelCheckout",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelCheckoutSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-payments"
+        ]
+      }
+    },
+    "/customer/payments/setup-intent": {
+      "post": {
+        "operationId": "CustomerPaymentsController_setupIntent",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSetupIntentResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-payments"
+        ]
+      }
+    },
+    "/customer/payments/methods": {
+      "get": {
+        "operationId": "CustomerPaymentsController_listMethods",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-payments"
+        ]
+      }
+    },
+    "/customer/payments/pay": {
+      "post": {
+        "operationId": "CustomerPaymentsController_pay",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayWithSavedMethodDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayWithSavedMethodResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-payments"
         ]
       }
     },
@@ -10502,6 +11704,38 @@
         ]
       }
     },
+    "/customer/products/{slug}/cross-sells-only": {
+      "get": {
+        "operationId": "CustomerCatalogController_productCrossSellsOnly",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "description": "SEO-friendly product identifier. Example: \"boot-cover-honda-civic\".",
+            "schema": {
+              "example": "boot-cover-honda-civic",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer cross-sells only (no fallback recommendations)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerProductCardListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-catalog"
+        ]
+      }
+    },
     "/customer/account/profile": {
       "get": {
         "operationId": "CustomerAccountController_profile",
@@ -11086,6 +12320,150 @@
         ]
       }
     },
+    "/customer/checkout/shipping/quote": {
+      "post": {
+        "operationId": "CustomerCheckoutController_shippingQuote",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerCheckoutShippingQuoteRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCheckoutShippingQuoteResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-checkout"
+        ]
+      }
+    },
+    "/customer/checkout/review": {
+      "post": {
+        "operationId": "CustomerCheckoutController_review",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerCheckoutReviewRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCheckoutReviewResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-checkout"
+        ]
+      }
+    },
+    "/customer/checkout/pay": {
+      "post": {
+        "operationId": "CustomerCheckoutController_pay",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerCheckoutPayRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCheckoutPayResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-checkout"
+        ]
+      }
+    },
+    "/customer/shipping/methods": {
+      "post": {
+        "operationId": "CustomerShippingController_methods",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerShippingMethodsRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerShippingMethodsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-shipping"
+        ]
+      }
+    },
     "/customer/wishlist": {
       "get": {
         "operationId": "CustomerWishlistController_getWishlist",
@@ -11377,6 +12755,122 @@
         ]
       }
     },
+    "/customer/orders/{order_id}/cancel": {
+      "post": {
+        "operationId": "CustomerOrdersController_cancel",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerCancelOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cancel customer order (allowed only before shipment processing)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerOrderDetailResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-orders"
+        ]
+      }
+    },
+    "/customer/orders/{order_id}/tracking": {
+      "get": {
+        "operationId": "CustomerOrdersController_tracking",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer order tracking info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerOrderTrackingResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-orders"
+        ]
+      }
+    },
+    "/customer/orders/{order_id}/invoice": {
+      "get": {
+        "operationId": "CustomerOrdersController_invoice",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer order invoice PDF",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-orders"
+        ]
+      }
+    },
     "/customer/coupons/applicable": {
       "get": {
         "operationId": "CustomerCouponsController_applicable",
@@ -11488,6 +12982,42 @@
         ],
         "tags": [
           "customer-coupons"
+        ]
+      }
+    },
+    "/customer/returns/eligibility": {
+      "get": {
+        "operationId": "CustomerReturnsController_eligibility",
+        "parameters": [
+          {
+            "name": "order_number",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "ORD-20260417-ABC123",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReturnEligibilityResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-returns"
         ]
       }
     },
@@ -11709,6 +13239,41 @@
         "responses": {
           "200": {
             "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReturnRequestResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-returns"
+        ]
+      }
+    },
+    "/customer/returns/requests/{return_request_id}/label": {
+      "get": {
+        "operationId": "CustomerReturnsController_label",
+        "parameters": [
+          {
+            "name": "return_request_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return label (available after admin approves the return).",
             "content": {
               "application/json": {
                 "schema": {
@@ -12039,6 +13604,23 @@
           "country": {
             "type": "object",
             "nullable": true
+          },
+          "otp_generated_count": {
+            "type": "number",
+            "description": "Total reset OTPs generated for this user",
+            "example": 3
+          },
+          "otp_last_generated_at": {
+            "type": "object",
+            "description": "Most recent reset OTP generated time (server time)",
+            "nullable": true,
+            "example": "2026-04-10T00:12:08.465Z"
+          },
+          "otp_active_expires_at": {
+            "type": "object",
+            "description": "Expiry time for the currently active reset OTP (if any)",
+            "nullable": true,
+            "example": "2026-04-10T00:17:08.465Z"
           }
         },
         "required": [
@@ -12425,34 +14007,29 @@
       "UserPasskeyResponseDto": {
         "type": "object",
         "properties": {
+          "passkey_id": {
+            "type": "number"
+          },
           "user_id": {
             "type": "number"
           },
-          "hash_passkey": {
-            "type": "string"
-          },
           "expire_at": {
-            "type": "string"
+            "type": "object",
+            "nullable": true
           },
           "is_active": {
             "type": "boolean"
           },
-          "is_deleted": {
-            "type": "boolean"
-          },
-          "created_by": {
-            "type": "number"
-          },
-          "passkey_id": {
-            "type": "number"
+          "created_at": {
+            "type": "string"
           }
         },
         "required": [
+          "passkey_id",
           "user_id",
-          "hash_passkey",
+          "expire_at",
           "is_active",
-          "is_deleted",
-          "passkey_id"
+          "created_at"
         ]
       },
       "PaginatedUserPasskeyResponseDto": {
@@ -12478,58 +14055,6 @@
           "data",
           "meta"
         ]
-      },
-      "CreateUserPasskeyDto": {
-        "type": "object",
-        "properties": {
-          "user_id": {
-            "type": "number"
-          },
-          "hash_passkey": {
-            "type": "string"
-          },
-          "expire_at": {
-            "type": "string"
-          },
-          "is_active": {
-            "type": "boolean"
-          },
-          "is_deleted": {
-            "type": "boolean"
-          },
-          "created_by": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "user_id",
-          "hash_passkey",
-          "is_active",
-          "is_deleted"
-        ]
-      },
-      "UpdateUserPasskeyDto": {
-        "type": "object",
-        "properties": {
-          "user_id": {
-            "type": "number"
-          },
-          "hash_passkey": {
-            "type": "string"
-          },
-          "expire_at": {
-            "type": "string"
-          },
-          "is_active": {
-            "type": "boolean"
-          },
-          "is_deleted": {
-            "type": "boolean"
-          },
-          "created_by": {
-            "type": "number"
-          }
-        }
       },
       "UserAddressResponseDto": {
         "type": "object",
@@ -16909,6 +18434,36 @@
           }
         }
       },
+      "OrderApprovalModeResponseDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "manual"
+            ]
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "UpdateOrderApprovalModeDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "manual"
+            ]
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
       "AdminOrderListItemDto": {
         "type": "object",
         "properties": {
@@ -16940,8 +18495,101 @@
           "is_paid": {
             "type": "boolean"
           },
+          "requires_admin_approval": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "is_approved": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "approved_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "approved_by": {
+            "type": "object",
+            "nullable": true
+          },
           "is_active": {
             "type": "boolean"
+          },
+          "payment_status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "paid",
+              "disputed",
+              "refunded",
+              "partially_refunded"
+            ]
+          },
+          "approval_status": {
+            "type": "string",
+            "enum": [
+              "not_required",
+              "pending",
+              "approved"
+            ]
+          },
+          "fulfillment_status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "shipped",
+              "delivered",
+              "cancelled",
+              "unknown"
+            ]
+          },
+          "refund_state": {
+            "type": "string",
+            "enum": [
+              "none",
+              "requested",
+              "in_review",
+              "approved",
+              "rejected",
+              "processing",
+              "refunded",
+              "failed"
+            ]
+          },
+          "return_state": {
+            "type": "string",
+            "enum": [
+              "none",
+              "requested",
+              "in_review",
+              "approved",
+              "rejected",
+              "refunded"
+            ]
+          },
+          "overall_status": {
+            "type": "string",
+            "enum": [
+              "cancelled",
+              "payment_pending",
+              "payment_disputed",
+              "refund_in_progress",
+              "refunded",
+              "partially_refunded",
+              "awaiting_approval",
+              "delivered",
+              "shipped",
+              "return_in_progress",
+              "processing",
+              "pending",
+              "unknown"
+            ]
+          },
+          "status_label": {
+            "type": "string"
+          },
+          "status_message": {
+            "type": "string"
           },
           "total_qty": {
             "type": "number"
@@ -16978,6 +18626,14 @@
           "status_name",
           "is_paid",
           "is_active",
+          "payment_status",
+          "approval_status",
+          "fulfillment_status",
+          "refund_state",
+          "return_state",
+          "overall_status",
+          "status_label",
+          "status_message",
           "total_qty",
           "items_count",
           "grand_total",
@@ -17014,6 +18670,10 @@
       "AdminOrderItemDto": {
         "type": "object",
         "properties": {
+          "order_item_id": {
+            "type": "object",
+            "nullable": true
+          },
           "order_id": {
             "type": "number"
           },
@@ -17061,6 +18721,37 @@
             "type": "object",
             "nullable": true
           },
+          "returnable": {
+            "type": "boolean",
+            "example": true
+          },
+          "return_window_days": {
+            "type": "number",
+            "example": 0
+          },
+          "return_window_expires_at": {
+            "type": "object",
+            "example": "2026-05-01T10:00:00.000Z",
+            "nullable": true
+          },
+          "return_remaining_qty": {
+            "type": "number",
+            "example": 1
+          },
+          "return_eligible": {
+            "type": "boolean",
+            "example": true
+          },
+          "returnable_eligible": {
+            "type": "boolean",
+            "example": true,
+            "description": "Computed eligibility for starting a return (accounts for return window and already requested quantity)."
+          },
+          "return_ineligible_reason": {
+            "type": "object",
+            "example": null,
+            "nullable": true
+          },
           "created_at": {
             "type": "string"
           },
@@ -17078,6 +18769,11 @@
           "discount_amount",
           "line_total",
           "is_paid",
+          "returnable",
+          "return_window_days",
+          "return_remaining_qty",
+          "return_eligible",
+          "returnable_eligible",
           "created_at",
           "updated_at"
         ]
@@ -17095,7 +18791,47 @@
             "type": "object",
             "nullable": true
           },
+          "provider": {
+            "type": "object",
+            "nullable": true
+          },
+          "service_code": {
+            "type": "object",
+            "nullable": true
+          },
+          "service_name": {
+            "type": "object",
+            "nullable": true
+          },
           "tracking_number": {
+            "type": "object",
+            "nullable": true
+          },
+          "tracking_url": {
+            "type": "object",
+            "nullable": true
+          },
+          "shipping_cost": {
+            "type": "object",
+            "nullable": true
+          },
+          "currency": {
+            "type": "object",
+            "nullable": true
+          },
+          "label_url": {
+            "type": "object",
+            "nullable": true
+          },
+          "origin": {
+            "type": "object",
+            "nullable": true
+          },
+          "packages": {
+            "type": "object",
+            "nullable": true
+          },
+          "metadata": {
             "type": "object",
             "nullable": true
           },
@@ -17139,6 +18875,9 @@
           "approved_qty": {
             "type": "number"
           },
+          "received_qty": {
+            "type": "number"
+          },
           "reason_name": {
             "type": "object",
             "nullable": true
@@ -17163,9 +18902,49 @@
           "product_id",
           "requested_qty",
           "approved_qty",
+          "received_qty",
           "status",
           "refund_status",
           "line_amount"
+        ]
+      },
+      "AdminOrderReturnEventDto": {
+        "type": "object",
+        "properties": {
+          "return_event_id": {
+            "type": "number"
+          },
+          "event_type": {
+            "type": "string"
+          },
+          "status": {
+            "type": "object",
+            "nullable": true
+          },
+          "refund_status": {
+            "type": "object",
+            "nullable": true
+          },
+          "note": {
+            "type": "object",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "return_event_id",
+          "event_type",
+          "created_at"
         ]
       },
       "AdminOrderReturnDto": {
@@ -17218,6 +18997,14 @@
             "type": "object",
             "nullable": true
           },
+          "cancelled_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "received_at": {
+            "type": "object",
+            "nullable": true
+          },
           "refunded_at": {
             "type": "object",
             "nullable": true
@@ -17226,6 +19013,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AdminOrderReturnItemDto"
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrderReturnEventDto"
             }
           }
         },
@@ -17250,6 +19043,9 @@
           "subtotal": {
             "type": "number"
           },
+          "shipping_total": {
+            "type": "number"
+          },
           "tax_total": {
             "type": "number"
           },
@@ -17264,9 +19060,183 @@
           "items_count",
           "total_qty",
           "subtotal",
+          "shipping_total",
           "tax_total",
           "discount_total",
           "grand_total"
+        ]
+      },
+      "AdminOrderLogDto": {
+        "type": "object",
+        "properties": {
+          "order_log_id": {
+            "type": "number"
+          },
+          "event_type": {
+            "type": "string"
+          },
+          "message": {
+            "type": "object",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_log_id",
+          "event_type",
+          "created_at"
+        ]
+      },
+      "AdminOrderRefundDto": {
+        "type": "object",
+        "properties": {
+          "payment_refund_id": {
+            "type": "number"
+          },
+          "payment_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "stripe_refund_id": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "object",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_refund_id",
+          "stripe_refund_id",
+          "amount",
+          "currency",
+          "status",
+          "created_at"
+        ]
+      },
+      "AdminRefundTrackingEventDto": {
+        "type": "object",
+        "properties": {
+          "event_type": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "return_request",
+              "payment_refund"
+            ]
+          },
+          "at": {
+            "type": "string"
+          },
+          "return_request_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "payment_refund_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "status": {
+            "type": "object",
+            "nullable": true
+          },
+          "refund_status": {
+            "type": "object",
+            "nullable": true
+          },
+          "amount": {
+            "type": "object",
+            "nullable": true
+          },
+          "currency": {
+            "type": "object",
+            "nullable": true
+          },
+          "note": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "event_type",
+          "source",
+          "at"
+        ]
+      },
+      "AdminRefundTrackingDto": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "none",
+              "requested",
+              "in_review",
+              "approved",
+              "rejected",
+              "processing",
+              "refunded",
+              "failed"
+            ]
+          },
+          "requested_amount": {
+            "type": "number"
+          },
+          "approved_amount": {
+            "type": "number"
+          },
+          "refunded_amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "object",
+            "nullable": true
+          },
+          "eta_note": {
+            "type": "object",
+            "nullable": true
+          },
+          "last_event_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminRefundTrackingEventDto"
+            }
+          }
+        },
+        "required": [
+          "state",
+          "requested_amount",
+          "approved_amount",
+          "refunded_amount",
+          "events"
         ]
       },
       "AdminOrderDetailDto": {
@@ -17281,6 +19251,10 @@
           "user_id": {
             "type": "number"
           },
+          "usertype": {
+            "type": "object",
+            "nullable": true
+          },
           "country_id": {
             "type": "object",
             "nullable": true
@@ -17291,6 +19265,30 @@
           },
           "is_paid": {
             "type": "boolean"
+          },
+          "requires_admin_approval": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "is_approved": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "approved_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "approved_by": {
+            "type": "object",
+            "nullable": true
+          },
+          "payment_disputed": {
+            "type": "object",
+            "nullable": true
+          },
+          "payment_dispute_status": {
+            "type": "object",
+            "nullable": true
           },
           "is_active": {
             "type": "boolean"
@@ -17334,6 +19332,26 @@
             "type": "object",
             "nullable": true
           },
+          "address_first_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "address_last_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "address_email": {
+            "type": "object",
+            "nullable": true
+          },
+          "address_phone": {
+            "type": "object",
+            "nullable": true
+          },
+          "city": {
+            "type": "object",
+            "nullable": true
+          },
           "line1": {
             "type": "object",
             "nullable": true
@@ -17374,6 +19392,103 @@
           },
           "summary": {
             "$ref": "#/components/schemas/AdminOrderSummaryDto"
+          },
+          "logs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrderLogDto"
+            }
+          },
+          "refunds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrderRefundDto"
+            }
+          },
+          "refund_tracking": {
+            "$ref": "#/components/schemas/AdminRefundTrackingDto"
+          },
+          "payment_status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "paid",
+              "disputed",
+              "refunded",
+              "partially_refunded"
+            ]
+          },
+          "approval_status": {
+            "type": "string",
+            "enum": [
+              "not_required",
+              "pending",
+              "approved"
+            ]
+          },
+          "fulfillment_status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "shipped",
+              "delivered",
+              "cancelled",
+              "unknown"
+            ]
+          },
+          "refund_state": {
+            "type": "string",
+            "enum": [
+              "none",
+              "requested",
+              "in_review",
+              "approved",
+              "rejected",
+              "processing",
+              "refunded",
+              "failed"
+            ]
+          },
+          "return_state": {
+            "type": "string",
+            "enum": [
+              "none",
+              "requested",
+              "in_review",
+              "approved",
+              "rejected",
+              "refunded"
+            ]
+          },
+          "overall_status": {
+            "type": "string",
+            "enum": [
+              "cancelled",
+              "payment_pending",
+              "payment_disputed",
+              "refund_in_progress",
+              "refunded",
+              "partially_refunded",
+              "awaiting_approval",
+              "delivered",
+              "shipped",
+              "return_in_progress",
+              "processing",
+              "pending",
+              "unknown"
+            ]
+          },
+          "status_label": {
+            "type": "string"
+          },
+          "status_message": {
+            "type": "string"
+          },
+          "return_eligible": {
+            "type": "boolean",
+            "example": true,
+            "description": "True if at least one item is currently eligible for return."
           }
         },
         "required": [
@@ -17390,7 +19505,19 @@
           "items",
           "shipments",
           "returns",
-          "summary"
+          "summary",
+          "logs",
+          "refunds",
+          "refund_tracking",
+          "payment_status",
+          "approval_status",
+          "fulfillment_status",
+          "refund_state",
+          "return_state",
+          "overall_status",
+          "status_label",
+          "status_message",
+          "return_eligible"
         ]
       },
       "AdminOrderDetailResponseDto": {
@@ -17398,6 +19525,39 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/AdminOrderDetailDto"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "AdminOrderTrackingDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number"
+          },
+          "order_number": {
+            "type": "object",
+            "nullable": true
+          },
+          "shipments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrderShipmentDto"
+            }
+          }
+        },
+        "required": [
+          "order_id",
+          "shipments"
+        ]
+      },
+      "AdminOrderTrackingResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AdminOrderTrackingDto"
           }
         },
         "required": [
@@ -17427,9 +19587,6 @@
           },
           "total_cost": {
             "type": "number"
-          },
-          "is_paid": {
-            "type": "boolean"
           },
           "is_active": {
             "type": "boolean"
@@ -17464,7 +19621,6 @@
           "buying_qty",
           "buying_tax",
           "total_cost",
-          "is_paid",
           "is_active",
           "is_deleted",
           "address_id",
@@ -17497,9 +19653,6 @@
           },
           "total_cost": {
             "type": "number"
-          },
-          "is_paid": {
-            "type": "boolean"
           },
           "is_active": {
             "type": "boolean"
@@ -17537,7 +19690,6 @@
           "buying_qty",
           "buying_tax",
           "total_cost",
-          "is_paid",
           "is_active",
           "is_deleted",
           "address_id",
@@ -17572,9 +19724,6 @@
           "total_cost": {
             "type": "number"
           },
-          "is_paid": {
-            "type": "boolean"
-          },
           "is_active": {
             "type": "boolean"
           },
@@ -17601,6 +19750,221 @@
           }
         }
       },
+      "ApproveOrderShipmentPackageDto": {
+        "type": "object",
+        "properties": {
+          "length": {
+            "type": "object",
+            "example": 10,
+            "nullable": true
+          },
+          "width": {
+            "type": "object",
+            "example": 8,
+            "nullable": true
+          },
+          "height": {
+            "type": "object",
+            "example": 4,
+            "nullable": true
+          },
+          "weight": {
+            "type": "number",
+            "example": 5
+          },
+          "weightUnit": {
+            "type": "object",
+            "example": "lbs",
+            "nullable": true
+          },
+          "insurance_amount": {
+            "type": "object",
+            "example": 200,
+            "nullable": true
+          },
+          "type": {
+            "type": "object",
+            "example": "box",
+            "nullable": true
+          },
+          "description": {
+            "type": "object",
+            "example": "Auto parts",
+            "nullable": true
+          }
+        },
+        "required": [
+          "weight"
+        ]
+      },
+      "ApproveOrderShipmentDto": {
+        "type": "object",
+        "properties": {
+          "service_code": {
+            "type": "number",
+            "example": 204,
+            "description": "netParcel service_code to ship with."
+          },
+          "service_name": {
+            "type": "object",
+            "example": "UPS Standard",
+            "nullable": true
+          },
+          "ship_date": {
+            "type": "object",
+            "example": "2026-04-17",
+            "nullable": true
+          },
+          "generate_label": {
+            "type": "object",
+            "example": true,
+            "nullable": true,
+            "description": "When true, netParcel returns label base64 in documents."
+          },
+          "packages": {
+            "nullable": true,
+            "description": "Optional explicit packages. If omitted, the API builds a single package from product weights/dimensions.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApproveOrderShipmentPackageDto"
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "description": "Optional extra metadata to store on shipment."
+          }
+        },
+        "required": [
+          "service_code"
+        ]
+      },
+      "ShipmentPackageDto": {
+        "type": "object",
+        "properties": {
+          "weight": {
+            "type": "number",
+            "example": 2.4
+          },
+          "weightUnit": {
+            "type": "object",
+            "example": "lbs"
+          },
+          "length": {
+            "type": "object",
+            "example": 10,
+            "nullable": true
+          },
+          "width": {
+            "type": "object",
+            "example": 8,
+            "nullable": true
+          },
+          "height": {
+            "type": "object",
+            "example": 4,
+            "nullable": true
+          },
+          "description": {
+            "type": "object",
+            "example": "Order shipment"
+          }
+        },
+        "required": [
+          "weight"
+        ]
+      },
+      "CreateShipmentDraftDto": {
+        "type": "object",
+        "properties": {
+          "estimated_packages": {
+            "description": "Optional estimated packages (checkout estimate). If omitted, the backend derives a single package from item weights/dimensions.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShipmentPackageDto"
+            }
+          }
+        }
+      },
+      "ShipmentMutationResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "description": "Shipment row snapshot"
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "ApproveShipmentReviewDto": {
+        "type": "object",
+        "properties": {
+          "approved": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "ConfirmPackedDto": {
+        "type": "object",
+        "properties": {
+          "actual_packages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShipmentPackageDto"
+            }
+          }
+        },
+        "required": [
+          "actual_packages"
+        ]
+      },
+      "PurchaseLabelDto": {
+        "type": "object",
+        "properties": {
+          "service_code": {
+            "type": "number",
+            "example": 204,
+            "description": "NetParcel service_code. If omitted, the backend uses the checkout-selected service_code stored on the order."
+          },
+          "service_name": {
+            "type": "object",
+            "example": "UPS Standard",
+            "nullable": true
+          },
+          "ship_date": {
+            "type": "object",
+            "example": "2026-04-17",
+            "description": "YYYY-MM-DD (optional)."
+          }
+        }
+      },
+      "MarkShippedDto": {
+        "type": "object",
+        "properties": {
+          "shipped_at": {
+            "type": "object",
+            "example": "2026-04-17T12:00:00.000Z"
+          }
+        }
+      },
+      "MarkDeliveredDto": {
+        "type": "object",
+        "properties": {
+          "delivered_at": {
+            "type": "object",
+            "example": "2026-04-19T16:40:00.000Z"
+          }
+        }
+      },
       "OrderShipmentResponseDto": {
         "type": "object",
         "properties": {
@@ -17610,8 +19974,53 @@
           "carrier": {
             "type": "string"
           },
+          "provider": {
+            "type": "object",
+            "example": "netparcel",
+            "nullable": true
+          },
+          "service_code": {
+            "type": "object",
+            "example": "UPS_EXPRESS",
+            "nullable": true
+          },
+          "service_name": {
+            "type": "object",
+            "example": "UPS Express",
+            "nullable": true
+          },
           "tracking_number": {
             "type": "string"
+          },
+          "shipping_cost": {
+            "type": "object",
+            "example": 12.34,
+            "nullable": true
+          },
+          "currency": {
+            "type": "object",
+            "example": "CAD",
+            "nullable": true
+          },
+          "label_url": {
+            "type": "object",
+            "example": "https://...",
+            "nullable": true
+          },
+          "origin": {
+            "type": "object",
+            "description": "Origin/source address snapshot (e.g. warehouse).",
+            "nullable": true
+          },
+          "packages": {
+            "type": "object",
+            "description": "Package list snapshot.",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Raw provider response / extra fields.",
+            "nullable": true
           },
           "shipped_at": {
             "type": "string"
@@ -17667,8 +20076,53 @@
           "carrier": {
             "type": "string"
           },
+          "provider": {
+            "type": "object",
+            "example": "netparcel",
+            "nullable": true
+          },
+          "service_code": {
+            "type": "object",
+            "example": "UPS_EXPRESS",
+            "nullable": true
+          },
+          "service_name": {
+            "type": "object",
+            "example": "UPS Express",
+            "nullable": true
+          },
           "tracking_number": {
             "type": "string"
+          },
+          "shipping_cost": {
+            "type": "object",
+            "example": 12.34,
+            "nullable": true
+          },
+          "currency": {
+            "type": "object",
+            "example": "CAD",
+            "nullable": true
+          },
+          "label_url": {
+            "type": "object",
+            "example": "https://...",
+            "nullable": true
+          },
+          "origin": {
+            "type": "object",
+            "description": "Origin/source address snapshot (e.g. warehouse).",
+            "nullable": true
+          },
+          "packages": {
+            "type": "object",
+            "description": "Package list snapshot.",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Raw provider response / extra fields.",
+            "nullable": true
           },
           "shipped_at": {
             "type": "string"
@@ -17696,8 +20150,53 @@
           "carrier": {
             "type": "string"
           },
+          "provider": {
+            "type": "object",
+            "example": "netparcel",
+            "nullable": true
+          },
+          "service_code": {
+            "type": "object",
+            "example": "UPS_EXPRESS",
+            "nullable": true
+          },
+          "service_name": {
+            "type": "object",
+            "example": "UPS Express",
+            "nullable": true
+          },
           "tracking_number": {
             "type": "string"
+          },
+          "shipping_cost": {
+            "type": "object",
+            "example": 12.34,
+            "nullable": true
+          },
+          "currency": {
+            "type": "object",
+            "example": "CAD",
+            "nullable": true
+          },
+          "label_url": {
+            "type": "object",
+            "example": "https://...",
+            "nullable": true
+          },
+          "origin": {
+            "type": "object",
+            "description": "Origin/source address snapshot (e.g. warehouse).",
+            "nullable": true
+          },
+          "packages": {
+            "type": "object",
+            "description": "Package list snapshot.",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Raw provider response / extra fields.",
+            "nullable": true
           },
           "shipped_at": {
             "type": "string"
@@ -20019,6 +22518,817 @@
           "data"
         ]
       },
+      "NetParcelAddressDto": {
+        "type": "object",
+        "properties": {
+          "country": {
+            "type": "string",
+            "example": "CA"
+          },
+          "postal_code": {
+            "type": "string",
+            "example": "V3N4R3"
+          },
+          "province": {
+            "type": "object",
+            "example": "ON",
+            "nullable": true
+          },
+          "city": {
+            "type": "object",
+            "example": "Vaughan",
+            "nullable": true
+          },
+          "name": {
+            "type": "object",
+            "example": "John Doe",
+            "nullable": true
+          },
+          "address1": {
+            "type": "object",
+            "example": "90 Street",
+            "nullable": true
+          },
+          "address2": {
+            "type": "object",
+            "example": "Unit 2",
+            "nullable": true
+          },
+          "phone": {
+            "type": "object",
+            "example": "+14165550101",
+            "nullable": true
+          },
+          "address_type": {
+            "type": "object",
+            "example": "residential",
+            "nullable": true
+          },
+          "company_name": {
+            "type": "object",
+            "example": "My Company",
+            "nullable": true
+          },
+          "email": {
+            "type": "object",
+            "example": "customer@example.com",
+            "nullable": true
+          },
+          "send_email_confirmation": {
+            "type": "object",
+            "example": true,
+            "nullable": true
+          }
+        },
+        "required": [
+          "country",
+          "postal_code"
+        ]
+      },
+      "NetParcelItemDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "My PRODUCT"
+          },
+          "sku": {
+            "type": "object",
+            "example": "SKU0006",
+            "nullable": true
+          },
+          "quantity": {
+            "type": "number",
+            "example": 1
+          },
+          "weight": {
+            "type": "object",
+            "example": 5,
+            "nullable": true
+          },
+          "weightUnit": {
+            "type": "object",
+            "example": "lbs",
+            "nullable": true
+          },
+          "price": {
+            "type": "object",
+            "example": 1200,
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "quantity"
+        ]
+      },
+      "NetParcelPackageDto": {
+        "type": "object",
+        "properties": {
+          "length": {
+            "type": "object",
+            "example": 1,
+            "nullable": true
+          },
+          "width": {
+            "type": "object",
+            "example": 1,
+            "nullable": true
+          },
+          "height": {
+            "type": "object",
+            "example": 1,
+            "nullable": true
+          },
+          "weight": {
+            "type": "number",
+            "example": 5
+          },
+          "weightUnit": {
+            "type": "object",
+            "example": "lbs",
+            "nullable": true
+          },
+          "insurance_amount": {
+            "type": "object",
+            "example": 200,
+            "nullable": true
+          },
+          "type": {
+            "type": "object",
+            "example": "pallet",
+            "nullable": true
+          },
+          "freight_class": {
+            "type": "object",
+            "example": "77.5",
+            "nullable": true
+          },
+          "nmfc_code": {
+            "type": "object",
+            "example": "12345",
+            "nullable": true
+          },
+          "description": {
+            "type": "object",
+            "example": "TEST",
+            "nullable": true
+          }
+        },
+        "required": [
+          "weight"
+        ]
+      },
+      "NetParcelPackagingInformationDto": {
+        "type": "object",
+        "properties": {
+          "packaging_type": {
+            "type": "object",
+            "example": "My Packaging",
+            "nullable": true
+          },
+          "uom": {
+            "type": "object",
+            "example": "M",
+            "nullable": true,
+            "description": "Unit of measure (optional, per netParcel docs)."
+          },
+          "packages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NetParcelPackageDto"
+            }
+          }
+        },
+        "required": [
+          "packages"
+        ]
+      },
+      "NetParcelRatePayloadDto": {
+        "type": "object",
+        "properties": {
+          "origin": {
+            "$ref": "#/components/schemas/NetParcelAddressDto"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/NetParcelAddressDto"
+          },
+          "items": {
+            "nullable": true,
+            "description": "Optional item list (not required when using packages only).",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NetParcelItemDto"
+            }
+          },
+          "currency": {
+            "type": "object",
+            "example": "CAD",
+            "nullable": true
+          },
+          "packaging_information": {
+            "$ref": "#/components/schemas/NetParcelPackagingInformationDto"
+          }
+        },
+        "required": [
+          "origin",
+          "destination"
+        ]
+      },
+      "NetParcelFetchRatesRequestDto": {
+        "type": "object",
+        "properties": {
+          "rate": {
+            "$ref": "#/components/schemas/NetParcelRatePayloadDto"
+          }
+        },
+        "required": [
+          "rate"
+        ]
+      },
+      "NetParcelRateDto": {
+        "type": "object",
+        "properties": {
+          "min_delivery_date": {
+            "type": "object",
+            "example": "2017-03-03 11:29:00",
+            "nullable": true
+          },
+          "max_delivery_date": {
+            "type": "object",
+            "example": "2017-03-03 11:29:00",
+            "nullable": true
+          },
+          "service_name": {
+            "type": "string",
+            "example": "UPS Standard"
+          },
+          "service_code": {
+            "type": "string",
+            "example": "204"
+          },
+          "total_price": {
+            "type": "string",
+            "example": "3400"
+          },
+          "currency": {
+            "type": "string",
+            "example": "CAD"
+          }
+        },
+        "required": [
+          "service_name",
+          "service_code",
+          "total_price",
+          "currency"
+        ]
+      },
+      "NetParcelFetchRatesResponseDto": {
+        "type": "object",
+        "properties": {
+          "rates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NetParcelRateDto"
+            }
+          }
+        },
+        "required": [
+          "rates"
+        ]
+      },
+      "NetParcelShipServiceDto": {
+        "type": "object",
+        "properties": {
+          "service_code": {
+            "type": "number",
+            "example": 204
+          },
+          "service_name": {
+            "type": "object",
+            "example": "UPS Standard",
+            "nullable": true
+          }
+        },
+        "required": [
+          "service_code"
+        ]
+      },
+      "NetParcelShipPayloadDto": {
+        "type": "object",
+        "properties": {
+          "origin": {
+            "$ref": "#/components/schemas/NetParcelAddressDto"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/NetParcelAddressDto"
+          },
+          "service": {
+            "$ref": "#/components/schemas/NetParcelShipServiceDto"
+          },
+          "ship_date": {
+            "type": "object",
+            "example": "2026-04-09",
+            "nullable": true
+          },
+          "packaging_information": {
+            "$ref": "#/components/schemas/NetParcelPackagingInformationDto"
+          },
+          "generate_label": {
+            "type": "object",
+            "example": true,
+            "nullable": true,
+            "description": "When true, netParcel returns label base64 in documents."
+          }
+        },
+        "required": [
+          "origin",
+          "destination",
+          "service"
+        ]
+      },
+      "NetParcelShipRequestDto": {
+        "type": "object",
+        "properties": {
+          "ship": {
+            "$ref": "#/components/schemas/NetParcelShipPayloadDto"
+          }
+        },
+        "required": [
+          "ship"
+        ]
+      },
+      "NetParcelChargeDto": {
+        "type": "object",
+        "properties": {
+          "charge_name": {
+            "type": "string",
+            "example": "Freight"
+          },
+          "charge_code": {
+            "type": "string",
+            "example": "FRT"
+          },
+          "charge_amount": {
+            "type": "number",
+            "example": 132.14
+          }
+        },
+        "required": [
+          "charge_name",
+          "charge_code",
+          "charge_amount"
+        ]
+      },
+      "NetParcelDocumentDto": {
+        "type": "object",
+        "properties": {
+          "document_name": {
+            "type": "string",
+            "example": "labels"
+          },
+          "base64_encoded_string": {
+            "type": "string",
+            "example": "JVBERi0xLjQKJ...",
+            "description": "Base64-encoded document data (typically PDF label)."
+          }
+        },
+        "required": [
+          "document_name",
+          "base64_encoded_string"
+        ]
+      },
+      "NetParcelShipmentStatusDto": {
+        "type": "object",
+        "properties": {
+          "status_name": {
+            "type": "object",
+            "example": "IN TRANSIT",
+            "nullable": true
+          }
+        }
+      },
+      "NetParcelShipmentDto": {
+        "type": "object",
+        "properties": {
+          "charges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NetParcelChargeDto"
+            }
+          },
+          "tracking_url": {
+            "type": "string",
+            "example": "http://wwwapps.ups.com/etracking/..."
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NetParcelDocumentDto"
+            }
+          },
+          "service_name": {
+            "type": "string",
+            "example": "UPS Standard"
+          },
+          "service_code": {
+            "type": "string",
+            "example": "204"
+          },
+          "order_id": {
+            "type": "number",
+            "example": 453937
+          },
+          "total_price": {
+            "type": "number",
+            "example": 149.01
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "master_tracking_num": {
+            "type": "string",
+            "example": "1Z300V1X6832744762"
+          },
+          "status": {
+            "$ref": "#/components/schemas/NetParcelShipmentStatusDto"
+          }
+        }
+      },
+      "NetParcelShipResponseDto": {
+        "type": "object",
+        "properties": {
+          "shipment": {
+            "$ref": "#/components/schemas/NetParcelShipmentDto"
+          }
+        },
+        "required": [
+          "shipment"
+        ]
+      },
+      "NetParcelCancelDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number",
+            "example": 366158
+          }
+        },
+        "required": [
+          "order_id"
+        ]
+      },
+      "NetParcelCancelShipmentRequestDto": {
+        "type": "object",
+        "properties": {
+          "cancel": {
+            "$ref": "#/components/schemas/NetParcelCancelDto"
+          }
+        },
+        "required": [
+          "cancel"
+        ]
+      },
+      "NetParcelCancelShipmentResponseDto": {
+        "type": "object",
+        "properties": {
+          "shipment": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "shipment"
+        ]
+      },
+      "NetParcelOrderLookupDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number",
+            "example": 453937
+          },
+          "tracking_number": {
+            "type": "string",
+            "example": "1Z300V1X6832744762"
+          }
+        },
+        "required": [
+          "order_id"
+        ]
+      },
+      "NetParcelOrderRequestDto": {
+        "type": "object",
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/NetParcelOrderLookupDto"
+          }
+        },
+        "required": [
+          "order"
+        ]
+      },
+      "NetParcelOrderResponseDto": {
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "order"
+        ]
+      },
+      "MediaGalleryItemDto": {
+        "type": "object",
+        "properties": {
+          "media_asset_id": {
+            "type": "number"
+          },
+          "media_type": {
+            "type": "string"
+          },
+          "media_url": {
+            "type": "string"
+          },
+          "alt_text": {
+            "type": "object",
+            "nullable": true
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "media_asset_id",
+          "media_type",
+          "media_url",
+          "is_active",
+          "created_at"
+        ]
+      },
+      "PaginatedMediaGalleryResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MediaGalleryItemDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "example": {
+              "page": 1,
+              "limit": 20,
+              "total": 0,
+              "totalPages": 0
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "CreateMediaGalleryItemDto": {
+        "type": "object",
+        "properties": {
+          "media_type": {
+            "type": "string",
+            "example": "image"
+          },
+          "media_url": {
+            "type": "string",
+            "example": "https://cdn.example.com/uploads/abc.jpg"
+          },
+          "alt_text": {
+            "type": "string",
+            "example": "Front angle"
+          }
+        },
+        "required": [
+          "media_type",
+          "media_url"
+        ]
+      },
+      "MediaGalleryItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MediaGalleryItemDto"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "ExcelImportSummaryDto": {
+        "type": "object",
+        "properties": {
+          "categories_inserted": {
+            "type": "number"
+          },
+          "categories_skipped": {
+            "type": "number"
+          },
+          "brands_inserted": {
+            "type": "number"
+          },
+          "brands_skipped": {
+            "type": "number"
+          },
+          "models_inserted": {
+            "type": "number"
+          },
+          "models_skipped": {
+            "type": "number"
+          },
+          "attributes_inserted": {
+            "type": "number"
+          },
+          "attributes_skipped": {
+            "type": "number"
+          },
+          "category_attributes_inserted": {
+            "type": "number"
+          },
+          "category_attributes_skipped": {
+            "type": "number"
+          },
+          "products_inserted": {
+            "type": "number"
+          },
+          "products_skipped": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "categories_inserted",
+          "categories_skipped",
+          "brands_inserted",
+          "brands_skipped",
+          "models_inserted",
+          "models_skipped",
+          "attributes_inserted",
+          "attributes_skipped",
+          "category_attributes_inserted",
+          "category_attributes_skipped",
+          "products_inserted",
+          "products_skipped"
+        ]
+      },
+      "ExcelImportIssueDto": {
+        "type": "object",
+        "properties": {
+          "sheet": {
+            "type": "string",
+            "example": "Product"
+          },
+          "row": {
+            "type": "number",
+            "example": 2
+          },
+          "field": {
+            "type": "string",
+            "example": "category_code"
+          },
+          "message": {
+            "type": "string",
+            "example": "category_code is required"
+          },
+          "value": {
+            "type": "string",
+            "example": "BRAKE"
+          }
+        },
+        "required": [
+          "sheet",
+          "row",
+          "message"
+        ]
+      },
+      "ExcelImportResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ExcelImportSummaryDto"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExcelImportIssueDto"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "summary",
+          "issues"
+        ]
+      },
+      "AdminConfirmOrderPaymentResponseDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number"
+          },
+          "order_number": {
+            "type": "string"
+          },
+          "gateway_status": {
+            "type": "object",
+            "description": "Latest payment attempt status from the gateway (Stripe).",
+            "nullable": true
+          },
+          "confirmed_paid": {
+            "type": "boolean",
+            "description": "True when the gateway reports a successful payment (not fully refunded)."
+          },
+          "is_paid": {
+            "type": "boolean",
+            "description": "Persisted order paid state after confirmation."
+          },
+          "approval_mode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "manual"
+            ]
+          }
+        },
+        "required": [
+          "order_id",
+          "order_number",
+          "gateway_status",
+          "confirmed_paid",
+          "is_paid",
+          "approval_mode"
+        ]
+      },
+      "AdminRefundOrderDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number",
+            "description": "Single order row id. Provide `order_number` instead if you do not have the numeric order id.",
+            "example": 123
+          },
+          "order_number": {
+            "type": "string",
+            "description": "Order number (e.g. ORD-10291).",
+            "example": "ORD-10291"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Refund amount in major currency units (e.g. dollars). Omit to refund full amount.",
+            "example": 25.5
+          },
+          "reason": {
+            "type": "string",
+            "description": "Stripe refund reason (duplicate, fraudulent, or requested_by_customer).",
+            "example": "requested_by_customer"
+          }
+        }
+      },
+      "AdminRefundResponseDto": {
+        "type": "object",
+        "properties": {
+          "refund_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "refund_id",
+          "status",
+          "amount",
+          "currency"
+        ]
+      },
       "ReturnReasonDto": {
         "type": "object",
         "properties": {
@@ -20248,6 +23558,10 @@
             "type": "number",
             "example": 2
           },
+          "received_qty": {
+            "type": "number",
+            "example": 0
+          },
           "reason_name": {
             "type": "string",
             "example": "Wrong size ordered"
@@ -20277,6 +23591,7 @@
           "product_title",
           "requested_qty",
           "approved_qty",
+          "received_qty",
           "reason_name",
           "status",
           "refund_status",
@@ -20318,6 +23633,52 @@
           "product_title",
           "buying_qty",
           "total_cost"
+        ]
+      },
+      "ReturnEventDto": {
+        "type": "object",
+        "properties": {
+          "return_event_id": {
+            "type": "number",
+            "example": 1
+          },
+          "event_type": {
+            "type": "string",
+            "example": "return_approved"
+          },
+          "status": {
+            "type": "object",
+            "example": "approved",
+            "nullable": true
+          },
+          "refund_status": {
+            "type": "object",
+            "example": "pending",
+            "nullable": true
+          },
+          "note": {
+            "type": "object",
+            "example": "Approved after inspection.",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "example": "2026-04-16T08:24:08.396Z"
+          },
+          "created_by": {
+            "type": "object",
+            "example": 1,
+            "nullable": true
+          }
+        },
+        "required": [
+          "return_event_id",
+          "event_type",
+          "created_at"
         ]
       },
       "ReturnRequestDetailDto": {
@@ -20362,6 +23723,30 @@
             "example": "Approved after inspection.",
             "nullable": true
           },
+          "reviewed_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "approved_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "rejected_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "cancelled_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "received_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "refunded_at": {
+            "type": "object",
+            "nullable": true
+          },
           "currency": {
             "type": "string",
             "example": "CAD"
@@ -20385,6 +23770,25 @@
             "items": {
               "$ref": "#/components/schemas/ReturnOrderItemDto"
             }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReturnEventDto"
+            }
+          },
+          "return_label": {
+            "type": "object",
+            "nullable": true,
+            "description": "Prepaid return shipping label (available after admin approves the return)."
+          },
+          "return_instructions": {
+            "nullable": true,
+            "description": "Customer return instructions (available after admin approves the return).",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -20398,7 +23802,8 @@
           "requested_amount",
           "refund_amount",
           "items",
-          "order_items"
+          "order_items",
+          "events"
         ]
       },
       "ReturnRequestResponseDto": {
@@ -20419,21 +23824,19 @@
             "type": "string",
             "example": "approved"
           },
-          "refund_status": {
-            "type": "string",
-            "example": "pending"
-          },
-          "refund_amount": {
-            "type": "number",
-            "example": 120.5
-          },
-          "refund_eta_note": {
-            "type": "string",
-            "example": "Refund will be visible in 5-7 business days."
-          },
           "admin_note": {
             "type": "string",
             "example": "Approved after inspection."
+          },
+          "return_label_service_code": {
+            "type": "number",
+            "example": 204,
+            "description": "Optional netParcel service_code for generating a return label when approving."
+          },
+          "return_label_service_name": {
+            "type": "string",
+            "example": "UPS Standard",
+            "description": "Optional netParcel service_name for generating a return label when approving."
           }
         }
       },
@@ -20456,6 +23859,157 @@
           "success",
           "message",
           "data"
+        ]
+      },
+      "UpdateReturnRefundDto": {
+        "type": "object",
+        "properties": {
+          "refund_status": {
+            "type": "string",
+            "example": "processing"
+          },
+          "refund_amount": {
+            "type": "number",
+            "example": 120.5
+          },
+          "refund_eta_note": {
+            "type": "string",
+            "example": "Refund will be visible in 5-7 business days."
+          },
+          "admin_note": {
+            "type": "string",
+            "example": "Refund started in Stripe."
+          }
+        }
+      },
+      "ReceiveReturnItemDto": {
+        "type": "object",
+        "properties": {
+          "return_request_item_id": {
+            "type": "number",
+            "example": 1
+          },
+          "received_qty": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "return_request_item_id",
+          "received_qty"
+        ]
+      },
+      "ReceiveReturnDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "Optional per-item received qty. If omitted, server receives full approved qty for all items.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceiveReturnItemDto"
+            }
+          },
+          "note": {
+            "type": "string",
+            "example": "Return received and added back to stock."
+          }
+        }
+      },
+      "CreateCheckoutSessionDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number",
+            "description": "Single order row id (recommended).",
+            "example": 123
+          },
+          "order_number": {
+            "type": "string",
+            "description": "Order number (if you use this, it must belong to the authenticated user).",
+            "example": "ORD-10291"
+          }
+        }
+      },
+      "CheckoutSessionResponseDto": {
+        "type": "object",
+        "properties": {
+          "checkout_session_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "checkout_session_id",
+          "url"
+        ]
+      },
+      "CancelCheckoutSessionDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number",
+            "example": 123,
+            "nullable": true
+          },
+          "order_number": {
+            "type": "string",
+            "example": "ORD-10291",
+            "nullable": true
+          },
+          "checkout_session_id": {
+            "type": "string",
+            "example": "cs_test_123",
+            "nullable": true
+          }
+        }
+      },
+      "CreateSetupIntentResponseDto": {
+        "type": "object",
+        "properties": {
+          "client_secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_secret"
+        ]
+      },
+      "PayWithSavedMethodDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number",
+            "example": 123
+          },
+          "payment_method_id": {
+            "type": "string",
+            "example": "pm_123"
+          }
+        },
+        "required": [
+          "order_id",
+          "payment_method_id"
+        ]
+      },
+      "PayWithSavedMethodResponseDto": {
+        "type": "object",
+        "properties": {
+          "payment_intent_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "client_secret": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "payment_intent_id",
+          "status"
         ]
       },
       "CustomerCategoryAttributeOptionDto": {
@@ -21568,7 +25122,7 @@
           "summary"
         ]
       },
-      "CustomerCouponSummaryDto": {
+      "CustomerCartPricingSummaryDto": {
         "type": "object",
         "properties": {
           "currency": {
@@ -21579,17 +25133,17 @@
             "type": "number",
             "example": 120
           },
-          "shipping_total": {
+          "savings_total": {
+            "type": "number",
+            "example": 0
+          },
+          "tax_total": {
             "type": "number",
             "example": 0
           },
           "coupon_discount": {
             "type": "number",
             "example": 20
-          },
-          "shipping_discount": {
-            "type": "number",
-            "example": 0
           },
           "discount_total": {
             "type": "number",
@@ -21612,9 +25166,9 @@
         "required": [
           "currency",
           "subtotal",
-          "shipping_total",
+          "savings_total",
+          "tax_total",
           "coupon_discount",
-          "shipping_discount",
           "discount_total",
           "grand_total",
           "description",
@@ -21640,7 +25194,7 @@
             ]
           },
           "pricing": {
-            "$ref": "#/components/schemas/CustomerCouponSummaryDto"
+            "$ref": "#/components/schemas/CustomerCartPricingSummaryDto"
           }
         },
         "required": [
@@ -21871,6 +25425,393 @@
           "qty"
         ]
       },
+      "CustomerCheckoutShippingQuoteRequestDto": {
+        "type": "object",
+        "properties": {
+          "address_id": {
+            "type": "number",
+            "example": 5,
+            "nullable": true
+          },
+          "addressId": {
+            "type": "number",
+            "example": 5,
+            "nullable": true,
+            "description": "Alias for address_id (camelCase)."
+          }
+        }
+      },
+      "CustomerShippingMethodDto": {
+        "type": "object",
+        "properties": {
+          "service_code": {
+            "type": "number",
+            "example": 204
+          },
+          "service_name": {
+            "type": "object",
+            "example": "UPS Standard",
+            "nullable": true
+          },
+          "total_price": {
+            "type": "number",
+            "example": 34
+          },
+          "currency": {
+            "type": "object",
+            "example": "CAD",
+            "nullable": true
+          },
+          "min_delivery_date": {
+            "type": "object",
+            "example": "2017-03-03 11:29:00",
+            "nullable": true
+          },
+          "max_delivery_date": {
+            "type": "object",
+            "example": "2017-03-03 11:29:00",
+            "nullable": true
+          }
+        },
+        "required": [
+          "service_code",
+          "total_price"
+        ]
+      },
+      "CustomerCheckoutShippingQuoteDataDto": {
+        "type": "object",
+        "properties": {
+          "address_id": {
+            "type": "object",
+            "example": 5,
+            "nullable": true
+          },
+          "shipping_quote_id": {
+            "type": "object",
+            "example": 123,
+            "nullable": true
+          },
+          "currency": {
+            "type": "string",
+            "example": "CAD"
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerShippingMethodDto"
+            }
+          },
+          "notice": {
+            "type": "object",
+            "example": null,
+            "nullable": true
+          }
+        },
+        "required": [
+          "currency",
+          "methods"
+        ]
+      },
+      "CustomerCheckoutShippingQuoteResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerCheckoutShippingQuoteDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "CustomerCheckoutReviewRequestDto": {
+        "type": "object",
+        "properties": {
+          "address_id": {
+            "type": "number",
+            "example": 5,
+            "nullable": true
+          },
+          "addressId": {
+            "type": "number",
+            "example": 5,
+            "nullable": true,
+            "description": "Alias for address_id (camelCase)."
+          },
+          "shipping_service_code": {
+            "type": "number",
+            "example": 204,
+            "nullable": true
+          },
+          "shippingServiceCode": {
+            "type": "number",
+            "example": 204,
+            "nullable": true,
+            "description": "Alias for shipping_service_code (camelCase)."
+          },
+          "billing_address_id": {
+            "type": "number",
+            "example": 5,
+            "nullable": true
+          },
+          "billingAddressId": {
+            "type": "number",
+            "example": 5,
+            "nullable": true,
+            "description": "Alias for billing_address_id (camelCase)."
+          },
+          "payment_method_id": {
+            "type": "string",
+            "example": "pm_123",
+            "nullable": true,
+            "description": "Selected saved Stripe payment_method id (optional)."
+          },
+          "paymentMethodId": {
+            "type": "string",
+            "example": "pm_123",
+            "nullable": true,
+            "description": "Alias for payment_method_id (camelCase)."
+          }
+        }
+      },
+      "CustomerCouponSummaryDto": {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "example": "CAD"
+          },
+          "subtotal": {
+            "type": "number",
+            "example": 120
+          },
+          "shipping_total": {
+            "type": "number",
+            "example": 0
+          },
+          "tax_total": {
+            "type": "number",
+            "example": 0
+          },
+          "coupon_discount": {
+            "type": "number",
+            "example": 20
+          },
+          "shipping_discount": {
+            "type": "number",
+            "example": 0
+          },
+          "discount_total": {
+            "type": "number",
+            "example": 20
+          },
+          "grand_total": {
+            "type": "number",
+            "example": 100
+          },
+          "description": {
+            "type": "string",
+            "example": "Coupon SAVE20 applied successfully"
+          },
+          "coupon_notice": {
+            "type": "object",
+            "example": null,
+            "nullable": true
+          },
+          "shipping_notice": {
+            "type": "object",
+            "example": null,
+            "nullable": true,
+            "description": "When present, shipping could not be estimated (missing/unsupported address or rate lookup failure)."
+          }
+        },
+        "required": [
+          "currency",
+          "subtotal",
+          "shipping_total",
+          "tax_total",
+          "coupon_discount",
+          "shipping_discount",
+          "discount_total",
+          "grand_total",
+          "description",
+          "coupon_notice"
+        ]
+      },
+      "CustomerCheckoutReviewDataDto": {
+        "type": "object",
+        "properties": {
+          "cart": {
+            "type": "object"
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/CustomerCouponSummaryDto"
+          },
+          "delivery_address": {
+            "type": "object",
+            "nullable": true
+          },
+          "shipping_methods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerShippingMethodDto"
+            }
+          },
+          "selected_shipping_method": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerShippingMethodDto"
+              }
+            ]
+          },
+          "billing_address": {
+            "type": "object",
+            "nullable": true
+          },
+          "payment_methods": {
+            "type": "object"
+          },
+          "notice": {
+            "type": "object",
+            "example": null,
+            "nullable": true
+          }
+        },
+        "required": [
+          "cart",
+          "pricing",
+          "shipping_methods",
+          "payment_methods"
+        ]
+      },
+      "CustomerCheckoutReviewResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerCheckoutReviewDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "CustomerCheckoutPayRequestDto": {
+        "type": "object",
+        "properties": {
+          "address_id": {
+            "type": "number",
+            "example": 5
+          },
+          "addressId": {
+            "type": "number",
+            "example": 5,
+            "nullable": true,
+            "description": "Alias for address_id (camelCase)."
+          },
+          "shipping_service_code": {
+            "type": "number",
+            "example": 204,
+            "nullable": true
+          },
+          "shippingServiceCode": {
+            "type": "number",
+            "example": 204,
+            "nullable": true,
+            "description": "Alias for shipping_service_code (camelCase)."
+          },
+          "payment_method_id": {
+            "type": "string",
+            "example": "pm_123",
+            "nullable": true,
+            "description": "If provided, charges immediately with a saved method; otherwise returns a Stripe Checkout session url."
+          },
+          "paymentMethodId": {
+            "type": "string",
+            "example": "pm_123",
+            "nullable": true,
+            "description": "Alias for payment_method_id (camelCase)."
+          },
+          "order_note": {
+            "type": "string",
+            "example": "Leave at door",
+            "nullable": true
+          }
+        },
+        "required": [
+          "address_id"
+        ]
+      },
+      "CustomerCheckoutPayResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Order created"
+          },
+          "data": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "CustomerShippingMethodsRequestDto": {
+        "type": "object",
+        "properties": {
+          "address_id": {
+            "type": "number",
+            "example": 5,
+            "nullable": true
+          }
+        }
+      },
+      "CustomerShippingMethodsDataDto": {
+        "type": "object",
+        "properties": {
+          "address_id": {
+            "type": "object",
+            "example": 5,
+            "nullable": true
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerShippingMethodDto"
+            }
+          },
+          "notice": {
+            "type": "object",
+            "example": null,
+            "nullable": true
+          },
+          "debug": {
+            "type": "object",
+            "nullable": true,
+            "description": "Debug payload/response for netParcel rate lookup (enabled only in non-production or when EXPOSE_SHIPPING_DEBUG=true)."
+          }
+        },
+        "required": [
+          "methods"
+        ]
+      },
+      "CustomerShippingMethodsResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerShippingMethodsDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
       "AddToWishlistDto": {
         "type": "object",
         "properties": {
@@ -21994,11 +25935,707 @@
           "meta"
         ]
       },
+      "CustomerOrderItemDto": {
+        "type": "object",
+        "properties": {
+          "order_item_id": {
+            "type": "number",
+            "example": 1
+          },
+          "product_id": {
+            "type": "number",
+            "example": 123
+          },
+          "buying_qty": {
+            "type": "object",
+            "example": 2,
+            "nullable": true
+          },
+          "buying_cost": {
+            "type": "object",
+            "example": 49.99,
+            "nullable": true
+          },
+          "buying_tax": {
+            "type": "object",
+            "example": 2.5,
+            "nullable": true
+          },
+          "total_cost": {
+            "type": "object",
+            "example": 102.48,
+            "nullable": true
+          },
+          "discount": {
+            "type": "object",
+            "example": 0,
+            "nullable": true
+          },
+          "slug": {
+            "type": "object",
+            "example": "brake-pad-front",
+            "nullable": true
+          },
+          "title": {
+            "type": "object",
+            "example": "Brake Pad Front",
+            "nullable": true
+          },
+          "sku": {
+            "type": "object",
+            "example": "SKU-001",
+            "nullable": true
+          },
+          "returnable": {
+            "type": "boolean",
+            "example": true
+          },
+          "return_window_days": {
+            "type": "number",
+            "example": 0,
+            "description": "Return window length in days; 0 means no limit."
+          },
+          "return_window_expires_at": {
+            "type": "object",
+            "example": "2026-05-01T10:00:00.000Z",
+            "nullable": true
+          },
+          "return_remaining_qty": {
+            "type": "number",
+            "example": 1
+          },
+          "return_eligible": {
+            "type": "boolean",
+            "example": true
+          },
+          "returnable_eligible": {
+            "type": "boolean",
+            "example": true,
+            "description": "Computed eligibility for starting a return (accounts for return window and already requested quantity)."
+          },
+          "return_ineligible_reason": {
+            "type": "object",
+            "example": null,
+            "nullable": true
+          }
+        },
+        "required": [
+          "order_item_id",
+          "product_id",
+          "returnable",
+          "return_window_days",
+          "return_remaining_qty",
+          "return_eligible",
+          "returnable_eligible"
+        ]
+      },
+      "CustomerOrderReturnItemDto": {
+        "type": "object",
+        "properties": {
+          "return_request_item_id": {
+            "type": "number",
+            "example": 1
+          },
+          "order_item_id": {
+            "type": "object",
+            "example": 44,
+            "nullable": true,
+            "description": "Order item id (order_group_items.order_item_id)."
+          },
+          "product_id": {
+            "type": "number",
+            "example": 123
+          },
+          "product_title": {
+            "type": "object",
+            "example": "Brake Pad Front",
+            "nullable": true
+          },
+          "sku": {
+            "type": "object",
+            "example": "SKU-001",
+            "nullable": true
+          },
+          "requested_qty": {
+            "type": "number",
+            "example": 1
+          },
+          "approved_qty": {
+            "type": "number",
+            "example": 1
+          },
+          "received_qty": {
+            "type": "number",
+            "example": 0
+          },
+          "reason_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "customer_description": {
+            "type": "object",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "example": "Requested"
+          },
+          "refund_status": {
+            "type": "string",
+            "example": "pending"
+          },
+          "line_amount": {
+            "type": "number",
+            "example": 25
+          }
+        },
+        "required": [
+          "return_request_item_id",
+          "product_id",
+          "requested_qty",
+          "approved_qty",
+          "received_qty",
+          "status",
+          "refund_status",
+          "line_amount"
+        ]
+      },
+      "CustomerReturnEventDto": {
+        "type": "object",
+        "properties": {
+          "return_event_id": {
+            "type": "number",
+            "example": 1
+          },
+          "event_type": {
+            "type": "string",
+            "example": "return_received"
+          },
+          "status": {
+            "type": "object",
+            "example": "received",
+            "nullable": true
+          },
+          "refund_status": {
+            "type": "object",
+            "example": "pending",
+            "nullable": true
+          },
+          "note": {
+            "type": "object",
+            "example": "Return received in warehouse.",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "example": "2026-04-16T08:24:08.396Z"
+          },
+          "created_by": {
+            "type": "object",
+            "example": 1,
+            "nullable": true
+          }
+        },
+        "required": [
+          "return_event_id",
+          "event_type",
+          "created_at"
+        ]
+      },
+      "CustomerOrderReturnDto": {
+        "type": "object",
+        "properties": {
+          "return_request_id": {
+            "type": "number",
+            "example": 1
+          },
+          "return_number": {
+            "type": "object",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "example": "Requested"
+          },
+          "refund_status": {
+            "type": "string",
+            "example": "pending"
+          },
+          "customer_note": {
+            "type": "object",
+            "nullable": true
+          },
+          "refund_eta_note": {
+            "type": "object",
+            "nullable": true
+          },
+          "requested_amount": {
+            "type": "number",
+            "example": 25
+          },
+          "refund_amount": {
+            "type": "number",
+            "example": 25
+          },
+          "requested_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "reviewed_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "approved_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "rejected_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "cancelled_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "received_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "refunded_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerOrderReturnItemDto"
+            }
+          },
+          "events": {
+            "description": "Return-specific tracking events.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerReturnEventDto"
+            }
+          }
+        },
+        "required": [
+          "return_request_id",
+          "status",
+          "refund_status",
+          "requested_amount",
+          "refund_amount",
+          "items"
+        ]
+      },
+      "CustomerOrderRefundDto": {
+        "type": "object",
+        "properties": {
+          "payment_refund_id": {
+            "type": "number",
+            "example": 1
+          },
+          "payment_id": {
+            "type": "object",
+            "example": 10,
+            "nullable": true
+          },
+          "amount": {
+            "type": "number",
+            "example": 25
+          },
+          "currency": {
+            "type": "string",
+            "example": "CAD"
+          },
+          "status": {
+            "type": "string",
+            "example": "succeeded"
+          },
+          "reason": {
+            "type": "object",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "example": "2026-04-16T08:24:08.396Z"
+          }
+        },
+        "required": [
+          "payment_refund_id",
+          "amount",
+          "currency",
+          "status",
+          "created_at"
+        ]
+      },
+      "CustomerRefundTrackingEventDto": {
+        "type": "object",
+        "properties": {
+          "event_type": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "return_request",
+              "payment_refund"
+            ]
+          },
+          "at": {
+            "type": "string"
+          },
+          "status": {
+            "type": "object",
+            "nullable": true
+          },
+          "refund_status": {
+            "type": "object",
+            "nullable": true
+          },
+          "amount": {
+            "type": "object",
+            "nullable": true
+          },
+          "currency": {
+            "type": "object",
+            "nullable": true
+          },
+          "note": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "event_type",
+          "source",
+          "at"
+        ]
+      },
+      "CustomerRefundTrackingDto": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "none",
+              "requested",
+              "in_review",
+              "approved",
+              "rejected",
+              "processing",
+              "refunded",
+              "failed"
+            ]
+          },
+          "requested_amount": {
+            "type": "number",
+            "example": 25
+          },
+          "approved_amount": {
+            "type": "number",
+            "example": 25
+          },
+          "refunded_amount": {
+            "type": "number",
+            "example": 25
+          },
+          "currency": {
+            "type": "object",
+            "nullable": true
+          },
+          "eta_note": {
+            "type": "object",
+            "nullable": true
+          },
+          "last_event_at": {
+            "type": "object",
+            "nullable": true
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerRefundTrackingEventDto"
+            }
+          }
+        },
+        "required": [
+          "state",
+          "requested_amount",
+          "approved_amount",
+          "refunded_amount",
+          "events"
+        ]
+      },
+      "CustomerOrderDetailDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number",
+            "example": 101
+          },
+          "order_number": {
+            "type": "object",
+            "example": "ORD-1001",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "object",
+            "example": "2026-03-01T10:00:00.000Z",
+            "nullable": true
+          },
+          "is_paid": {
+            "type": "boolean",
+            "example": true
+          },
+          "status_name": {
+            "type": "object",
+            "example": "Delivered",
+            "nullable": true
+          },
+          "order_note": {
+            "type": "object",
+            "example": "Please leave at the door",
+            "nullable": true
+          },
+          "address_id": {
+            "type": "object",
+            "example": 11,
+            "nullable": true
+          },
+          "total_qty": {
+            "type": "number",
+            "example": 2
+          },
+          "items_count": {
+            "type": "number",
+            "example": 1
+          },
+          "tax_total": {
+            "type": "number",
+            "example": 12.99
+          },
+          "grand_total": {
+            "type": "number",
+            "example": 249.99
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerOrderItemDto"
+            }
+          },
+          "returns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerOrderReturnDto"
+            }
+          },
+          "refunds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerOrderRefundDto"
+            }
+          },
+          "refund_tracking": {
+            "$ref": "#/components/schemas/CustomerRefundTrackingDto"
+          },
+          "payment_status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "paid",
+              "disputed",
+              "refunded",
+              "partially_refunded"
+            ]
+          },
+          "approval_status": {
+            "type": "string",
+            "enum": [
+              "not_required",
+              "pending",
+              "approved"
+            ]
+          },
+          "fulfillment_status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "shipped",
+              "delivered",
+              "cancelled",
+              "unknown"
+            ]
+          },
+          "refund_state": {
+            "type": "string",
+            "enum": [
+              "none",
+              "requested",
+              "in_review",
+              "approved",
+              "rejected",
+              "processing",
+              "refunded",
+              "failed"
+            ]
+          },
+          "return_state": {
+            "type": "string",
+            "enum": [
+              "none",
+              "requested",
+              "in_review",
+              "approved",
+              "rejected",
+              "refunded"
+            ]
+          },
+          "overall_status": {
+            "type": "string",
+            "enum": [
+              "cancelled",
+              "payment_pending",
+              "payment_disputed",
+              "refund_in_progress",
+              "refunded",
+              "partially_refunded",
+              "awaiting_approval",
+              "delivered",
+              "shipped",
+              "return_in_progress",
+              "processing",
+              "pending",
+              "unknown"
+            ]
+          },
+          "status_label": {
+            "type": "string"
+          },
+          "status_message": {
+            "type": "string"
+          },
+          "return_eligible": {
+            "type": "boolean",
+            "example": true,
+            "description": "True if at least one item is currently eligible for return."
+          }
+        },
+        "required": [
+          "order_id",
+          "is_paid",
+          "total_qty",
+          "items_count",
+          "tax_total",
+          "grand_total",
+          "items",
+          "returns",
+          "refunds",
+          "refund_tracking",
+          "payment_status",
+          "approval_status",
+          "fulfillment_status",
+          "refund_state",
+          "return_state",
+          "overall_status",
+          "status_label",
+          "status_message",
+          "return_eligible"
+        ]
+      },
       "CustomerOrderDetailResponseDto": {
         "type": "object",
         "properties": {
           "data": {
-            "type": "object"
+            "$ref": "#/components/schemas/CustomerOrderDetailDto"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "CustomerCancelOrderDto": {
+        "type": "object",
+        "properties": {
+          "cancel_reason": {
+            "type": "string",
+            "example": "Ordered by mistake",
+            "description": "Optional cancellation reason (stored for audit/logging)."
+          }
+        }
+      },
+      "CustomerOrderTrackingShipmentDto": {
+        "type": "object",
+        "properties": {
+          "shipment_id": {
+            "type": "number",
+            "example": 1
+          },
+          "carrier": {
+            "type": "object",
+            "example": "UPS",
+            "nullable": true
+          },
+          "tracking_number": {
+            "type": "object",
+            "example": "1Z999AA10123456784",
+            "nullable": true
+          },
+          "shipped_at": {
+            "type": "object",
+            "example": "2026-04-16T08:24:08.396Z",
+            "nullable": true
+          },
+          "delivered_at": {
+            "type": "object",
+            "example": null,
+            "nullable": true
+          },
+          "tracking_url": {
+            "type": "object",
+            "example": "https://www.ups.com/track?tracknum=1Z999AA10123456784",
+            "nullable": true
+          }
+        },
+        "required": [
+          "shipment_id"
+        ]
+      },
+      "CustomerOrderTrackingDataDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number",
+            "example": 101
+          },
+          "order_number": {
+            "type": "object",
+            "example": "ORD-1001",
+            "nullable": true
+          },
+          "shipments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerOrderTrackingShipmentDto"
+            }
+          }
+        },
+        "required": [
+          "order_id",
+          "shipments"
+        ]
+      },
+      "CustomerOrderTrackingResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerOrderTrackingDataDto"
           }
         },
         "required": [
@@ -22081,12 +26718,105 @@
           "data"
         ]
       },
+      "ReturnEligibilityItemDto": {
+        "type": "object",
+        "properties": {
+          "order_item_id": {
+            "type": "number",
+            "example": 101
+          },
+          "product_id": {
+            "type": "number",
+            "example": 55
+          },
+          "product_title": {
+            "type": "object",
+            "example": "Brake Pad Set",
+            "nullable": true
+          },
+          "sku": {
+            "type": "object",
+            "example": "SKU-123",
+            "nullable": true
+          },
+          "ordered_qty": {
+            "type": "number",
+            "example": 2
+          },
+          "shipped_qty": {
+            "type": "number",
+            "example": 2
+          },
+          "already_requested_qty": {
+            "type": "number",
+            "example": 0
+          },
+          "remaining_returnable_qty": {
+            "type": "number",
+            "example": 2
+          },
+          "returnable": {
+            "type": "boolean",
+            "example": true
+          },
+          "return_window_days": {
+            "type": "object",
+            "example": 30,
+            "nullable": true
+          },
+          "return_window_expires_at": {
+            "type": "object",
+            "example": "2026-05-01T00:00:00.000Z",
+            "nullable": true
+          },
+          "return_eligible": {
+            "type": "boolean",
+            "example": true
+          },
+          "return_ineligible_reason": {
+            "type": "object",
+            "example": null,
+            "nullable": true
+          }
+        },
+        "required": [
+          "order_item_id",
+          "product_id",
+          "ordered_qty",
+          "shipped_qty",
+          "already_requested_qty",
+          "remaining_returnable_qty",
+          "returnable",
+          "return_eligible"
+        ]
+      },
+      "ReturnEligibilityResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReturnEligibilityItemDto"
+            }
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
       "CreateCustomerReturnItemDto": {
         "type": "object",
         "properties": {
+          "order_item_id": {
+            "type": "number",
+            "example": 44,
+            "description": "Order line item id (order_group_items.order_item_id)."
+          },
           "order_id": {
             "type": "number",
-            "example": 44
+            "example": 44,
+            "deprecated": true,
+            "description": "Deprecated alias for order_item_id."
           },
           "qty": {
             "type": "number",
@@ -22102,7 +26832,7 @@
           }
         },
         "required": [
-          "order_id",
+          "order_item_id",
           "qty",
           "reason_id"
         ]

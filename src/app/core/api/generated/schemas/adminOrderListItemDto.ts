@@ -4,6 +4,14 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
+import type { AdminOrderListItemDtoApprovalStatus } from "./adminOrderListItemDtoApprovalStatus";
+import type { AdminOrderListItemDtoApprovedAt } from "./adminOrderListItemDtoApprovedAt";
+import type { AdminOrderListItemDtoApprovedBy } from "./adminOrderListItemDtoApprovedBy";
+import type { AdminOrderListItemDtoFulfillmentStatus } from "./adminOrderListItemDtoFulfillmentStatus";
+import type { AdminOrderListItemDtoOverallStatus } from "./adminOrderListItemDtoOverallStatus";
+import type { AdminOrderListItemDtoPaymentStatus } from "./adminOrderListItemDtoPaymentStatus";
+import type { AdminOrderListItemDtoRefundState } from "./adminOrderListItemDtoRefundState";
+import type { AdminOrderListItemDtoReturnState } from "./adminOrderListItemDtoReturnState";
 import type { AdminOrderListItemDtoStatusId } from "./adminOrderListItemDtoStatusId";
 
 export interface AdminOrderListItemDto {
@@ -17,7 +25,23 @@ export interface AdminOrderListItemDto {
   status_id?: AdminOrderListItemDtoStatusId;
   status_name: string;
   is_paid: boolean;
+  /** @nullable */
+  requires_admin_approval?: boolean | null;
+  /** @nullable */
+  is_approved?: boolean | null;
+  /** @nullable */
+  approved_at?: AdminOrderListItemDtoApprovedAt;
+  /** @nullable */
+  approved_by?: AdminOrderListItemDtoApprovedBy;
   is_active: boolean;
+  payment_status: AdminOrderListItemDtoPaymentStatus;
+  approval_status: AdminOrderListItemDtoApprovalStatus;
+  fulfillment_status: AdminOrderListItemDtoFulfillmentStatus;
+  refund_state: AdminOrderListItemDtoRefundState;
+  return_state: AdminOrderListItemDtoReturnState;
+  overall_status: AdminOrderListItemDtoOverallStatus;
+  status_label: string;
+  status_message: string;
   total_qty: number;
   items_count: number;
   grand_total: number;

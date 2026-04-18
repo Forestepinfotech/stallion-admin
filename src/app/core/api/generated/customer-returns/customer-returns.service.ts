@@ -18,8 +18,10 @@ import { Observable } from "rxjs";
 
 import type {
   CreateCustomerReturnRequestDto,
+  CustomerReturnsControllerEligibilityParams,
   CustomerReturnsControllerListRequestsParams,
   CustomerReturnsControllerReasonsParams,
+  ReturnEligibilityResponseDto,
   ReturnMutationResponseDto,
   ReturnReasonsListResponseDto,
   ReturnRequestResponseDto,
@@ -92,6 +94,49 @@ function filterParams(
 @Injectable({ providedIn: "root" })
 export class CustomerReturnsService {
   private readonly http = inject(HttpClient);
+  customerReturnsControllerEligibility<TData = ReturnEligibilityResponseDto>(
+    params: CustomerReturnsControllerEligibilityParams,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  customerReturnsControllerEligibility<TData = ReturnEligibilityResponseDto>(
+    params: CustomerReturnsControllerEligibilityParams,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  customerReturnsControllerEligibility<TData = ReturnEligibilityResponseDto>(
+    params: CustomerReturnsControllerEligibilityParams,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  customerReturnsControllerEligibility<TData = ReturnEligibilityResponseDto>(
+    params: CustomerReturnsControllerEligibilityParams,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/customer/returns/eligibility`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+        params: filteredParams,
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/customer/returns/eligibility`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+        params: filteredParams,
+      });
+    }
+
+    return this.http.get<TData>(`/customer/returns/eligibility`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+      params: filteredParams,
+    });
+  }
   customerReturnsControllerReasons<TData = ReturnReasonsListResponseDto>(
     params?: CustomerReturnsControllerReasonsParams,
     options?: HttpClientOptions & { observe?: "body" },
@@ -263,6 +308,50 @@ export class CustomerReturnsService {
 
     return this.http.get<TData>(
       `/customer/returns/requests/${returnRequestId}`,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
+  customerReturnsControllerLabel<TData = ReturnRequestResponseDto>(
+    returnRequestId: string,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  customerReturnsControllerLabel<TData = ReturnRequestResponseDto>(
+    returnRequestId: string,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  customerReturnsControllerLabel<TData = ReturnRequestResponseDto>(
+    returnRequestId: string,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  customerReturnsControllerLabel<TData = ReturnRequestResponseDto>(
+    returnRequestId: string,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.get<TData>(
+        `/customer/returns/requests/${returnRequestId}/label`,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(
+        `/customer/returns/requests/${returnRequestId}/label`,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.get<TData>(
+      `/customer/returns/requests/${returnRequestId}/label`,
       {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "body",

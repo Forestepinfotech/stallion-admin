@@ -7,6 +7,8 @@
 import type { UsersResponseDtoCountry } from "./usersResponseDtoCountry";
 import type { UsersResponseDtoLine1 } from "./usersResponseDtoLine1";
 import type { UsersResponseDtoLine2 } from "./usersResponseDtoLine2";
+import type { UsersResponseDtoOtpActiveExpiresAt } from "./usersResponseDtoOtpActiveExpiresAt";
+import type { UsersResponseDtoOtpLastGeneratedAt } from "./usersResponseDtoOtpLastGeneratedAt";
 import type { UsersResponseDtoPostalcode } from "./usersResponseDtoPostalcode";
 import type { UsersResponseDtoProvince } from "./usersResponseDtoProvince";
 import type { UsersResponseDtoUsertypename } from "./usersResponseDtoUsertypename";
@@ -40,4 +42,16 @@ export interface UsersResponseDto {
   province?: UsersResponseDtoProvince;
   /** @nullable */
   country?: UsersResponseDtoCountry;
+  /** Total reset OTPs generated for this user */
+  otp_generated_count?: number;
+  /**
+   * Most recent reset OTP generated time (server time)
+   * @nullable
+   */
+  otp_last_generated_at?: UsersResponseDtoOtpLastGeneratedAt;
+  /**
+   * Expiry time for the currently active reset OTP (if any)
+   * @nullable
+   */
+  otp_active_expires_at?: UsersResponseDtoOtpActiveExpiresAt;
 }

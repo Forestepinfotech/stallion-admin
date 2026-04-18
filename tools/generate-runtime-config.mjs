@@ -14,10 +14,13 @@ dotenv.config({ path: envPath });
 const isServerEnv = process.env.IS_SERVER?.trim().toLowerCase();
 const useServerBaseUrl = isServerEnv !== 'false';
 const resolvedApiBaseUrl = useServerBaseUrl ? SERVER_BASE_URL : LOCAL_BASE_URL;
+const resolvedAdminGalleryApiBaseUrl =
+  process.env.ADMIN_GALLERY_API_BASE_URL || resolvedApiBaseUrl;
 const resolvedOpenApiSchemaUrl = `${resolvedApiBaseUrl.replace(/\/+$/, '')}/docs-json`;
 
 const config = {
   apiBaseUrl: resolvedApiBaseUrl,
+  adminGalleryApiBaseUrl: resolvedAdminGalleryApiBaseUrl,
   mediaBaseUrl: process.env.MEDIA_BASE_URL || resolvedApiBaseUrl,
   openApiSchemaUrl: resolvedOpenApiSchemaUrl,
   tokenRefreshLeewaySeconds: Number(process.env.TOKEN_REFRESH_LEEWAY_SECONDS ?? 20),
@@ -29,6 +32,17 @@ const config = {
 const target = path.resolve(projectRoot, 'src/assets/runtime-config.json');
 
 fs.mkdirSync(path.dirname(target), { recursive: true });
-fs.writeFileSync(target, JSON.stringify(config, null, 2));
+const nextContents = JSON.stringify(config, null, 2) + '\n';
+let prevContents = null;
+try {
+  prevContents = fs.readFileSync(target, 'utf8');
+} catch {
+  // File doesn't exist yet
+}
 
-console.log(`runtime-config.json written to ${path.relative(projectRoot, target)}`);
+if (prevContents !== nextContents) {
+  fs.writeFileSync(target, nextContents);
+  console.log(`runtime-config.json written to ${path.relative(projectRoot, target)}`);
+} else {
+  console.log(`runtime-config.json unchanged at ${path.relative(projectRoot, target)}`);
+}

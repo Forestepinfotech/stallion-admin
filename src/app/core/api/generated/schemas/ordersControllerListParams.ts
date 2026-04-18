@@ -18,6 +18,8 @@ export type OrdersControllerListParams = {
   address_id?: number;
   status_id?: number;
   is_paid?: boolean;
+  requires_admin_approval?: boolean;
+  is_approved?: boolean;
   is_active?: boolean;
   min_total_cost?: number;
   max_total_cost?: number;

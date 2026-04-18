@@ -5,12 +5,17 @@
  * OpenAPI spec version: 1.0
  */
 import type { AdminOrderItemDtoCategoryName } from "./adminOrderItemDtoCategoryName";
+import type { AdminOrderItemDtoOrderItemId } from "./adminOrderItemDtoOrderItemId";
 import type { AdminOrderItemDtoProductSlug } from "./adminOrderItemDtoProductSlug";
+import type { AdminOrderItemDtoReturnIneligibleReason } from "./adminOrderItemDtoReturnIneligibleReason";
+import type { AdminOrderItemDtoReturnWindowExpiresAt } from "./adminOrderItemDtoReturnWindowExpiresAt";
 import type { AdminOrderItemDtoSku } from "./adminOrderItemDtoSku";
 import type { AdminOrderItemDtoStatusId } from "./adminOrderItemDtoStatusId";
 import type { AdminOrderItemDtoStatusName } from "./adminOrderItemDtoStatusName";
 
 export interface AdminOrderItemDto {
+  /** @nullable */
+  order_item_id?: AdminOrderItemDtoOrderItemId;
   order_id: number;
   product_id: number;
   product_title: string;
@@ -30,6 +35,16 @@ export interface AdminOrderItemDto {
   status_id?: AdminOrderItemDtoStatusId;
   /** @nullable */
   status_name?: AdminOrderItemDtoStatusName;
+  returnable: boolean;
+  return_window_days: number;
+  /** @nullable */
+  return_window_expires_at?: AdminOrderItemDtoReturnWindowExpiresAt;
+  return_remaining_qty: number;
+  return_eligible: boolean;
+  /** Computed eligibility for starting a return (accounts for return window and already requested quantity). */
+  returnable_eligible: boolean;
+  /** @nullable */
+  return_ineligible_reason?: AdminOrderItemDtoReturnIneligibleReason;
   created_at: string;
   updated_at: string;
 }

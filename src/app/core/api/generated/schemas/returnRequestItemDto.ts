@@ -16,6 +16,7 @@ export interface ReturnRequestItemDto {
   sku?: ReturnRequestItemDtoSku;
   requested_qty: number;
   approved_qty: number;
+  received_qty: number;
   reason_name: string;
   /** @nullable */
   customer_description?: ReturnRequestItemDtoCustomerDescription;

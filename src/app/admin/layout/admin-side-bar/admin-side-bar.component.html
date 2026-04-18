@@ -213,6 +213,66 @@
 
           <span class="font-medium text-gray-800"> Product List </span>
         </a>
+
+        <a
+          routerLink="/admin/gallery"
+          (click)="close.emit()"
+          routerLinkActive="bg-gray-100"
+          class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+        >
+          <!-- gallery icon -->
+          <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5v-11Z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <path
+              d="M8 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
+              fill="currentColor"
+            />
+            <path
+              d="M5.5 18l5-6 3.2 3.2L16 13l3.5 5"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="font-medium text-gray-800">Gallery</span>
+        </a>
+
+        <a
+          routerLink="/admin/excel-import"
+          (click)="close.emit()"
+          routerLinkActive="bg-gray-100"
+          class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition"
+        >
+          <!-- upload icon -->
+          <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 3v10"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M8 7l4-4 4 4"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M4 14v4a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-4"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="font-medium text-gray-800">Excel Import</span>
+        </a>
         <a
           routerLink="/admin/coupons"
           (click)="close.emit()"

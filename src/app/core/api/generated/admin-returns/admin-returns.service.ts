@@ -20,12 +20,14 @@ import type {
   AdminReturnsControllerListReasonsParams,
   AdminReturnsControllerListRequestsParams,
   CreateReturnReasonDto,
+  ReceiveReturnDto,
   ReturnMutationResponseDto,
   ReturnReasonResponseDto,
   ReturnReasonsListResponseDto,
   ReturnRequestResponseDto,
   ReturnRequestsListResponseDto,
   UpdateReturnReasonDto,
+  UpdateReturnRefundDto,
   UpdateReturnStatusDto,
 } from "../schemas";
 
@@ -400,6 +402,108 @@ export class AdminReturnsService {
     return this.http.patch<TData>(
       `/admin/returns/requests/${returnRequestId}/status`,
       updateReturnStatusDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
+  adminReturnsControllerUpdateRefund<TData = ReturnMutationResponseDto>(
+    returnRequestId: string,
+    updateReturnRefundDto: UpdateReturnRefundDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  adminReturnsControllerUpdateRefund<TData = ReturnMutationResponseDto>(
+    returnRequestId: string,
+    updateReturnRefundDto: UpdateReturnRefundDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  adminReturnsControllerUpdateRefund<TData = ReturnMutationResponseDto>(
+    returnRequestId: string,
+    updateReturnRefundDto: UpdateReturnRefundDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  adminReturnsControllerUpdateRefund<TData = ReturnMutationResponseDto>(
+    returnRequestId: string,
+    updateReturnRefundDto: UpdateReturnRefundDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.patch<TData>(
+        `/admin/returns/requests/${returnRequestId}/refund`,
+        updateReturnRefundDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.patch<TData>(
+        `/admin/returns/requests/${returnRequestId}/refund`,
+        updateReturnRefundDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.patch<TData>(
+      `/admin/returns/requests/${returnRequestId}/refund`,
+      updateReturnRefundDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
+  adminReturnsControllerReceive<TData = ReturnMutationResponseDto>(
+    returnRequestId: string,
+    receiveReturnDto: ReceiveReturnDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  adminReturnsControllerReceive<TData = ReturnMutationResponseDto>(
+    returnRequestId: string,
+    receiveReturnDto: ReceiveReturnDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  adminReturnsControllerReceive<TData = ReturnMutationResponseDto>(
+    returnRequestId: string,
+    receiveReturnDto: ReceiveReturnDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  adminReturnsControllerReceive<TData = ReturnMutationResponseDto>(
+    returnRequestId: string,
+    receiveReturnDto: ReceiveReturnDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.patch<TData>(
+        `/admin/returns/requests/${returnRequestId}/receive`,
+        receiveReturnDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.patch<TData>(
+        `/admin/returns/requests/${returnRequestId}/receive`,
+        receiveReturnDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.patch<TData>(
+      `/admin/returns/requests/${returnRequestId}/receive`,
+      receiveReturnDto,
       {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "body",

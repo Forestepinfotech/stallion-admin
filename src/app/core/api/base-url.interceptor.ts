@@ -9,7 +9,13 @@ export const apiBaseUrlInterceptor: HttpInterceptorFn = (req, next) => {
   if (ABSOLUTE_URL.test(req.url)) return next(req);
   if (req.url.startsWith('/assets') || req.url.includes('assets/')) return next(req);
 
-  const base = (config.apiBaseUrl || '').replace(/\/$/, '');
   const path = req.url.startsWith('/') ? req.url : `/${req.url}`;
+
+  const useAdminGalleryBase =
+    path.startsWith('/gallery') || path.startsWith('/uploads/presign');
+
+  const base = (
+    (useAdminGalleryBase ? config.adminGalleryApiBaseUrl : config.apiBaseUrl) || ''
+  ).replace(/\/$/, '');
   return next(req.clone({ url: `${base}${path}` }));
 };

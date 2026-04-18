@@ -1,13 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { finalize, switchMap } from 'rxjs';
 import { AdminReturnsService } from '../../../core/api/generated/admin-returns/admin-returns.service';
 import type {
   AdminReturnsControllerListRequestsParams,
   ReturnRequestDetailDto,
   ReturnRequestListItemDto,
   ReturnRequestsListResponseDtoMeta,
+  UpdateReturnRefundDto,
   UpdateReturnStatusDto,
 } from '../../../core/api/generated/schemas';
 import { ToastService } from '../../../core/notification/toast.service';
@@ -197,8 +198,11 @@ export class AdminProductReturnComponent implements OnInit {
     if (!this.selectedDetail) return;
 
     const value = this.detailForm.getRawValue();
-    const payload: UpdateReturnStatusDto = {
+    const statusPayload: UpdateReturnStatusDto = {
       status: this.emptyToUndefined(value.status),
+      admin_note: this.emptyToUndefined(value.adminNote),
+    };
+    const refundPayload: UpdateReturnRefundDto = {
       refund_status: this.emptyToUndefined(value.refundStatus),
       refund_amount: value.refundAmount ?? undefined,
       refund_eta_note: this.emptyToUndefined(value.refundEtaNote),
@@ -207,7 +211,12 @@ export class AdminProductReturnComponent implements OnInit {
 
     this.savingStatus = true;
     this.returnsApi
-      .adminReturnsControllerUpdateStatus(String(this.selectedDetail.return_request_id), payload)
+      .adminReturnsControllerUpdateStatus(String(this.selectedDetail.return_request_id), statusPayload)
+      .pipe(
+        switchMap(() =>
+          this.returnsApi.adminReturnsControllerUpdateRefund(String(this.selectedDetail!.return_request_id), refundPayload),
+        ),
+      )
       .pipe(finalize(() => (this.savingStatus = false)))
       .subscribe({
         next: (response) => {

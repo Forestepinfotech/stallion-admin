@@ -24,6 +24,8 @@ import { AdminCategoryComponent } from './admin/pages/admin-category/admin-categ
 import { LandingRedirectComponent } from './core/auth/landing-redirect.component';
 import { AdminOrdersComponent } from './admin/pages/admin-orders/admin-orders.component';
 import { AdminOrderDetailComponent } from './admin/pages/admin-order-detail/admin-order-detail.component';
+import { AdminGalleryComponent } from './admin/pages/admin-gallery/admin-gallery.component';
+import { AdminExcelImportComponent } from './admin/pages/admin-excel-import/admin-excel-import.component';
 
 export const routes: Routes = [
   { path: '', component: LandingRedirectComponent },
@@ -106,6 +108,8 @@ export const routes: Routes = [
       { path: 'users', component: AdminUserComponent },
       { path: 'users/:id', component: AdminUserDetailComponent },
       { path: 'category', component: AdminCategoryComponent },
+      { path: 'gallery', component: AdminGalleryComponent },
+      { path: 'excel-import', component: AdminExcelImportComponent },
     ],
   },
 

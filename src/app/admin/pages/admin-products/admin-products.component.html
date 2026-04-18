@@ -23,7 +23,7 @@
         <div class="field-grid field-grid--two">
           <label class="field">
             <span>Category *</span>
-            <select formControlName="categoryId" [disabled]="loadingCategories" [class.is-invalid]="hasError('categoryId')">
+            <select formControlName="categoryId" [class.is-invalid]="hasError('categoryId')">
               <option [ngValue]="null">Select category</option>
               <option *ngFor="let category of categories" [ngValue]="category.category_id">
                 {{ category.category_name }}
@@ -332,7 +332,7 @@
         <div class="field-grid field-grid--two">
           <label class="field">
             <span>Return Window (days)</span>
-            <input type="number" formControlName="returnWindowDays" [disabled]="form.value.returnable !== true" />
+            <input type="number" formControlName="returnWindowDays" />
             <small>Required when the product is returnable.</small>
           </label>
           <div class="field">
@@ -369,7 +369,6 @@
             <textarea
               rows="3"
               formControlName="returnPolicyNote"
-              [disabled]="form.value.returnable !== true"
               placeholder="Example: Return accepted within 30 days in unused condition with original packaging."
             ></textarea>
             <small>Customer-facing explanation shown to support, sales, or storefront surfaces.</small>
@@ -379,7 +378,6 @@
             <textarea
               rows="3"
               formControlName="serialTrackingNote"
-              [disabled]="form.value.requiresSerial !== true"
               placeholder="Capture serial number before dispatch and match it to the order line."
             ></textarea>
             <small>Required when serial tracking is enabled.</small>
@@ -477,12 +475,20 @@
 	        </div>
       </article>
 
-      <article class="product-card">
-        <div class="product-card__header">
-          <div>
-            <h2>Dimensions & Media</h2>
-          </div>
-        </div>
+	      <article class="product-card">
+	        <div class="product-card__header">
+	          <div class="flex items-center justify-between gap-3">
+	            <h2>Dimensions & Media</h2>
+	            <button
+	              type="button"
+	              class="ghost-button ghost-button--small"
+	              [disabled]="!isEditMode"
+	              (click)="openGallery()"
+	            >
+	              Open Gallery
+	            </button>
+	          </div>
+	        </div>
 
         <div class="field-grid field-grid--four">
           <label class="field">

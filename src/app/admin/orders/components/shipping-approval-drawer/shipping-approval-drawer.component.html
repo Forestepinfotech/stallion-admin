@@ -1,0 +1,273 @@
+<app-drawer
+  [open]="open"
+  title="Shipping approval"
+  description="Confirm package, select carrier service, and generate a NetParcel label."
+  widthClass="max-w-3xl"
+  (closed)="close()"
+>
+  <div class="p-6 space-y-6">
+    <div *ngIf="loadingOrder" class="rounded-2xl border bg-gray-50 p-4 text-sm text-gray-600">Loading order…</div>
+
+    <div *ngIf="!loadingOrder && order() as o" class="space-y-6">
+      <div class="rounded-2xl border bg-white p-4">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div class="text-xs text-gray-500">Order</div>
+            <div class="mt-1 text-base font-semibold text-gray-900">{{ o.order_number }} <span class="text-gray-500 font-normal">#{{ o.order_id }}</span></div>
+            <div class="mt-1 text-sm text-gray-700">
+              Ship to: {{ (o.city || '-') + ', ' + (o.province || '-') }} {{ o.postalcode || '-' }} • {{ o.country || '-' }}
+            </div>
+            <div *ngIf="checkoutShipping() as cs" class="mt-2 text-sm text-gray-700">
+              Customer selected:
+              <span class="font-medium text-gray-900">{{ cs.service_name || '-' }}</span>
+              <span class="text-gray-500" *ngIf="cs.service_code"> (code {{ cs.service_code }})</span>
+              <span class="text-gray-500" *ngIf="cs.total_price">
+                • Quote {{ cs.total_price }} {{ cs.currency || '' }}
+              </span>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2" *ngIf="badges() as b">
+            <app-status-badge [label]="b.payment.label" [variant]="b.payment.variant"></app-status-badge>
+            <app-status-badge [label]="b.fulfillment.label" [variant]="b.fulfillment.variant"></app-status-badge>
+          </div>
+        </div>
+        <div class="mt-3 text-xs text-gray-600">{{ o.status_message }}</div>
+      </div>
+
+      <div class="rounded-2xl border bg-white p-4">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="text-sm font-semibold text-gray-900">Warehouse origin (for rates)</div>
+            <div class="mt-1 text-sm text-gray-600">
+              Saved locally for this browser. Backend should ideally provide a configured origin per warehouse.
+            </div>
+          </div>
+          <button type="button" class="rounded-xl border px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50" (click)="clearOrigin()">
+            Clear
+          </button>
+        </div>
+
+        <form class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3" [formGroup]="originForm" (ngSubmit)="saveOrigin()">
+          <label class="text-sm">
+            <div class="text-xs text-gray-500">Country *</div>
+            <input formControlName="country" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm" placeholder="CA / US" />
+          </label>
+          <label class="text-sm">
+            <div class="text-xs text-gray-500">Postal code *</div>
+            <input formControlName="postal_code" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm" placeholder="M5V 2T6" />
+          </label>
+          <label class="text-sm">
+            <div class="text-xs text-gray-500">Province/State</div>
+            <input formControlName="province" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm" placeholder="ON" />
+          </label>
+          <label class="text-sm">
+            <div class="text-xs text-gray-500">City</div>
+            <input formControlName="city" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm" placeholder="Toronto" />
+          </label>
+          <div class="md:col-span-2 flex items-center justify-between gap-3">
+            <div class="text-xs text-gray-500">Required: country + postal code</div>
+            <button
+              type="submit"
+              class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black disabled:opacity-40"
+              [disabled]="originForm.invalid"
+            >
+              Save origin
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="rounded-2xl border bg-white p-4">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="text-sm font-semibold text-gray-900">Package confirmation</div>
+            <div class="mt-1 text-sm text-gray-600">Confirm final packed measurements before label generation.</div>
+          </div>
+        </div>
+
+        <form class="mt-4 space-y-3" [formGroup]="packageForm">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="text-xs text-gray-500">
+              Packages: <span class="font-semibold text-gray-900">{{ packagesArray.length }}</span>
+            </div>
+            <button
+              type="button"
+              (click)="addPackage()"
+              class="rounded-xl border px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"
+            >
+              Add package
+            </button>
+          </div>
+
+          <div formArrayName="packages" class="space-y-3">
+            <div
+              *ngFor="let pkgCtrl of packagesArray.controls; index as i"
+              [formGroupName]="i"
+              class="rounded-2xl border bg-gray-50 p-4"
+            >
+              <div class="flex items-center justify-between gap-3">
+                <div class="text-sm font-semibold text-gray-900">Package {{ i + 1 }}</div>
+                <button
+                  *ngIf="packagesArray.length > 1"
+                  type="button"
+                  (click)="removePackage(i)"
+                  class="rounded-xl border px-3 py-2 text-xs font-medium text-gray-900 hover:bg-gray-100"
+                >
+                  Remove
+                </button>
+              </div>
+
+              <div class="mt-3 grid grid-cols-1 md:grid-cols-4 gap-3">
+                <label class="text-sm">
+                  <div class="text-xs text-gray-500">Weight *</div>
+                  <input type="number" step="0.01" min="0.01" formControlName="weight" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm bg-white" />
+                </label>
+                <label class="text-sm">
+                  <div class="text-xs text-gray-500">Length</div>
+                  <input type="number" step="0.1" min="0" formControlName="length" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm bg-white" />
+                </label>
+                <label class="text-sm">
+                  <div class="text-xs text-gray-500">Width</div>
+                  <input type="number" step="0.1" min="0" formControlName="width" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm bg-white" />
+                </label>
+                <label class="text-sm">
+                  <div class="text-xs text-gray-500">Height</div>
+                  <input type="number" step="0.1" min="0" formControlName="height" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm bg-white" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <label class="text-sm md:col-span-1">
+              <div class="text-xs text-gray-500">Ship date</div>
+              <input type="date" formControlName="ship_date" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm" />
+            </label>
+          </div>
+        </form>
+
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            (click)="fetchRates()"
+            class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 disabled:opacity-40"
+            [disabled]="loadingRates"
+          >
+            {{ loadingRates ? 'Fetching rates…' : 'Fetch carrier rates' }}
+          </button>
+          <div class="text-xs text-gray-500">
+            If dimensions are unknown, you can leave them blank (weight is required).
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border bg-white p-4">
+        <div class="text-sm font-semibold text-gray-900">Carrier service</div>
+        <div class="mt-1 text-sm text-gray-600">Select a service, then generate label.</div>
+
+        <div *ngIf="rates().length === 0" class="mt-4 rounded-2xl border bg-gray-50 p-4 text-sm text-gray-600">
+          No rates loaded yet.
+        </div>
+
+        <div *ngIf="rates().length > 0" class="mt-4 space-y-2">
+          <label
+            *ngFor="let r of rates()"
+            class="flex items-start gap-3 rounded-2xl border p-4 hover:bg-gray-50 cursor-pointer"
+          >
+            <input
+              type="radio"
+              name="rate"
+              class="mt-1"
+              [value]="r.service_code"
+              [checked]="selectedRateCode() === r.service_code"
+              (change)="selectedRateCode.set(r.service_code)"
+            />
+            <div class="min-w-0 flex-1">
+              <div class="flex items-start justify-between gap-3">
+                <div class="font-semibold text-gray-900 truncate">
+                  {{ r.service_name }}
+                  <span
+                    *ngIf="isCustomerSelectedRate(r.service_code)"
+                    class="ml-2 inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-800"
+                  >
+                    Customer selected
+                  </span>
+                </div>
+                <div class="text-sm font-semibold text-gray-900">{{ r.total_price }} {{ r.currency }}</div>
+              </div>
+              <div class="mt-1 text-xs text-gray-600">
+                Code: {{ r.service_code }}
+                <span *ngIf="r.min_delivery_date"> • ETA: {{ $any(r.min_delivery_date) | date: 'mediumDate' }}</span>
+                <span *ngIf="r.max_delivery_date"> → {{ $any(r.max_delivery_date) | date: 'mediumDate' }}</span>
+              </div>
+            </div>
+          </label>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between gap-3">
+          <div class="text-xs text-gray-600" *ngIf="!canShip()">
+            Shipping is disabled until order is paid and (if required) approved.
+          </div>
+          <div class="flex-1"></div>
+          <button
+            type="button"
+            (click)="generateLabel()"
+            class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black disabled:opacity-40"
+            [disabled]="shipping || !canShip() || !selectedRateCode()"
+          >
+            {{ shipping ? 'Generating…' : 'Generate label' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border bg-white p-4">
+        <div class="text-sm font-semibold text-gray-900">Shipments</div>
+        <div class="mt-1 text-sm text-gray-600">Latest shipment label, tracking, and metadata.</div>
+
+        <div *ngIf="o.shipments.length === 0" class="mt-4 rounded-2xl border bg-gray-50 p-4 text-sm text-gray-600">
+          No shipments created yet.
+        </div>
+
+        <div *ngFor="let s of o.shipments" class="mt-4 rounded-2xl border bg-gray-50 p-4 text-sm">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div class="font-semibold text-gray-900">
+                Shipment #{{ s.shipment_id }}
+                <span class="font-normal text-gray-600" *ngIf="s.carrier">({{ s.carrier }})</span>
+              </div>
+              <div class="mt-1 text-xs text-gray-600">
+                Service: {{ s.service_name || '-' }} • Tracking: {{ s.tracking_number || '-' }}
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <a
+                *ngIf="s.label_url"
+                [href]="s.label_url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="rounded-xl border bg-white px-3 py-2 text-xs font-medium text-gray-900 hover:bg-gray-50"
+              >
+                Open label
+              </a>
+              <a
+                *ngIf="s.tracking_url"
+                [href]="s.tracking_url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="rounded-xl border bg-white px-3 py-2 text-xs font-medium text-gray-900 hover:bg-gray-50"
+              >
+                Open tracking
+              </a>
+            </div>
+          </div>
+          <details *ngIf="s.metadata" class="mt-3">
+            <summary class="cursor-pointer select-none text-xs font-medium text-gray-700 hover:text-gray-900">
+              View metadata
+            </summary>
+            <pre class="mt-2 overflow-auto rounded-xl border bg-white p-3 text-xs text-gray-700">{{ s.metadata | json }}</pre>
+          </details>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-drawer>

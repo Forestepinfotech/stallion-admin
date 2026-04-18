@@ -4,8 +4,8 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
-import type { CustomerOrderDetailResponseDtoData } from "./customerOrderDetailResponseDtoData";
+import type { CustomerOrderDetailDto } from "./customerOrderDetailDto";
 
 export interface CustomerOrderDetailResponseDto {
-  data: CustomerOrderDetailResponseDtoData;
+  data: CustomerOrderDetailDto;
 }

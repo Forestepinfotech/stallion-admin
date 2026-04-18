@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 import { AdminOrdersService } from '../../../core/api/generated/admin-orders/admin-orders.service';
 import type {
   AdminOrderListItemDto,
@@ -10,8 +10,26 @@ import type {
   PaginatedOrdersResponseDtoMeta,
 } from '../../../core/api/generated/schemas';
 import { ToastService } from '../../../core/notification/toast.service';
+import { StatusBadgeComponent } from '../../components/status-badge/status-badge.component';
+import { ShippingApprovalDrawerComponent } from '../../orders/components/shipping-approval-drawer/shipping-approval-drawer.component';
+import {
+  approvalBadge,
+  fulfillmentBadge,
+  orderActionsForListRow,
+  paymentBadge,
+  refundBadge,
+  returnBadge,
+} from '../../orders/utils/order-status.util';
 
 type BooleanFilter = 'all' | 'true' | 'false';
+type OrdersQuickView =
+  | 'all'
+  | 'awaiting_approval'
+  | 'ready_to_ship'
+  | 'packing'
+  | 'shipped'
+  | 'return_requested'
+  | 'refund_requested';
 
 interface OrdersMeta {
   page: number;
@@ -22,7 +40,7 @@ interface OrdersMeta {
 
 @Component({
   selector: 'app-admin-orders',
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, StatusBadgeComponent, ShippingApprovalDrawerComponent],
   templateUrl: './admin-orders.component.html',
   styleUrl: './admin-orders.component.css',
 })
@@ -57,6 +75,13 @@ export class AdminOrdersComponent implements OnInit {
   loading = false;
   loadError: string | null = null;
   orders: AdminOrderListItemDto[] = [];
+  quickView: OrdersQuickView = 'all';
+  selected = new Set<number>();
+  bulkApproving = false;
+
+  shippingDrawerOpen = false;
+  shippingDrawerOrderId: string | null = null;
+
   meta: OrdersMeta = { page: 1, limit: 50, total: 0, totalPages: 1 };
   appliedParams: OrdersControllerListParams = { page: 1, limit: 50, sortBy: 'created_at' };
 
@@ -141,6 +166,121 @@ export class AdminOrdersComponent implements OnInit {
     return item.order_id;
   }
 
+  displayedOrders(): AdminOrderListItemDto[] {
+    const list = this.orders;
+    switch (this.quickView) {
+      case 'awaiting_approval':
+        return list.filter((o) => o.approval_status === 'pending' && o.payment_status === 'paid');
+      case 'ready_to_ship':
+        return list.filter(
+          (o) =>
+            o.payment_status === 'paid' &&
+            (o.approval_status === 'approved' || o.approval_status === 'not_required') &&
+            (o.fulfillment_status === 'pending' || o.fulfillment_status === 'processing') &&
+            o.overall_status !== 'cancelled',
+        );
+      case 'packing':
+        return list.filter((o) => o.fulfillment_status === 'processing');
+      case 'shipped':
+        return list.filter((o) => o.fulfillment_status === 'shipped' || o.fulfillment_status === 'delivered');
+      case 'return_requested':
+        return list.filter((o) => o.return_state === 'requested' || o.return_state === 'in_review');
+      case 'refund_requested':
+        return list.filter((o) => o.refund_state === 'requested' || o.refund_state === 'in_review');
+      default:
+        return list;
+    }
+  }
+
+  setQuickView(view: OrdersQuickView): void {
+    this.quickView = view;
+    this.selected.clear();
+  }
+
+  toggleAll(checked: boolean): void {
+    this.selected.clear();
+    if (!checked) return;
+    for (const o of this.displayedOrders()) {
+      this.selected.add(o.order_id);
+    }
+  }
+
+  toggleOne(orderId: number, checked: boolean): void {
+    if (checked) this.selected.add(orderId);
+    else this.selected.delete(orderId);
+  }
+
+  isSelected(orderId: number): boolean {
+    return this.selected.has(orderId);
+  }
+
+  openShipping(orderId: number): void {
+    this.shippingDrawerOrderId = String(orderId);
+    this.shippingDrawerOpen = true;
+  }
+
+  closeShipping(): void {
+    this.shippingDrawerOpen = false;
+    this.shippingDrawerOrderId = null;
+  }
+
+  approveFromList(orderId: number): void {
+    const order = this.orders.find((o) => o.order_id === orderId);
+    if (!order) return;
+    const actions = orderActionsForListRow(order);
+    if (!actions.canApprove) return;
+    this.ordersApi.ordersControllerApprove(String(orderId)).subscribe({
+      next: () => {
+        this.toast.success('Order approved.');
+        this.loadOrders();
+      },
+      error: (error: unknown) => this.toast.error(this.getApiErrorMessage(error, 'Failed to approve order.')),
+    });
+  }
+
+  bulkApproveSelected(): void {
+    if (this.bulkApproving) return;
+    const selectedOrders = this.orders.filter((o) => this.selected.has(o.order_id));
+    const targets = selectedOrders.filter((o) => orderActionsForListRow(o).canApprove);
+    if (targets.length === 0) {
+      this.toast.error('No selected orders are eligible for approval.');
+      return;
+    }
+
+    this.bulkApproving = true;
+    forkJoin(targets.map((o) => this.ordersApi.ordersControllerApprove(String(o.order_id))))
+      .pipe(finalize(() => (this.bulkApproving = false)))
+      .subscribe({
+        next: () => {
+          this.toast.success(`Approved ${targets.length} order(s).`);
+          this.selected.clear();
+          this.loadOrders();
+        },
+        error: (error: unknown) => {
+          this.toast.error(this.getApiErrorMessage(error, 'Bulk approve failed.'));
+        },
+      });
+  }
+
+  paymentBadgeFor(order: AdminOrderListItemDto) {
+    return paymentBadge(order.payment_status);
+  }
+  approvalBadgeFor(order: AdminOrderListItemDto) {
+    return approvalBadge(order.approval_status);
+  }
+  fulfillmentBadgeFor(order: AdminOrderListItemDto) {
+    return fulfillmentBadge(order.fulfillment_status);
+  }
+  returnBadgeFor(order: AdminOrderListItemDto) {
+    return returnBadge(order.return_state);
+  }
+  refundBadgeFor(order: AdminOrderListItemDto) {
+    return refundBadge(order.refund_state);
+  }
+  actionsFor(order: AdminOrderListItemDto) {
+    return orderActionsForListRow(order);
+  }
+
   private loadOrders(params: OrdersControllerListParams = this.appliedParams): void {
     this.appliedParams = params;
     this.loading = true;
@@ -151,10 +291,12 @@ export class AdminOrdersComponent implements OnInit {
       .subscribe({
         next: (response) => {
           this.orders = Array.isArray(response.data) ? response.data : [];
+          this.selected.clear();
           this.meta = this.normalizeMeta(response.meta, params.page ?? 1, params.limit ?? 50);
         },
         error: (error: unknown) => {
           this.orders = [];
+          this.selected.clear();
           this.meta = this.normalizeMeta(undefined, params.page ?? 1, params.limit ?? 50);
           this.loadError = this.getApiErrorMessage(error, 'Failed to load orders.');
           this.toast.error(this.loadError);

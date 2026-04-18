@@ -17,8 +17,10 @@ import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
 
 import type {
+  CustomerCancelOrderDto,
   CustomerOrderDetailResponseDto,
   CustomerOrderListResponseDto,
+  CustomerOrderTrackingResponseDto,
   CustomerOrdersControllerListParams,
 } from "../schemas";
 
@@ -162,6 +164,130 @@ export class CustomerOrdersService {
     }
 
     return this.http.get<TData>(`/customer/orders/${orderId}`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+    });
+  }
+  customerOrdersControllerCancel<TData = CustomerOrderDetailResponseDto>(
+    orderId: string,
+    customerCancelOrderDto: CustomerCancelOrderDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  customerOrdersControllerCancel<TData = CustomerOrderDetailResponseDto>(
+    orderId: string,
+    customerCancelOrderDto: CustomerCancelOrderDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  customerOrdersControllerCancel<TData = CustomerOrderDetailResponseDto>(
+    orderId: string,
+    customerCancelOrderDto: CustomerCancelOrderDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  customerOrdersControllerCancel<TData = CustomerOrderDetailResponseDto>(
+    orderId: string,
+    customerCancelOrderDto: CustomerCancelOrderDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.post<TData>(
+        `/customer/orders/${orderId}/cancel`,
+        customerCancelOrderDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.post<TData>(
+        `/customer/orders/${orderId}/cancel`,
+        customerCancelOrderDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.post<TData>(
+      `/customer/orders/${orderId}/cancel`,
+      customerCancelOrderDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
+  customerOrdersControllerTracking<TData = CustomerOrderTrackingResponseDto>(
+    orderId: string,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  customerOrdersControllerTracking<TData = CustomerOrderTrackingResponseDto>(
+    orderId: string,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  customerOrdersControllerTracking<TData = CustomerOrderTrackingResponseDto>(
+    orderId: string,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  customerOrdersControllerTracking<TData = CustomerOrderTrackingResponseDto>(
+    orderId: string,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/customer/orders/${orderId}/tracking`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/customer/orders/${orderId}/tracking`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+      });
+    }
+
+    return this.http.get<TData>(`/customer/orders/${orderId}/tracking`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+    });
+  }
+  customerOrdersControllerInvoice(
+    orderId: string,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<Blob>;
+  customerOrdersControllerInvoice(
+    orderId: string,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<Blob>>;
+  customerOrdersControllerInvoice(
+    orderId: string,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<Blob>>;
+  customerOrdersControllerInvoice(
+    orderId: string,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<Blob | HttpEvent<Blob> | AngularHttpResponse<Blob>> {
+    if (options?.observe === "events") {
+      return this.http.get(`/customer/orders/${orderId}/invoice`, {
+        responseType: "blob",
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get(`/customer/orders/${orderId}/invoice`, {
+        responseType: "blob",
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+      });
+    }
+
+    return this.http.get(`/customer/orders/${orderId}/invoice`, {
+      responseType: "blob",
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
     });

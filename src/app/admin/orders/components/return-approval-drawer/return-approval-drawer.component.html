@@ -1,0 +1,279 @@
+<app-drawer
+  [open]="open"
+  title="Return approval"
+  description="Review items, generate return label (optional), receive items, and manage refund."
+  widthClass="max-w-3xl"
+  (closed)="close()"
+>
+  <div class="p-6 space-y-6">
+    <div *ngIf="loading" class="rounded-2xl border bg-gray-50 p-4 text-sm text-gray-600">Loading return…</div>
+
+    <ng-container *ngIf="!loading && request() as r">
+      <div class="rounded-2xl border bg-white p-4">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div class="text-xs text-gray-500">Return</div>
+            <div class="mt-1 text-base font-semibold text-gray-900">
+              {{ r.return_number }} <span class="text-gray-500 font-normal">#{{ r.return_request_id }}</span>
+            </div>
+            <div class="mt-1 text-sm text-gray-700">Order: {{ r.order_number }} • Requested: {{ r.requested_at | date: 'medium' }}</div>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <app-status-badge [label]="'Status: ' + r.status" variant="info"></app-status-badge>
+            <app-status-badge [label]="'Refund: ' + r.refund_status" variant="neutral"></app-status-badge>
+          </div>
+        </div>
+        <div *ngIf="r.customer_note" class="mt-3 rounded-xl border bg-gray-50 p-3 text-sm text-gray-700">
+          <div class="text-[11px] uppercase tracking-wider text-gray-500">Customer note</div>
+          <div class="mt-1">{{ r.customer_note }}</div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border bg-white p-4">
+        <div class="text-sm font-semibold text-gray-900">Items</div>
+        <div class="mt-1 text-sm text-gray-600">
+          Approve quantities per item (partial approvals require a backend endpoint; see notes).
+        </div>
+
+        <div class="mt-4 overflow-auto rounded-2xl border">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
+              <tr>
+                <th class="px-4 py-3 text-left">Item</th>
+                <th class="px-4 py-3 text-right">Requested</th>
+                <th class="px-4 py-3 text-right">Approved</th>
+                <th class="px-4 py-3 text-right">Received</th>
+                <th class="px-4 py-3 text-left">Reason</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y bg-white">
+              <tr *ngFor="let item of r.items">
+                <td class="px-4 py-3">
+                  <div class="font-semibold text-gray-900">{{ item.product_title }}</div>
+                  <div class="text-xs text-gray-500" *ngIf="item.sku">SKU: {{ item.sku }}</div>
+                </td>
+                <td class="px-4 py-3 text-right font-semibold text-gray-900">{{ item.requested_qty }}</td>
+                <td class="px-4 py-3 text-right">
+                  <input
+                    type="number"
+                    min="0"
+                    [max]="item.requested_qty"
+                    class="w-24 rounded-xl border px-3 py-2 text-sm text-right disabled:bg-gray-50"
+                    [disabled]="!canEditApprovals()"
+                    [value]="approvedQty()[item.return_request_item_id]"
+                    (input)="setApprovedQty(item.return_request_item_id, $any($event.target).value)"
+                  />
+                </td>
+                <td class="px-4 py-3 text-right">
+                  <input
+                    type="number"
+                    min="0"
+                    [max]="item.approved_qty || item.requested_qty"
+                    class="w-24 rounded-xl border px-3 py-2 text-sm text-right disabled:bg-gray-50"
+                    [disabled]="r.status !== 'approved' && r.status !== 'received'"
+                    [value]="receivedQty()[item.return_request_item_id]"
+                    (input)="setReceivedQty(item.return_request_item_id, $any($event.target).value)"
+                  />
+                </td>
+                <td class="px-4 py-3">
+                  <div class="text-sm text-gray-700">{{ item.reason_name }}</div>
+                  <div class="text-xs text-gray-500" *ngIf="item.customer_description">{{ item.customer_description }}</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <label class="text-sm md:col-span-2">
+            <div class="text-xs text-gray-500">Admin note</div>
+            <textarea
+              rows="2"
+              class="mt-1 w-full rounded-xl border px-3 py-2 text-sm"
+              placeholder="Explain approval/rejection, policy, and any deductions."
+              [formControl]="reviewForm.controls.admin_note"
+            ></textarea>
+          </label>
+          <div class="flex flex-col justify-end gap-2">
+            <button
+              type="button"
+              (click)="moveToReview()"
+              class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 disabled:opacity-40"
+              [disabled]="saving || r.status === 'in_review'"
+            >
+              Move to review
+            </button>
+            <button
+              type="button"
+              (click)="rejectReturn()"
+              class="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-100 disabled:opacity-40"
+              [disabled]="saving || r.status === 'rejected'"
+            >
+              Reject
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border bg-white p-4">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="text-sm font-semibold text-gray-900">Return label (optional)</div>
+            <div class="mt-1 text-sm text-gray-600">
+              Generate a prepaid return label via NetParcel when approving.
+            </div>
+          </div>
+          <a
+            *ngIf="r.return_label && labelUrlFromReturnLabel(r.return_label)"
+            [href]="labelUrlFromReturnLabel(r.return_label)!"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="rounded-xl border bg-white px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"
+          >
+            Open label
+          </a>
+        </div>
+
+        <div *ngIf="!order()" class="mt-4 rounded-2xl border bg-amber-50 p-4 text-sm text-amber-900">
+          Order address is required to fetch return-label rates. Pass `orderId` to this drawer.
+        </div>
+
+        <form class="mt-4 grid grid-cols-1 md:grid-cols-4 gap-3" [formGroup]="returnPackageForm">
+          <label class="text-sm">
+            <div class="text-xs text-gray-500">Weight *</div>
+            <input type="number" step="0.01" min="0.01" formControlName="weight" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm" />
+          </label>
+          <label class="text-sm">
+            <div class="text-xs text-gray-500">Length</div>
+            <input type="number" step="0.1" min="0" formControlName="length" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm" />
+          </label>
+          <label class="text-sm">
+            <div class="text-xs text-gray-500">Width</div>
+            <input type="number" step="0.1" min="0" formControlName="width" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm" />
+          </label>
+          <label class="text-sm">
+            <div class="text-xs text-gray-500">Height</div>
+            <input type="number" step="0.1" min="0" formControlName="height" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm" />
+          </label>
+        </form>
+
+        <div class="mt-4 flex items-center justify-between gap-3">
+          <button
+            type="button"
+            (click)="fetchReturnLabelRates()"
+            class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 disabled:opacity-40"
+            [disabled]="loadingRates || !order()"
+          >
+            {{ loadingRates ? 'Fetching rates…' : 'Fetch return-label rates' }}
+          </button>
+          <div class="text-xs text-gray-500">Warehouse origin comes from local settings.</div>
+        </div>
+
+        <div *ngIf="rates().length > 0" class="mt-4 space-y-2">
+          <label
+            *ngFor="let rr of rates()"
+            class="flex items-start gap-3 rounded-2xl border p-4 hover:bg-gray-50 cursor-pointer"
+          >
+            <input
+              type="radio"
+              name="returnRate"
+              class="mt-1"
+              [value]="rr.service_code"
+              [checked]="selectedRateCode() === rr.service_code"
+              (change)="selectedRateCode.set(rr.service_code)"
+            />
+            <div class="min-w-0 flex-1">
+              <div class="flex items-start justify-between gap-3">
+                <div class="font-semibold text-gray-900 truncate">{{ rr.service_name }}</div>
+                <div class="text-sm font-semibold text-gray-900">{{ rr.total_price }} {{ rr.currency }}</div>
+              </div>
+              <div class="mt-1 text-xs text-gray-600">Code: {{ rr.service_code }}</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="mt-4 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            (click)="approveReturn()"
+            class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black disabled:opacity-40"
+            [disabled]="saving || r.status === 'approved'"
+          >
+            Approve
+          </button>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border bg-white p-4">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="text-sm font-semibold text-gray-900">Receive items</div>
+            <div class="mt-1 text-sm text-gray-600">Record received quantities to unlock final refund steps.</div>
+          </div>
+          <button
+            type="button"
+            (click)="receiveReturn()"
+            class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 disabled:opacity-40"
+            [disabled]="saving || (r.status !== 'approved' && r.status !== 'received')"
+          >
+            Save received
+          </button>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border bg-white p-4">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="text-sm font-semibold text-gray-900">Refund</div>
+            <div class="mt-1 text-sm text-gray-600">
+              Set refund amounts/status. If return shipping is deducted, record it in the admin note.
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="updateRefund()"
+            class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 disabled:opacity-40"
+            [disabled]="saving"
+          >
+            Save refund
+          </button>
+        </div>
+
+        <form class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3" [formGroup]="refundForm">
+          <label class="text-sm">
+            <div class="text-xs text-gray-500">Refund status</div>
+            <input formControlName="refund_status" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm" placeholder="in_review / approved / refunded" />
+          </label>
+          <label class="text-sm">
+            <div class="text-xs text-gray-500">Refund amount</div>
+            <input type="number" step="0.01" min="0" formControlName="refund_amount" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm" />
+          </label>
+          <label class="text-sm md:col-span-2">
+            <div class="text-xs text-gray-500">Refund ETA note</div>
+            <input formControlName="refund_eta_note" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm" placeholder="e.g. 3–5 business days" />
+          </label>
+          <label class="text-sm md:col-span-2">
+            <div class="text-xs text-gray-500">Admin note</div>
+            <textarea rows="2" formControlName="admin_note" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm"></textarea>
+          </label>
+        </form>
+      </div>
+
+      <div class="rounded-2xl border bg-white p-4">
+        <div class="text-sm font-semibold text-gray-900">History</div>
+        <div class="mt-1 text-sm text-gray-600">Events captured for this return request.</div>
+        <div *ngIf="r.events?.length" class="mt-4 space-y-2">
+          <div *ngFor="let e of r.events" class="rounded-xl border bg-gray-50 p-3 text-sm">
+            <div class="flex items-start justify-between gap-3">
+              <div class="font-semibold text-gray-900">{{ e.event_type }}</div>
+              <div class="text-xs text-gray-600">{{ e.created_at | date: 'medium' }}</div>
+            </div>
+            <div *ngIf="e.note" class="mt-1 text-sm text-gray-700">{{ e.note }}</div>
+            <pre *ngIf="e.metadata" class="mt-2 overflow-auto rounded-xl border bg-white p-3 text-xs text-gray-700">{{ e.metadata | json }}</pre>
+          </div>
+        </div>
+        <div *ngIf="!r.events?.length" class="mt-4 rounded-2xl border bg-gray-50 p-4 text-sm text-gray-600">No events.</div>
+      </div>
+    </ng-container>
+  </div>
+</app-drawer>

@@ -6,13 +6,16 @@
  */
 import type { AdminOrderReturnDtoAdminNote } from "./adminOrderReturnDtoAdminNote";
 import type { AdminOrderReturnDtoApprovedAt } from "./adminOrderReturnDtoApprovedAt";
+import type { AdminOrderReturnDtoCancelledAt } from "./adminOrderReturnDtoCancelledAt";
 import type { AdminOrderReturnDtoCustomerNote } from "./adminOrderReturnDtoCustomerNote";
+import type { AdminOrderReturnDtoReceivedAt } from "./adminOrderReturnDtoReceivedAt";
 import type { AdminOrderReturnDtoRefundedAt } from "./adminOrderReturnDtoRefundedAt";
 import type { AdminOrderReturnDtoRefundEtaNote } from "./adminOrderReturnDtoRefundEtaNote";
 import type { AdminOrderReturnDtoRejectedAt } from "./adminOrderReturnDtoRejectedAt";
 import type { AdminOrderReturnDtoRequestedAt } from "./adminOrderReturnDtoRequestedAt";
 import type { AdminOrderReturnDtoReturnNumber } from "./adminOrderReturnDtoReturnNumber";
 import type { AdminOrderReturnDtoReviewedAt } from "./adminOrderReturnDtoReviewedAt";
+import type { AdminOrderReturnEventDto } from "./adminOrderReturnEventDto";
 import type { AdminOrderReturnItemDto } from "./adminOrderReturnItemDto";
 
 export interface AdminOrderReturnDto {
@@ -38,6 +41,11 @@ export interface AdminOrderReturnDto {
   /** @nullable */
   rejected_at?: AdminOrderReturnDtoRejectedAt;
   /** @nullable */
+  cancelled_at?: AdminOrderReturnDtoCancelledAt;
+  /** @nullable */
+  received_at?: AdminOrderReturnDtoReceivedAt;
+  /** @nullable */
   refunded_at?: AdminOrderReturnDtoRefundedAt;
   items: AdminOrderReturnItemDto[];
+  events?: AdminOrderReturnEventDto[];
 }

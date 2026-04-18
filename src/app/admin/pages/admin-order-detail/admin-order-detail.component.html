@@ -1,145 +1,1639 @@
 <div class="space-y-6">
   <div class="flex items-center gap-3">
-    <a routerLink="/admin/orders" class="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50">
+    <a
+      routerLink="/admin/orders"
+      class="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"
+    >
       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
-        <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path
+          d="M15 18l-6-6 6-6"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
       Back to Orders
     </a>
   </div>
 
-  <div *ngIf="loading" class="rounded-3xl border bg-white px-6 py-10 text-center text-sm text-gray-500 shadow-sm">
+  <div
+    *ngIf="refunding"
+    class="rounded-3xl border border-amber-200 bg-amber-50 px-6 py-4 text-sm text-amber-900 shadow-sm"
+  >
+    <div class="flex items-start gap-3">
+      <svg
+        class="mt-0.5 h-5 w-5 animate-spin text-amber-700"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M12 2a10 10 0 1 0 10 10"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+      <div>
+        <div class="font-semibold">Refund in progress...</div>
+        <div class="mt-1 text-amber-800/90">
+          Submitting refund request to the payment gateway. Please don’t close
+          this page.
+        </div>
+        <div *ngIf="refundStartedAt" class="mt-1 text-xs text-amber-800/80">
+          Started: {{ refundStartedAt | date: "mediumTime" }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    *ngIf="!refunding && refundUiError"
+    class="rounded-3xl border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-800 shadow-sm"
+  >
+    <div class="font-semibold text-red-900">Refund failed</div>
+    <div class="mt-1">{{ refundUiError }}</div>
+  </div>
+
+  <div
+    *ngIf="!refunding && refundUiMessage"
+    class="rounded-3xl border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm text-emerald-900 shadow-sm"
+  >
+    <div class="font-semibold">Refund update</div>
+    <div class="mt-1">{{ refundUiMessage }}</div>
+  </div>
+
+  <div
+    *ngIf="loading"
+    class="rounded-3xl border bg-white px-6 py-10 text-center text-sm text-gray-500 shadow-sm"
+  >
     Loading order details...
   </div>
 
-  <div *ngIf="!loading && loadError" class="rounded-3xl border border-red-200 bg-red-50 px-6 py-8 text-sm text-red-700 shadow-sm">
+  <div
+    *ngIf="!loading && loadError"
+    class="rounded-3xl border border-red-200 bg-red-50 px-6 py-8 text-sm text-red-700 shadow-sm"
+  >
     <div class="font-semibold text-red-800">Unable to load order details</div>
     <div class="mt-1">{{ loadError }}</div>
-    <button type="button" (click)="retry()" class="mt-4 rounded-xl border border-red-200 bg-white px-4 py-2 font-medium text-red-700 transition hover:bg-red-100">
+    <button
+      type="button"
+      (click)="retry()"
+      class="mt-4 rounded-xl border border-red-200 bg-white px-4 py-2 font-medium text-red-700 transition hover:bg-red-100"
+    >
       Try Again
     </button>
   </div>
 
   <ng-container *ngIf="!loading && !loadError && order">
-    <div class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
+    <div
+      class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl"
+    >
       <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
         <div class="md:col-span-2">
-          <div class="text-xs uppercase tracking-[0.24em] text-white/60">Order Detail</div>
-          <h1 class="mt-2 text-2xl md:text-3xl font-semibold">{{ order.order_number }}</h1>
-          <p class="mt-2 text-sm text-white/70">Full order information with included products and direct product navigation.</p>
+          <div class="text-xs uppercase tracking-[0.24em] text-white/60">
+            Order Detail
+          </div>
+          <h1 class="mt-2 text-2xl md:text-3xl font-semibold">
+            {{ order.order_number }}
+          </h1>
+          <p class="mt-2 text-sm text-white/70">
+            Full order information with included products and direct product
+            navigation.
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span
+              class="text-xs font-medium px-3 py-1 rounded-full border"
+              [ngClass]="
+                order.is_paid
+                  ? 'bg-emerald-500/10 text-emerald-200 border-emerald-500/20'
+                  : 'bg-amber-500/10 text-amber-200 border-amber-500/20'
+              "
+            >
+              {{ order.status_label }}
+            </span>
+
+            <span
+              class="text-xs font-medium px-3 py-1 rounded-full border"
+              [ngClass]="
+                order.requires_admin_approval
+                  ? 'bg-white/10 text-white/80 border-white/15'
+                  : 'bg-emerald-500/10 text-emerald-200 border-emerald-500/20'
+              "
+            >
+              {{
+                order.requires_admin_approval
+                  ? "Admin Approval Required"
+                  : "Auto Approval"
+              }}
+            </span>
+            <span
+              *ngIf="order.requires_admin_approval"
+              class="text-xs font-medium px-3 py-1 rounded-full border"
+              [ngClass]="
+                order.is_approved
+                  ? 'bg-emerald-500/10 text-emerald-200 border-emerald-500/20'
+                  : 'bg-amber-500/10 text-amber-200 border-amber-500/20'
+              "
+            >
+              {{ order.is_approved ? "Approved" : "Not Approved" }}
+            </span>
+          </div>
         </div>
         <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
           <div class="text-xs text-white/70">Order Id</div>
           <div class="text-xl font-semibold mt-1">#{{ order.order_id }}</div>
         </div>
-          <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
-            <div class="text-xs text-white/70">Total Cost</div>
-            <div class="text-xl font-semibold mt-1">{{ order.total_cost | currency:'USD':'symbol':'1.0-2' }}</div>
+        <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+          <div class="text-xs text-white/70">Total Cost</div>
+          <div class="text-xl font-semibold mt-1">
+            {{ order.total_cost | currency: "USD" : "symbol" : "1.0-2" }}
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-6">
-      <article class="rounded-3xl border bg-white shadow-sm overflow-hidden">
-        <div class="px-6 py-5 border-b">
-          <div class="text-lg font-semibold text-gray-900">Order Information</div>
-          <div class="text-sm text-gray-500">Operational information returned by the orders API.</div>
+    <div class="rounded-3xl border bg-white shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b bg-gray-50/60 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex flex-wrap gap-2">
+          <app-status-badge
+            [label]="paymentBadgeLabel(order).label"
+            [variant]="paymentBadgeLabel(order).variant"
+          ></app-status-badge>
+          <app-status-badge
+            [label]="approvalBadgeLabel(order).label"
+            [variant]="approvalBadgeLabel(order).variant"
+          ></app-status-badge>
+          <app-status-badge
+            [label]="fulfillmentBadgeLabel(order).label"
+            [variant]="fulfillmentBadgeLabel(order).variant"
+          ></app-status-badge>
+          <app-status-badge
+            [label]="returnBadgeLabel(order).label"
+            [variant]="returnBadgeLabel(order).variant"
+          ></app-status-badge>
+          <app-status-badge
+            [label]="refundBadgeLabel(order).label"
+            [variant]="refundBadgeLabel(order).variant"
+          ></app-status-badge>
         </div>
-        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div class="rounded-2xl border bg-gray-50 p-4">
-            <div class="text-xs text-gray-500">User Id</div>
-            <div class="mt-1 font-semibold text-gray-900">#{{ order.user_id }}</div>
-          </div>
-          <div class="rounded-2xl border bg-gray-50 p-4">
-            <div class="text-xs text-gray-500">Address Id</div>
-            <div class="mt-1 font-semibold text-gray-900">#{{ order.address_id }}</div>
-          </div>
-          <div class="rounded-2xl border bg-gray-50 p-4">
-            <div class="text-xs text-gray-500">Country Id</div>
-            <div class="mt-1 font-semibold text-gray-900">#{{ order.country_id }}</div>
-          </div>
-          <div class="rounded-2xl border bg-gray-50 p-4">
-            <div class="text-xs text-gray-500">Status Id</div>
-            <div class="mt-1 font-semibold text-gray-900">#{{ order.status_id }}</div>
-          </div>
-          <div class="rounded-2xl border bg-gray-50 p-4">
-            <div class="text-xs text-gray-500">Buying Qty</div>
-            <div class="mt-1 font-semibold text-gray-900">{{ order.summary.total_qty }}</div>
-          </div>
-          <div class="rounded-2xl border bg-gray-50 p-4">
-            <div class="text-xs text-gray-500">Subtotal</div>
-            <div class="mt-1 font-semibold text-gray-900">{{ order.summary.subtotal | currency:'USD':'symbol':'1.0-2' }}</div>
-          </div>
-          <div class="rounded-2xl border bg-gray-50 p-4">
-            <div class="text-xs text-gray-500">Tax</div>
-            <div class="mt-1 font-semibold text-gray-900">{{ order.buying_tax | currency:'USD':'symbol':'1.0-2' }}</div>
-          </div>
-          <div class="rounded-2xl border bg-gray-50 p-4">
-            <div class="text-xs text-gray-500">Discount</div>
-            <div class="mt-1 font-semibold text-gray-900">{{ order.discount | currency:'USD':'symbol':'1.0-2' }}</div>
-          </div>
-          <div class="rounded-2xl border bg-gray-50 p-4">
-            <div class="text-xs text-gray-500">Payment</div>
-            <div class="mt-1">
-              <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="order.is_paid ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'">
-                {{ order.is_paid ? 'Paid' : 'Pending' }}
-              </span>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            (click)="openShipping()"
+            class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black"
+          >
+            Shipping
+          </button>
+          <button
+            type="button"
+            (click)="setTab('returns')"
+            class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"
+          >
+            Returns
+          </button>
+        </div>
+      </div>
+
+      <nav class="px-6 py-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          (click)="setTab('summary')"
+          class="rounded-full border px-3 py-1.5 text-xs font-medium"
+          [ngClass]="tab() === 'summary' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 hover:bg-gray-50'"
+        >
+          Summary
+        </button>
+        <button
+          type="button"
+          (click)="setTab('items')"
+          class="rounded-full border px-3 py-1.5 text-xs font-medium"
+          [ngClass]="tab() === 'items' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 hover:bg-gray-50'"
+        >
+          Items
+        </button>
+        <button
+          type="button"
+          (click)="setTab('shipping')"
+          class="rounded-full border px-3 py-1.5 text-xs font-medium"
+          [ngClass]="tab() === 'shipping' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 hover:bg-gray-50'"
+        >
+          Shipping
+        </button>
+        <button
+          type="button"
+          (click)="setTab('returns')"
+          class="rounded-full border px-3 py-1.5 text-xs font-medium"
+          [ngClass]="tab() === 'returns' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 hover:bg-gray-50'"
+        >
+          Returns
+        </button>
+        <button
+          type="button"
+          (click)="setTab('refunds')"
+          class="rounded-full border px-3 py-1.5 text-xs font-medium"
+          [ngClass]="tab() === 'refunds' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 hover:bg-gray-50'"
+        >
+          Refunds
+        </button>
+        <button
+          type="button"
+          (click)="setTab('timeline')"
+          class="rounded-full border px-3 py-1.5 text-xs font-medium"
+          [ngClass]="tab() === 'timeline' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 hover:bg-gray-50'"
+        >
+          Timeline
+        </button>
+      </nav>
+    </div>
+
+    <div
+      class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-6"
+    >
+      <div class="space-y-6" *ngIf="tab() === 'summary'">
+        <article
+          class="rounded-3xl border border-gray-200/70 bg-white shadow-sm overflow-hidden"
+        >
+          <div class="px-6 py-5 border-b border-gray-200/70 bg-gray-50/60">
+            <div class="text-lg font-semibold text-gray-900">
+              Customer & Address
+            </div>
+            <div class="text-sm text-gray-500">
+              Customer contact details and delivery address.
             </div>
           </div>
-          <div class="rounded-2xl border bg-gray-50 p-4">
-            <div class="text-xs text-gray-500">Record State</div>
-            <div class="mt-1 font-semibold text-gray-900">
-              {{ order.is_active ? 'Active' : 'Inactive' }}
-            </div>
-          </div>
-        </div>
 
-        <div class="px-6 pb-6">
-          <div class="rounded-2xl border bg-gray-50 p-4">
-            <div class="text-xs text-gray-500">Order Note</div>
-            <div class="mt-1 text-sm text-gray-800">{{ order.order_note || 'No order note provided.' }}</div>
-          </div>
-        </div>
-      </article>
-
-      <article class="rounded-3xl border bg-white shadow-sm overflow-hidden">
-        <div class="px-6 py-5 border-b">
-          <div class="text-lg font-semibold text-gray-900">Included Products</div>
-          <div class="text-sm text-gray-500">Every item returned by the order detail API is listed here.</div>
-        </div>
-
-        <div class="p-6">
-          <div class="rounded-3xl border overflow-hidden">
-            <div class="hidden md:grid grid-cols-[minmax(0,1.2fr)_120px_140px_160px] gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold tracking-wider uppercase text-gray-500">
-              <div>Product</div>
-              <div>Qty</div>
-              <div>Price</div>
-              <div>Action</div>
-            </div>
-
-            <div *ngFor="let item of order.items" class="px-5 py-5 grid grid-cols-1 gap-4 border-t first:border-t-0 md:grid-cols-[minmax(0,1.2fr)_120px_140px_160px] md:items-center">
-              <div>
-                <div class="font-semibold text-gray-900">{{ item.product_title }}</div>
-                <div class="text-sm text-gray-500 mt-1">SKU: {{ item.sku || 'Not available' }}</div>
-                <div class="text-sm text-gray-500 mt-1">Product Id: #{{ item.product_id }}</div>
-              </div>
-
-              <div class="text-sm font-semibold text-gray-900">{{ item.qty }}</div>
-              <div class="text-sm text-gray-700">{{ item.unit_price | currency:'USD':'symbol':'1.0-2' }}</div>
-
-              <div>
-                <a [routerLink]="['/admin/products-list', item.product_id]" class="inline-flex items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50">
-                  Product Detail
+          <div class="p-6 grid grid-cols-1 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div class="rounded-2xl bg-white p-4 ring-1 ring-gray-200/70">
+                <div class="text-xs text-gray-500">Customer</div>
+                <a
+                  [routerLink]="['/admin/users', order.user_id]"
+                  class="mt-1 inline-flex items-center gap-2 font-semibold text-gray-900 hover:underline"
+                >
+                  <span class="truncate">{{
+                    display(order.customer_name)
+                  }}</span>
+                  <svg
+                    class="h-4 w-4 text-gray-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M9 18l6-6-6-6"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
                 </a>
+                <div class="mt-2 text-sm text-gray-700">
+                  {{ display(order.customer_email) }}
+                </div>
+                <div class="mt-1 text-sm text-gray-700">
+                  {{ display(order.customer_phone) }}
+                </div>
+                <div class="mt-3">
+                  <a
+                    [routerLink]="['/admin/users', order.user_id]"
+                    class="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-900 hover:bg-gray-50"
+                  >
+                    View Customer
+                  </a>
+                </div>
+              </div>
+              <div class="rounded-2xl bg-white p-4 ring-1 ring-gray-200/70">
+                <div class="text-xs text-gray-500">User</div>
+                <a
+                  [routerLink]="['/admin/users', order.user_id]"
+                  class="mt-1 inline-flex items-center gap-2 font-semibold text-gray-900 hover:underline"
+                >
+                  <span>#{{ order.user_id }}</span>
+                  <svg
+                    class="h-4 w-4 text-gray-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M9 18l6-6-6-6"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </a>
+                <div class="mt-2 text-sm text-gray-700">
+                  Type: {{ display(order.usertype) }}
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="rounded-2xl bg-white p-4 text-sm ring-1 ring-gray-200/70"
+            >
+              <div class="text-xs text-gray-500">Delivery Address</div>
+              <div class="mt-1 font-semibold text-gray-900">
+                {{
+                  fullName(order.address_first_name, order.address_last_name)
+                }}
+              </div>
+              <div class="mt-2 text-sm text-gray-700">
+                {{ display(order.address_email) }}
+              </div>
+              <div class="mt-1 text-sm text-gray-700">
+                {{ display(order.address_phone) }}
+              </div>
+              <div class="mt-3 text-sm text-gray-800">
+                <div>{{ display(order.line1) }}</div>
+                <div *ngIf="order.line2">{{ order.line2 }}</div>
+                <div class="mt-2">
+                  {{ display(order.city) }}, {{ display(order.province) }}
+                  {{ display(order.postalcode) }}
+                </div>
+                <div class="mt-1">{{ display(order.country) }}</div>
               </div>
             </div>
           </div>
+        </article>
 
-          <div *ngIf="order.items.length === 0" class="mt-4 rounded-2xl border bg-gray-50 p-4 text-sm text-gray-500">
+        <article
+          class="rounded-3xl border border-gray-200/70 bg-white shadow-sm overflow-hidden"
+        >
+          <div class="px-6 py-5 border-b border-gray-200/70 bg-gray-50/60">
+            <div class="text-lg font-semibold text-gray-900">
+              Payment & Approval
+            </div>
+            <div class="text-sm text-gray-500">
+              Verify payment and approve when required.
+            </div>
+          </div>
+
+          <div class="p-6 grid grid-cols-1 gap-4 text-sm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="rounded-2xl bg-white p-4 ring-1 ring-gray-200/70">
+                <div class="text-xs text-gray-500">Payment</div>
+                <div class="mt-2">
+                  <span
+                    class="text-xs font-medium px-3 py-1 rounded-full border"
+                    [ngClass]="
+                      order.is_paid
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-amber-50 text-amber-700 border-amber-200'
+                    "
+                  >
+                    {{ order.is_paid ? "Paid" : "Pending" }}
+                  </span>
+                  <span
+                    *ngIf="order.payment_disputed"
+                    class="ml-2 text-xs font-medium px-3 py-1 rounded-full border bg-red-50 text-red-700 border-red-200"
+                  >
+                    Disputed{{
+                      order.payment_dispute_status
+                        ? ": " + order.payment_dispute_status
+                        : ""
+                    }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="rounded-2xl bg-white p-4 ring-1 ring-gray-200/70">
+                <div class="text-xs text-gray-500">Approval</div>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <span
+                    class="text-xs font-medium px-3 py-1 rounded-full border"
+                    [ngClass]="
+                      order.requires_admin_approval
+                        ? 'bg-slate-50 text-slate-700 border-slate-200'
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    "
+                  >
+                    {{
+                      order.requires_admin_approval
+                        ? "Admin approval required"
+                        : "No admin approval required"
+                    }}
+                  </span>
+                  <span
+                    *ngIf="order.requires_admin_approval"
+                    class="text-xs font-medium px-3 py-1 rounded-full border"
+                    [ngClass]="
+                      order.is_approved
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-amber-50 text-amber-700 border-amber-200'
+                    "
+                  >
+                    {{ order.is_approved ? "Approved" : "Not approved" }}
+                  </span>
+                </div>
+
+                <div
+                  *ngIf="order.is_approved"
+                  class="mt-3 text-xs text-gray-600"
+                >
+                  Approved at:
+                  {{
+                    order.approved_at
+                      ? ($any(order.approved_at) | date: "medium")
+                      : "-"
+                  }}
+                  <span *ngIf="order.approved_by">
+                    • By: {{ order.approved_by }}</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="rounded-2xl bg-white p-4 ring-1 ring-gray-200/70">
+                <div class="text-xs text-gray-500">Status</div>
+                <div class="mt-1 font-semibold text-gray-900">
+                  {{ display(order.status_name) }}
+                </div>
+                <div class="mt-2 text-xs text-gray-600">
+                  Status Id: #{{ display(order.status_id) }}
+                </div>
+              </div>
+              <div class="rounded-2xl bg-white p-4 ring-1 ring-gray-200/70">
+                <div class="text-xs text-gray-500">Dates</div>
+                <div class="mt-2 text-xs text-gray-600">
+                  Created: {{ order.created_at | date: "medium" }}
+                </div>
+                <div class="mt-1 text-xs text-gray-600">
+                  Updated: {{ order.updated_at | date: "medium" }}
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="rounded-2xl bg-white p-4 ring-1 ring-gray-200/70">
+                <div class="text-xs text-gray-500">Totals</div>
+                <div class="mt-2 grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+                  <div class="text-gray-600">Qty</div>
+                  <div class="font-semibold text-gray-900 text-right">
+                    {{ order.summary.total_qty }}
+                  </div>
+                  <div class="text-gray-600">Subtotal</div>
+                  <div class="font-semibold text-gray-900 text-right">
+                    {{
+                      order.summary.subtotal
+                        | currency: "USD" : "symbol" : "1.0-2"
+                    }}
+                  </div>
+                  <div class="text-gray-600">Tax</div>
+                  <div class="font-semibold text-gray-900 text-right">
+                    {{
+                      order.buying_tax | currency: "USD" : "symbol" : "1.0-2"
+                    }}
+                  </div>
+                  <div class="text-gray-600">Discount</div>
+                  <div class="font-semibold text-gray-900 text-right">
+                    {{ order.discount | currency: "USD" : "symbol" : "1.0-2" }}
+                  </div>
+                  <div class="text-gray-600">Total</div>
+                  <div class="font-semibold text-gray-900 text-right">
+                    {{
+                      order.total_cost | currency: "USD" : "symbol" : "1.0-2"
+                    }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="rounded-2xl bg-white p-4 ring-1 ring-gray-200/70">
+                <div class="text-xs text-gray-500">Actions</div>
+                <div class="mt-3 flex flex-wrap gap-3">
+                  <button
+                    *ngIf="!refunding"
+                    type="button"
+                    (click)="markPaid()"
+                    [disabled]="
+                      markingPaid || order.is_paid || order.refunds.length > 0
+                    "
+                    class="inline-flex items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium transition"
+                    [ngClass]="
+                      order.is_paid
+                        ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed'
+                        : 'bg-white text-gray-900 border-gray-200 hover:bg-gray-50'
+                    "
+                  >
+                    {{
+                      order.is_paid
+                        ? "Paid"
+                        : markingPaid
+                          ? "Confirming..."
+                          : "Confirm Payment"
+                    }}
+                  </button>
+
+                  <button
+                    *ngIf="order.requires_admin_approval"
+                    type="button"
+                    (click)="approveOrder()"
+                    [disabled]="
+                      refunding ||
+                      approving ||
+                      !order.is_paid ||
+                      !!order.is_approved
+                    "
+                    class="inline-flex items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium transition"
+                    [ngClass]="
+                      refunding || !order.is_paid || order.is_approved
+                        ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed'
+                        : 'bg-black text-white border-black hover:bg-gray-900'
+                    "
+                  >
+                    {{
+                      order.is_approved
+                        ? "Approved"
+                        : approving
+                          ? "Approving..."
+                          : "Approve Order"
+                    }}
+                  </button>
+
+                  <button
+                    *ngIf="
+                      order.is_paid &&
+                      (!order.refunds || order.refunds.length === 0)
+                    "
+                    type="button"
+                    (click)="refundOrder()"
+                    [disabled]="refunding"
+                    class="inline-flex items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium transition"
+                    [ngClass]="
+                      refunding
+                        ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed'
+                        : 'bg-red-600 text-white border-red-600 hover:bg-red-700'
+                    "
+                  >
+                    {{ refunding ? "Refunding..." : "Refund Order" }}
+                  </button>
+                </div>
+
+                <div class="mt-3 text-xs text-gray-600">
+                  Record: {{ order.is_active ? "Active" : "Inactive" }} •
+                  Address Id: #{{ display(order.address_id) }} • Country Id: #{{
+                    display(order.country_id)
+                  }}
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl bg-white p-4 ring-1 ring-gray-200/70">
+              <div class="text-xs text-gray-500">Order Note</div>
+              <div class="mt-1 text-sm text-gray-800">
+                {{ order.order_note || "No order note provided." }}
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <div class="space-y-6" *ngIf="tab() === 'shipping'">
+        <article class="rounded-3xl border bg-white shadow-sm overflow-hidden">
+          <div class="px-6 py-5 border-b">
+            <div class="text-lg font-semibold text-gray-900">
+              Shipping & Tracking
+            </div>
+            <div class="text-sm text-gray-500">
+              Shipment status and tracking links (from the order detail
+              response).
+            </div>
+          </div>
+
+          <div class="p-6">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div class="text-sm text-gray-700 space-y-1">
+                <div>Generate label and manage package details via the Shipping drawer.</div>
+                <div *ngIf="customerSelectedShipping(order) as cs" class="text-sm text-gray-700">
+                  Customer selected:
+                  <span class="font-medium text-gray-900">{{ cs.service_name || '-' }}</span>
+                  <span *ngIf="cs.service_code" class="text-gray-500"> (code {{ cs.service_code }})</span>
+                  <span class="text-gray-500"> • Charged: {{ order.summary.shipping_total | currency: "USD" : "symbol" : "1.0-2" }}</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                (click)="openShipping()"
+                class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black"
+              >
+                Open shipping drawer
+              </button>
+            </div>
+            <div
+              *ngIf="order.shipments.length === 0"
+              class="rounded-2xl border bg-gray-50 p-4 text-sm text-gray-500"
+            >
+              No shipment / tracking data available for this order yet.
+            </div>
+
+            <div class="space-y-3" *ngIf="order.shipments.length > 0">
+              <div
+                *ngFor="let shipment of order.shipments"
+                class="rounded-2xl border bg-white shadow-sm overflow-hidden"
+              >
+                <div class="p-4 sm:p-5 flex flex-wrap items-start justify-between gap-3 border-b bg-gray-50">
+                  <div class="min-w-[220px]">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <div class="text-sm font-semibold text-gray-900">
+                        Shipment #{{ shipment.shipment_id }}
+                      </div>
+                      <app-status-badge
+                        [label]="shipmentBadge(shipment).label"
+                        [variant]="shipmentBadge(shipment).variant"
+                      ></app-status-badge>
+                    </div>
+                    <div class="mt-1 text-xs text-gray-600">
+                      {{ display(shipment.provider) }} • {{ display(shipment.carrier) }} •
+                      {{ display(shipment.service_name) }}
+                      <span *ngIf="shipment.service_code" class="text-gray-500">
+                        (code {{ display(shipment.service_code) }})
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="flex flex-wrap items-center gap-2">
+                    <a
+                      *ngIf="shipment.tracking_url"
+                      [href]="shipment.tracking_url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex items-center justify-center rounded-xl border bg-white px-3 py-2 text-xs font-medium text-gray-900 hover:bg-gray-100"
+                    >
+                      Tracking
+                    </a>
+                    <a
+                      *ngIf="shipment.label_url"
+                      [href]="shipment.label_url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex items-center justify-center rounded-xl border bg-white px-3 py-2 text-xs font-medium text-gray-900 hover:bg-gray-100"
+                    >
+                      Label
+                    </a>
+                  </div>
+                </div>
+
+                <div class="p-4 sm:p-5">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="rounded-xl bg-gray-50 ring-1 ring-gray-200/70 p-3">
+                      <div class="text-[10px] uppercase tracking-wide text-gray-500">Tracking</div>
+                      <div class="mt-1 text-sm font-medium text-gray-900">
+                        {{ display(shipment.tracking_number) }}
+                      </div>
+                      <a
+                        *ngIf="shipment.tracking_url"
+                        [href]="shipment.tracking_url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="mt-1 inline-block text-xs text-sky-700 hover:underline break-all"
+                      >
+                        Open tracking link
+                      </a>
+                    </div>
+
+                    <div class="rounded-xl bg-gray-50 ring-1 ring-gray-200/70 p-3">
+                      <div class="text-[10px] uppercase tracking-wide text-gray-500">Shipping Cost</div>
+                      <div class="mt-1 text-sm font-medium text-gray-900">
+                        {{
+                          shipment.shipping_cost != null
+                            ? ($any(shipment.shipping_cost) | currency: currencyCode(shipment.currency) : "symbol" : "1.0-2")
+                            : "-"
+                        }}
+                      </div>
+                      <div class="mt-1 text-xs text-gray-600">
+                        Currency: {{ shipment.currency ? currencyCode(shipment.currency) : "-" }}
+                      </div>
+                    </div>
+
+                    <div class="rounded-xl bg-gray-50 ring-1 ring-gray-200/70 p-3">
+                      <div class="text-[10px] uppercase tracking-wide text-gray-500">Timeline</div>
+                      <div class="mt-1 text-xs text-gray-700 space-y-1">
+                        <div>
+                          <span class="text-gray-500">Shipped:</span>
+                          {{
+                            shipment.shipped_at
+                              ? ($any(shipment.shipped_at) | date: "medium")
+                              : "-"
+                          }}
+                        </div>
+                        <div>
+                          <span class="text-gray-500">Delivered:</span>
+                          {{
+                            shipment.delivered_at
+                              ? ($any(shipment.delivered_at) | date: "medium")
+                              : "-"
+                          }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <details class="mt-4 rounded-2xl bg-white ring-1 ring-gray-200/70 p-3 sm:p-4 group">
+                    <summary class="cursor-pointer select-none text-sm font-semibold text-gray-900 flex items-center justify-between">
+                      Record details
+                      <span class="text-xs font-normal text-gray-500 group-open:hidden">Show</span>
+                      <span class="text-xs font-normal text-gray-500 hidden group-open:inline">Hide</span>
+                    </summary>
+
+                    <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div class="rounded-2xl bg-gray-50 ring-1 ring-gray-200/70 p-4">
+                        <div class="text-xs font-semibold text-gray-900">Origin</div>
+                        <ng-container *ngIf="objectEntries(shipment.origin) as originEntries">
+                          <div *ngIf="originEntries.length === 0" class="mt-2 text-sm text-gray-600">
+                            No origin record returned.
+                          </div>
+                          <dl *ngIf="originEntries.length > 0" class="mt-3 divide-y divide-gray-200/70">
+                            <div *ngFor="let kv of originEntries" class="py-2">
+                              <dt class="text-[11px] text-gray-500 break-all">{{ kv.key }}</dt>
+                              <dd class="mt-1 text-sm text-gray-900">
+                                <ng-container *ngIf="isScalar(kv.value); else originComplex">
+                                  {{ display(kv.value) }}
+                                </ng-container>
+                                <ng-template #originComplex>
+                                  <pre class="text-[12px] leading-5 font-mono bg-white ring-1 ring-gray-200/70 rounded-xl p-2 max-h-40 overflow-auto whitespace-pre-wrap">{{ jsonPreview(kv.value) }}</pre>
+                                </ng-template>
+                              </dd>
+                            </div>
+                          </dl>
+                        </ng-container>
+                      </div>
+
+                      <div class="rounded-2xl bg-gray-50 ring-1 ring-gray-200/70 p-4">
+                        <div class="text-xs font-semibold text-gray-900">Metadata</div>
+                        <ng-container *ngIf="objectEntries(shipment.metadata) as metaEntries">
+                          <div *ngIf="metaEntries.length === 0" class="mt-2 text-sm text-gray-600">
+                            No metadata returned.
+                          </div>
+                          <dl *ngIf="metaEntries.length > 0" class="mt-3 divide-y divide-gray-200/70">
+                            <div *ngFor="let kv of metaEntries" class="py-2">
+                              <dt class="text-[11px] text-gray-500 break-all">{{ kv.key }}</dt>
+                              <dd class="mt-1 text-sm text-gray-900">
+                                <ng-container *ngIf="isScalar(kv.value); else metaComplex">
+                                  {{ display(kv.value) }}
+                                </ng-container>
+                                <ng-template #metaComplex>
+                                  <pre class="text-[12px] leading-5 font-mono bg-white ring-1 ring-gray-200/70 rounded-xl p-2 max-h-40 overflow-auto whitespace-pre-wrap">{{ jsonPreview(kv.value) }}</pre>
+                                </ng-template>
+                              </dd>
+                            </div>
+                          </dl>
+                        </ng-container>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 rounded-2xl bg-gray-50 ring-1 ring-gray-200/70 p-4">
+                      <div class="text-xs font-semibold text-gray-900">Packages</div>
+
+                      <ng-container *ngIf="shipmentPackageRows(shipment.packages) as packageRows">
+                        <div *ngIf="packageRows.length === 0" class="mt-2 text-sm text-gray-600">
+                          No packages record returned.
+                        </div>
+
+                        <div *ngIf="packageRows.length > 0" class="mt-3 space-y-2 md:hidden">
+                          <div *ngFor="let p of packageRows" class="rounded-xl bg-white ring-1 ring-gray-200/70 p-3">
+                            <div class="flex items-start justify-between gap-3">
+                              <div class="text-xs font-semibold text-gray-900">Package {{ p.index }}</div>
+                              <div class="text-xs text-gray-700">
+                                Weight: <span class="font-medium text-gray-900">{{ p.weight != null ? p.weight : "-" }}</span>
+                              </div>
+                            </div>
+                            <div class="mt-1 text-xs text-gray-700">
+                              Dimensions:
+                              <span class="font-medium text-gray-900">
+                                {{
+                                  p.length != null || p.width != null || p.height != null
+                                    ? (p.length != null ? p.length : "-") +
+                                      "×" +
+                                      (p.width != null ? p.width : "-") +
+                                      "×" +
+                                      (p.height != null ? p.height : "-")
+                                    : "-"
+                                }}
+                              </span>
+                            </div>
+                            <div *ngIf="p.description" class="mt-1 text-xs text-gray-700">
+                              Description: <span class="text-gray-900">{{ p.description }}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div *ngIf="packageRows.length > 0" class="mt-3 hidden md:block overflow-x-auto">
+                          <table class="min-w-[680px] w-full text-left text-sm">
+                            <thead class="text-[11px] uppercase tracking-wide text-gray-500">
+                              <tr>
+                                <th class="py-2 pr-3">#</th>
+                                <th class="py-2 pr-3">Weight</th>
+                                <th class="py-2 pr-3">Dimensions (L×W×H)</th>
+                                <th class="py-2 pr-3">Description</th>
+                              </tr>
+                            </thead>
+                            <tbody class="text-gray-900">
+                              <tr *ngFor="let p of packageRows" class="border-t border-gray-200/70">
+                                <td class="py-2 pr-3 text-gray-600">{{ p.index }}</td>
+                                <td class="py-2 pr-3">
+                                  {{ p.weight != null ? p.weight : "-" }}
+                                </td>
+                                <td class="py-2 pr-3 text-gray-700">
+                                  {{
+                                    p.length != null || p.width != null || p.height != null
+                                      ? (p.length != null ? p.length : "-") +
+                                        "×" +
+                                        (p.width != null ? p.width : "-") +
+                                        "×" +
+                                        (p.height != null ? p.height : "-")
+                                      : "-"
+                                  }}
+                                </td>
+                                <td class="py-2 pr-3 text-gray-700">
+                                  {{ p.description || "-" }}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </ng-container>
+                    </div>
+
+                    <div
+                      *ngIf="
+                        shipment.packages &&
+                        !isArray(shipment.packages) &&
+                        objectEntries(shipment.packages).length > 0
+                      "
+                      class="mt-4 rounded-2xl bg-gray-50 ring-1 ring-gray-200/70 p-4"
+                    >
+                      <div class="text-xs font-semibold text-gray-900">Packages (Raw Record)</div>
+                      <dl class="mt-3 divide-y divide-gray-200/70">
+                        <div *ngFor="let kv of objectEntries(shipment.packages)" class="py-2">
+                          <dt class="text-[11px] text-gray-500 break-all">{{ kv.key }}</dt>
+                          <dd class="mt-1 text-sm text-gray-900">
+                            <ng-container *ngIf="isScalar(kv.value); else packagesComplex">
+                              {{ display(kv.value) }}
+                            </ng-container>
+                            <ng-template #packagesComplex>
+                              <pre class="text-[12px] leading-5 font-mono bg-white ring-1 ring-gray-200/70 rounded-xl p-2 max-h-40 overflow-auto whitespace-pre-wrap">{{ jsonPreview(kv.value) }}</pre>
+                            </ng-template>
+                          </dd>
+                        </div>
+                      </dl>
+                    </div>
+                  </details>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="space-y-6" *ngIf="tab() === 'returns'">
+        <article class="rounded-3xl border bg-white shadow-sm overflow-hidden">
+          <div class="px-6 py-5 border-b">
+            <div class="text-lg font-semibold text-gray-900">Returns</div>
+            <div class="text-sm text-gray-500">
+              Return requests and refund status (from the order detail
+              response).
+            </div>
+          </div>
+
+          <div class="p-6">
+            <div
+              *ngIf="order.returns.length === 0"
+              class="rounded-2xl border bg-gray-50 p-4 text-sm text-gray-500"
+            >
+              No returns were returned by the API for this order.
+            </div>
+
+            <div
+              *ngFor="let r of order.returns"
+              class="rounded-2xl border bg-gray-50 p-4 text-sm mb-3 last:mb-0"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <div class="font-semibold text-gray-900">
+                    Return #{{ r.return_request_id }}
+                    <span
+                      *ngIf="r.return_number"
+                      class="font-normal text-gray-600"
+                      >({{ r.return_number }})</span
+                    >
+                  </div>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <span
+                      class="text-xs font-medium px-3 py-1 rounded-full border bg-white text-gray-800 border-gray-200"
+                    >
+                      Status: {{ r.status }}
+                    </span>
+                    <span
+                      class="text-xs font-medium px-3 py-1 rounded-full border bg-white text-gray-800 border-gray-200"
+                    >
+                      Refund: {{ r.refund_status }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="text-right">
+                  <button
+                    type="button"
+                    (click)="openReturn(r.return_request_id)"
+                    class="mb-2 rounded-xl bg-gray-900 px-3 py-2 text-xs font-medium text-white hover:bg-black"
+                  >
+                    Review
+                  </button>
+                  <div class="text-xs text-gray-600">Requested</div>
+                  <div class="mt-1 font-semibold text-gray-900">
+                    {{
+                      r.requested_amount | currency: "USD" : "symbol" : "1.0-2"
+                    }}
+                  </div>
+                  <div class="mt-2 text-xs text-gray-600">Refund</div>
+                  <div class="mt-1 font-semibold text-gray-900">
+                    {{ r.refund_amount | currency: "USD" : "symbol" : "1.0-2" }}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-600"
+              >
+                <div>
+                  Requested:
+                  {{
+                    r.requested_at
+                      ? ($any(r.requested_at) | date: "medium")
+                      : "-"
+                  }}
+                </div>
+                <div>
+                  Reviewed:
+                  {{
+                    r.reviewed_at ? ($any(r.reviewed_at) | date: "medium") : "-"
+                  }}
+                </div>
+                <div>
+                  Approved:
+                  {{
+                    r.approved_at ? ($any(r.approved_at) | date: "medium") : "-"
+                  }}
+                </div>
+                <div>
+                  Refunded:
+                  {{
+                    r.refunded_at ? ($any(r.refunded_at) | date: "medium") : "-"
+                  }}
+                </div>
+              </div>
+
+              <div
+                *ngIf="r.customer_note || r.admin_note || r.refund_eta_note"
+                class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-700"
+              >
+                <div
+                  *ngIf="r.customer_note"
+                  class="rounded-xl border bg-white p-3"
+                >
+                  <div
+                    class="text-[11px] uppercase tracking-wider text-gray-500"
+                  >
+                    Customer Note
+                  </div>
+                  <div class="mt-1 text-sm text-gray-800">
+                    {{ r.customer_note }}
+                  </div>
+                </div>
+                <div
+                  *ngIf="r.admin_note"
+                  class="rounded-xl border bg-white p-3"
+                >
+                  <div
+                    class="text-[11px] uppercase tracking-wider text-gray-500"
+                  >
+                    Admin Note
+                  </div>
+                  <div class="mt-1 text-sm text-gray-800">
+                    {{ r.admin_note }}
+                  </div>
+                </div>
+                <div
+                  *ngIf="r.refund_eta_note"
+                  class="rounded-xl border bg-white p-3"
+                >
+                  <div
+                    class="text-[11px] uppercase tracking-wider text-gray-500"
+                  >
+                    Refund ETA Note
+                  </div>
+                  <div class="mt-1 text-sm text-gray-800">
+                    {{ r.refund_eta_note }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="space-y-6" *ngIf="tab() === 'refunds'">
+        <article
+          *ngIf="
+            (order.refunds && order.refunds.length > 0) || order.refund_tracking
+          "
+          class="rounded-3xl border bg-white shadow-sm overflow-hidden"
+        >
+          <div class="px-6 py-5 border-b">
+            <div class="text-lg font-semibold text-gray-900">Refunds</div>
+            <div class="text-sm text-gray-500">
+              Refund tracking and gateway refunds (from the order detail
+              response).
+            </div>
+          </div>
+
+          <div class="p-6 space-y-4">
+            <div
+              *ngIf="order.refund_tracking as rt"
+              class="rounded-2xl border bg-gray-50 p-4 text-sm"
+            >
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div class="text-xs text-gray-500">Tracking State</div>
+                  <div class="mt-1 inline-flex items-center gap-2">
+                    <span class="text-sm font-semibold text-gray-900">{{
+                      display(rt.state)
+                    }}</span>
+                    <span
+                      *ngIf="rt.last_event_at"
+                      class="text-xs text-gray-600"
+                    >
+                      • Last event:
+                      {{ $any(rt.last_event_at) | date: "medium" }}
+                    </span>
+                  </div>
+                  <div *ngIf="rt.eta_note" class="mt-2 text-xs text-gray-700">
+                    ETA: {{ rt.eta_note }}
+                  </div>
+                </div>
+
+                <div class="text-right">
+                  <div class="text-xs text-gray-600">Refunded</div>
+                  <div class="mt-1 font-semibold text-gray-900">
+                    {{
+                      rt.refunded_amount
+                        | currency
+                          : currencyCode(rt.currency)
+                          : "symbol"
+                          : "1.0-2"
+                    }}
+                  </div>
+                  <div class="mt-1 text-xs text-gray-600">
+                    Currency: {{ display(rt.currency) }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div class="rounded-xl border bg-white p-3">
+                  <div
+                    class="text-[11px] uppercase tracking-wider text-gray-500"
+                  >
+                    Requested
+                  </div>
+                  <div class="mt-1 text-sm font-semibold text-gray-900">
+                    {{
+                      rt.requested_amount
+                        | currency
+                          : currencyCode(rt.currency)
+                          : "symbol"
+                          : "1.0-2"
+                    }}
+                  </div>
+                </div>
+                <div class="rounded-xl border bg-white p-3">
+                  <div
+                    class="text-[11px] uppercase tracking-wider text-gray-500"
+                  >
+                    Approved
+                  </div>
+                  <div class="mt-1 text-sm font-semibold text-gray-900">
+                    {{
+                      rt.approved_amount
+                        | currency
+                          : currencyCode(rt.currency)
+                          : "symbol"
+                          : "1.0-2"
+                    }}
+                  </div>
+                </div>
+                <div class="rounded-xl border bg-white p-3">
+                  <div
+                    class="text-[11px] uppercase tracking-wider text-gray-500"
+                  >
+                    Refunded
+                  </div>
+                  <div class="mt-1 text-sm font-semibold text-gray-900">
+                    {{
+                      rt.refunded_amount
+                        | currency
+                          : currencyCode(rt.currency)
+                          : "symbol"
+                          : "1.0-2"
+                    }}
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="rt.events && rt.events.length > 0" class="mt-4">
+                <div class="text-xs font-semibold text-gray-700 mb-2">
+                  Events
+                </div>
+                <div
+                  *ngFor="let ev of rt.events"
+                  class="rounded-xl border bg-white p-3 text-xs text-gray-700 mb-2 last:mb-0"
+                >
+                  <div class="flex flex-wrap items-start justify-between gap-2">
+                    <div class="font-semibold text-gray-900">
+                      {{ display(ev.event_type) }}
+                    </div>
+                    <div class="text-gray-600">
+                      {{ ev.at ? ($any(ev.at) | date: "medium") : "-" }}
+                    </div>
+                  </div>
+                  <div class="mt-2 grid grid-cols-1 md:grid-cols-4 gap-2">
+                    <div>Source: {{ display(ev.source) }}</div>
+                    <div>Status: {{ display(ev.status) }}</div>
+                    <div>
+                      Amount:
+                      {{
+                        $any(ev.amount)
+                          | currency
+                            : currencyCode(ev.currency || rt.currency)
+                            : "symbol"
+                            : "1.0-2"
+                      }}
+                    </div>
+                    <div *ngIf="ev.payment_refund_id">
+                      Refund Id: #{{ ev.payment_refund_id }}
+                    </div>
+                  </div>
+                  <div *ngIf="ev.note" class="mt-2 text-sm text-gray-800">
+                    {{ ev.note }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              *ngIf="order.refunds && order.refunds.length > 0"
+              class="rounded-2xl border bg-gray-50 p-4 text-sm"
+            >
+              <div class="text-xs font-semibold text-gray-700 mb-2">
+                Gateway Refund Records
+              </div>
+
+              <div
+                *ngFor="let rf of order.refunds"
+                class="rounded-xl border bg-white p-4 text-sm mb-3 last:mb-0"
+              >
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div class="font-semibold text-gray-900">
+                      Refund #{{ rf.payment_refund_id }}
+                      <span
+                        *ngIf="rf.stripe_refund_id"
+                        class="font-normal text-gray-600"
+                        >({{ rf.stripe_refund_id }})</span
+                      >
+                    </div>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                      <span
+                        class="text-xs font-medium px-3 py-1 rounded-full border bg-white text-gray-800 border-gray-200"
+                      >
+                        Status: {{ display(rf.status) }}
+                      </span>
+                      <span
+                        *ngIf="rf.currency"
+                        class="text-xs font-medium px-3 py-1 rounded-full border bg-white text-gray-800 border-gray-200"
+                      >
+                        {{ rf.currency }}
+                      </span>
+                    </div>
+                    <div *ngIf="rf.reason" class="mt-2 text-xs text-gray-700">
+                      Reason: {{ rf.reason }}
+                    </div>
+                  </div>
+
+                  <div class="text-right">
+                    <div class="text-xs text-gray-600">Amount</div>
+                    <div class="mt-1 font-semibold text-gray-900">
+                      {{
+                        rf.amount
+                          | currency
+                            : currencyCode(
+                                rf.currency ||
+                                  (order.refund_tracking
+                                    ? order.refund_tracking.currency
+                                    : null)
+                              )
+                            : "symbol"
+                            : "1.0-2"
+                      }}
+                    </div>
+                    <div class="mt-2 text-xs text-gray-600">
+                      Created:
+                      {{
+                        rf.created_at
+                          ? ($any(rf.created_at) | date: "medium")
+                          : "-"
+                      }}
+                    </div>
+                  </div>
+                </div>
+
+                <details *ngIf="rf.metadata" class="mt-4">
+                  <summary
+                    class="cursor-pointer select-none text-xs font-medium text-gray-700 hover:text-gray-900"
+                  >
+                    View metadata
+                  </summary>
+                  <pre
+                    class="mt-3 overflow-auto rounded-xl border bg-gray-50 p-3 text-xs text-gray-700"
+                    >{{ rf.metadata | json }}</pre
+                  >
+                </details>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="space-y-6" *ngIf="tab() === 'timeline'">
+        <article class="rounded-3xl border bg-white shadow-sm overflow-hidden">
+          <div class="px-6 py-5 border-b">
+            <div class="text-lg font-semibold text-gray-900">Order Activity</div>
+            <div class="text-sm text-gray-500">Events recorded for this order.</div>
+          </div>
+          <div class="p-6">
+            <div
+              *ngIf="order.logs.length === 0"
+              class="rounded-2xl border bg-gray-50 p-4 text-sm text-gray-500"
+            >
+              No activity logs were returned by the API for this order.
+            </div>
+            <app-timeline *ngIf="order.logs.length > 0" [items]="orderTimeline(order)"></app-timeline>
+          </div>
+        </article>
+      </div>
+
+      <article *ngIf="tab() === 'summary' || tab() === 'items'" class="rounded-3xl border bg-white shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b bg-gray-50/60">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div class="text-lg font-semibold text-gray-900">
+                Included Products
+              </div>
+              <div class="text-sm text-gray-500">
+                Rendered from the order detail API response (no extra API
+                calls).
+              </div>
+            </div>
+            <div class="text-sm text-gray-700">
+              <span class="font-semibold text-gray-900">{{
+                order.summary.items_count
+              }}</span>
+              items •
+              <span class="font-semibold text-gray-900">{{
+                order.summary.total_qty
+              }}</span>
+              qty
+            </div>
+          </div>
+        </div>
+
+        <div class="px-6 py-6">
+          <div
+            *ngIf="order.items.length === 0"
+            class="rounded-2xl border bg-gray-50 p-4 text-sm text-gray-500"
+          >
             No products were returned by the order detail API for this order.
           </div>
+
+          <ng-container *ngIf="order.items.length > 0">
+            <!-- Mobile -->
+            <div class="space-y-4 md:hidden">
+              <div
+                *ngFor="let item of order.items"
+                class="rounded-2xl border bg-white p-4 shadow-sm"
+              >
+                <div class="flex items-start gap-4">
+                  <div
+                    class="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border bg-white"
+                  >
+                    <img
+                      *ngIf="itemImageUrl(item)"
+                      [src]="itemImageUrl(item)!"
+                      [alt]="item.product_title"
+                      class="h-full w-full object-cover"
+                    />
+                    <div
+                      *ngIf="!itemImageUrl(item)"
+                      class="h-full w-full flex items-center justify-center bg-gray-50 text-gray-700 text-sm font-semibold"
+                    >
+                      {{ initials(item.product_title) }}
+                    </div>
+                  </div>
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="min-w-0">
+                        <div class="font-semibold text-gray-900 truncate">
+                          {{ item.product_title }}
+                        </div>
+                        <div class="mt-1 text-xs text-gray-500">
+                          SKU: {{ item.sku || "N/A" }}
+                          <span *ngIf="item.category_name">
+                            • {{ item.category_name }}</span
+                          >
+                        </div>
+                        <div class="mt-1 text-xs text-gray-500">
+                          Product #{{ item.product_id }}
+                        </div>
+                      </div>
+                      <span
+                        class="shrink-0 text-xs font-medium px-3 py-1 rounded-full border"
+                        [ngClass]="
+                          item.is_paid
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                        "
+                      >
+                        {{ item.is_paid ? "Paid" : "Pending" }}
+                      </span>
+                    </div>
+
+                    <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+                      <div class="rounded-2xl border bg-gray-50 p-3">
+                        <div
+                          class="text-[11px] uppercase tracking-wider text-gray-500"
+                        >
+                          Qty
+                        </div>
+                        <div class="mt-1 font-semibold text-gray-900">
+                          {{ item.qty }}
+                        </div>
+                      </div>
+                      <div class="rounded-2xl border bg-gray-50 p-3">
+                        <div
+                          class="text-[11px] uppercase tracking-wider text-gray-500"
+                        >
+                          Unit
+                        </div>
+                        <div class="mt-1 font-semibold text-gray-900">
+                          {{
+                            item.unit_price
+                              | currency: "USD" : "symbol" : "1.0-2"
+                          }}
+                        </div>
+                      </div>
+                      <div class="rounded-2xl border bg-gray-50 p-3">
+                        <div
+                          class="text-[11px] uppercase tracking-wider text-gray-500"
+                        >
+                          Tax
+                        </div>
+                        <div class="mt-1 font-semibold text-gray-900">
+                          {{
+                            item.tax_amount
+                              | currency: "USD" : "symbol" : "1.0-2"
+                          }}
+                        </div>
+                      </div>
+                      <div class="rounded-2xl border bg-gray-50 p-3">
+                        <div
+                          class="text-[11px] uppercase tracking-wider text-gray-500"
+                        >
+                          Total
+                        </div>
+                        <div class="mt-1 font-semibold text-gray-900">
+                          {{
+                            item.line_total
+                              | currency: "USD" : "symbol" : "1.0-2"
+                          }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mt-3 flex items-center justify-between gap-3">
+                      <div class="text-xs text-gray-500">
+                        Tax:
+                        {{
+                          item.tax_amount | currency: "USD" : "symbol" : "1.0-2"
+                        }}
+                        • Discount:
+                        {{
+                          item.discount_amount
+                            | currency: "USD" : "symbol" : "1.0-2"
+                        }}
+                      </div>
+                      <a
+                        [routerLink]="['/admin/products-list', item.product_id]"
+                        class="inline-flex items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"
+                      >
+                        View
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Desktop -->
+            <div class="hidden md:block">
+              <div class="-mx-6 overflow-x-auto">
+                <table class="min-w-[980px] w-full text-sm">
+                  <thead
+                    class="bg-gray-50 text-xs font-semibold tracking-wider uppercase text-gray-500"
+                  >
+                    <tr>
+                      <th class="py-3 pl-6 pr-4 text-left">Product</th>
+                      <th class="py-3 px-4 text-right">Qty</th>
+                      <th class="py-3 px-4 text-right">Unit</th>
+                      <th class="py-3 px-4 text-right">Tax</th>
+                      <th class="py-3 px-4 text-right">Discount</th>
+                      <th class="py-3 px-4 text-right">Total</th>
+                      <th class="py-3 pl-4 pr-6 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100">
+                    <tr
+                      *ngFor="let item of order.items"
+                      class="hover:bg-gray-50/60"
+                    >
+                      <td class="py-4 pl-6 pr-4">
+                        <div class="flex items-start gap-4">
+                          <div
+                            class="h-14 w-14 shrink-0 overflow-hidden rounded-2xl border bg-white"
+                          >
+                            <img
+                              *ngIf="itemImageUrl(item)"
+                              [src]="itemImageUrl(item)!"
+                              [alt]="item.product_title"
+                              class="h-full w-full object-cover"
+                            />
+                            <div
+                              *ngIf="!itemImageUrl(item)"
+                              class="h-full w-full flex items-center justify-center bg-gray-50 text-gray-700 text-sm font-semibold"
+                            >
+                              {{ initials(item.product_title) }}
+                            </div>
+                          </div>
+                          <div class="min-w-0">
+                            <div class="flex flex-wrap items-center gap-2">
+                              <div
+                                class="font-semibold text-gray-900 truncate max-w-[520px]"
+                              >
+                                {{ item.product_title }}
+                              </div>
+                              <span
+                                class="text-xs font-medium px-3 py-1 rounded-full border"
+                                [ngClass]="
+                                  item.is_paid
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                                "
+                              >
+                                {{ item.is_paid ? "Paid" : "Pending" }}
+                              </span>
+                            </div>
+                            <div
+                              class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500"
+                            >
+                              <span>SKU: {{ item.sku || "N/A" }}</span>
+                              <span *ngIf="item.category_name"
+                                >Category: {{ item.category_name }}</span
+                              >
+                              <span>Product #{{ item.product_id }}</span>
+                              <span *ngIf="item.product_slug"
+                                >Slug: {{ item.product_slug }}</span
+                              >
+                              <span *ngIf="item.status_name"
+                                >Item status: {{ item.status_name }}</span
+                              >
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td
+                        class="py-4 px-4 text-right font-semibold text-gray-900"
+                      >
+                        {{ item.qty }}
+                      </td>
+                      <td
+                        class="py-4 px-4 text-right text-gray-700 whitespace-nowrap"
+                      >
+                        {{
+                          item.unit_price | currency: "USD" : "symbol" : "1.0-2"
+                        }}
+                      </td>
+                      <td
+                        class="py-4 px-4 text-right text-gray-700 whitespace-nowrap"
+                      >
+                        {{
+                          item.tax_amount | currency: "USD" : "symbol" : "1.0-2"
+                        }}
+                      </td>
+                      <td
+                        class="py-4 px-4 text-right text-gray-700 whitespace-nowrap"
+                      >
+                        {{
+                          item.discount_amount
+                            | currency: "USD" : "symbol" : "1.0-2"
+                        }}
+                      </td>
+                      <td
+                        class="py-4 px-4 text-right font-semibold text-gray-900 whitespace-nowrap"
+                      >
+                        {{
+                          item.line_total | currency: "USD" : "symbol" : "1.0-2"
+                        }}
+                      </td>
+                      <td class="py-4 pl-4 pr-6 text-right whitespace-nowrap">
+                        <a
+                          [routerLink]="[
+                            '/admin/products-list',
+                            item.product_id,
+                          ]"
+                          class="inline-flex items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"
+                        >
+                          View
+                        </a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div
+                class="mt-4 rounded-2xl border bg-gray-50 p-4 text-sm text-gray-700"
+              >
+                <div
+                  class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
+                >
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="text-xs text-gray-500">Items</div>
+                    <div class="font-semibold text-gray-900">
+                      {{ order.summary.items_count }}
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="text-xs text-gray-500">Total Qty</div>
+                    <div class="font-semibold text-gray-900">
+                      {{ order.summary.total_qty }}
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="text-xs text-gray-500">Subtotal</div>
+                    <div class="font-semibold text-gray-900">
+                      {{
+                        order.summary.subtotal
+                          | currency: "USD" : "symbol" : "1.0-2"
+                      }}
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="text-xs text-gray-500">Grand Total</div>
+                    <div class="font-semibold text-gray-900">
+                      {{
+                        order.summary.grand_total
+                          | currency: "USD" : "symbol" : "1.0-2"
+                      }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
         </div>
       </article>
     </div>
   </ng-container>
 </div>
+
+<app-shipping-approval-drawer
+  [open]="shippingDrawerOpen"
+  [orderId]="orderId"
+  (closed)="closeShipping()"
+  (changed)="refreshAfterWorkflow()"
+></app-shipping-approval-drawer>
+
+<app-return-approval-drawer
+  [open]="returnDrawerOpen"
+  [orderId]="orderId"
+  [returnRequestId]="returnDrawerRequestId"
+  (closed)="closeReturn()"
+  (changed)="refreshAfterWorkflow()"
+></app-return-approval-drawer>

@@ -6,11 +6,11 @@
  */
 import type { CustomerApplicableCouponDto } from "./customerApplicableCouponDto";
 import type { CustomerCartPricingDataDtoCart } from "./customerCartPricingDataDtoCart";
-import type { CustomerCouponSummaryDto } from "./customerCouponSummaryDto";
+import type { CustomerCartPricingSummaryDto } from "./customerCartPricingSummaryDto";
 
 export interface CustomerCartPricingDataDto {
   currency: string;
   cart: CustomerCartPricingDataDtoCart;
   applied_coupon?: CustomerApplicableCouponDto | null;
-  pricing: CustomerCouponSummaryDto;
+  pricing: CustomerCartPricingSummaryDto;
 }

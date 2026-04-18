@@ -17,9 +17,7 @@ import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
 
 import type {
-  CreateUserPasskeyDto,
   PaginatedUserPasskeyResponseDto,
-  UpdateUserPasskeyDto,
   UserPasskeyResponseDto,
 } from "../schemas";
 
@@ -80,41 +78,6 @@ export class AdminUserPasskeyService {
       observe: "body",
     });
   }
-  userPasskeyControllerCreate<TData = UserPasskeyResponseDto>(
-    createUserPasskeyDto: CreateUserPasskeyDto,
-    options?: HttpClientOptions & { observe?: "body" },
-  ): Observable<TData>;
-  userPasskeyControllerCreate<TData = UserPasskeyResponseDto>(
-    createUserPasskeyDto: CreateUserPasskeyDto,
-    options?: HttpClientOptions & { observe: "events" },
-  ): Observable<HttpEvent<TData>>;
-  userPasskeyControllerCreate<TData = UserPasskeyResponseDto>(
-    createUserPasskeyDto: CreateUserPasskeyDto,
-    options?: HttpClientOptions & { observe: "response" },
-  ): Observable<AngularHttpResponse<TData>>;
-  userPasskeyControllerCreate<TData = UserPasskeyResponseDto>(
-    createUserPasskeyDto: CreateUserPasskeyDto,
-    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
-  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === "events") {
-      return this.http.post<TData>(`/user-passkey`, createUserPasskeyDto, {
-        ...(options as Omit<NonNullable<typeof options>, "observe">),
-        observe: "events",
-      });
-    }
-
-    if (options?.observe === "response") {
-      return this.http.post<TData>(`/user-passkey`, createUserPasskeyDto, {
-        ...(options as Omit<NonNullable<typeof options>, "observe">),
-        observe: "response",
-      });
-    }
-
-    return this.http.post<TData>(`/user-passkey`, createUserPasskeyDto, {
-      ...(options as Omit<NonNullable<typeof options>, "observe">),
-      observe: "body",
-    });
-  }
   userPasskeyControllerGet<TData = UserPasskeyResponseDto>(
     passkeyId: string,
     options?: HttpClientOptions & { observe?: "body" },
@@ -146,92 +109,6 @@ export class AdminUserPasskeyService {
     }
 
     return this.http.get<TData>(`/user-passkey/${passkeyId}`, {
-      ...(options as Omit<NonNullable<typeof options>, "observe">),
-      observe: "body",
-    });
-  }
-  userPasskeyControllerUpdate<TData = UserPasskeyResponseDto>(
-    passkeyId: string,
-    updateUserPasskeyDto: UpdateUserPasskeyDto,
-    options?: HttpClientOptions & { observe?: "body" },
-  ): Observable<TData>;
-  userPasskeyControllerUpdate<TData = UserPasskeyResponseDto>(
-    passkeyId: string,
-    updateUserPasskeyDto: UpdateUserPasskeyDto,
-    options?: HttpClientOptions & { observe: "events" },
-  ): Observable<HttpEvent<TData>>;
-  userPasskeyControllerUpdate<TData = UserPasskeyResponseDto>(
-    passkeyId: string,
-    updateUserPasskeyDto: UpdateUserPasskeyDto,
-    options?: HttpClientOptions & { observe: "response" },
-  ): Observable<AngularHttpResponse<TData>>;
-  userPasskeyControllerUpdate<TData = UserPasskeyResponseDto>(
-    passkeyId: string,
-    updateUserPasskeyDto: UpdateUserPasskeyDto,
-    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
-  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === "events") {
-      return this.http.patch<TData>(
-        `/user-passkey/${passkeyId}`,
-        updateUserPasskeyDto,
-        {
-          ...(options as Omit<NonNullable<typeof options>, "observe">),
-          observe: "events",
-        },
-      );
-    }
-
-    if (options?.observe === "response") {
-      return this.http.patch<TData>(
-        `/user-passkey/${passkeyId}`,
-        updateUserPasskeyDto,
-        {
-          ...(options as Omit<NonNullable<typeof options>, "observe">),
-          observe: "response",
-        },
-      );
-    }
-
-    return this.http.patch<TData>(
-      `/user-passkey/${passkeyId}`,
-      updateUserPasskeyDto,
-      {
-        ...(options as Omit<NonNullable<typeof options>, "observe">),
-        observe: "body",
-      },
-    );
-  }
-  userPasskeyControllerRemove<TData = UserPasskeyResponseDto>(
-    passkeyId: string,
-    options?: HttpClientOptions & { observe?: "body" },
-  ): Observable<TData>;
-  userPasskeyControllerRemove<TData = UserPasskeyResponseDto>(
-    passkeyId: string,
-    options?: HttpClientOptions & { observe: "events" },
-  ): Observable<HttpEvent<TData>>;
-  userPasskeyControllerRemove<TData = UserPasskeyResponseDto>(
-    passkeyId: string,
-    options?: HttpClientOptions & { observe: "response" },
-  ): Observable<AngularHttpResponse<TData>>;
-  userPasskeyControllerRemove<TData = UserPasskeyResponseDto>(
-    passkeyId: string,
-    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
-  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === "events") {
-      return this.http.delete<TData>(`/user-passkey/${passkeyId}`, {
-        ...(options as Omit<NonNullable<typeof options>, "observe">),
-        observe: "events",
-      });
-    }
-
-    if (options?.observe === "response") {
-      return this.http.delete<TData>(`/user-passkey/${passkeyId}`, {
-        ...(options as Omit<NonNullable<typeof options>, "observe">),
-        observe: "response",
-      });
-    }
-
-    return this.http.delete<TData>(`/user-passkey/${passkeyId}`, {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
     });

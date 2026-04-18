@@ -4,13 +4,13 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
+import type { UserPasskeyResponseDtoExpireAt } from "./userPasskeyResponseDtoExpireAt";
 
 export interface UserPasskeyResponseDto {
-  user_id: number;
-  hash_passkey: string;
-  expire_at?: string;
-  is_active: boolean;
-  is_deleted: boolean;
-  created_by?: number;
   passkey_id: number;
+  user_id: number;
+  /** @nullable */
+  expire_at: UserPasskeyResponseDtoExpireAt;
+  is_active: boolean;
+  created_at: string;
 }
