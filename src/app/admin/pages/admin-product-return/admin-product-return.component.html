@@ -1,52 +1,60 @@
 <div class="space-y-6">
-  <div class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
-    <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+  <div class="rounded-3xl border bg-white shadow-sm overflow-hidden">
+    <div class="px-6 py-5 border-b flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div>
-        <h1 class="text-2xl md:text-3xl font-semibold">Product Returns</h1>
-        <p class="mt-1 text-sm text-white/70">Manage return requests, review details, and update outcomes.</p>
+        <h1 class="text-2xl font-semibold text-gray-900">Product Returns</h1>
+        <p class="mt-1 text-sm text-gray-500">Review return requests, generate labels, receive inventory, and manage refunds.</p>
       </div>
 
-      <button
-        type="button"
-        (click)="refresh()"
-        class="rounded-2xl bg-white text-black font-medium px-4 py-3 hover:bg-gray-100 transition"
-      >
-        Refresh List
-      </button>
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          (click)="refresh()"
+          class="rounded-xl border bg-white px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 transition"
+        >
+          Refresh
+        </button>
+        <button
+          type="button"
+          (click)="resetFilters()"
+          class="rounded-xl border bg-white px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 transition"
+        >
+          Reset filters
+        </button>
+      </div>
     </div>
 
-    <form class="mt-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3" [formGroup]="filterForm" (ngSubmit)="applyFilters()">
+    <form class="p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3" [formGroup]="filterForm" (ngSubmit)="applyFilters()">
       <div class="xl:col-span-2">
         <div class="relative">
           <input
             formControlName="q"
-            placeholder="Search by order, return number, customer, product, SKU..."
-            class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 pl-11 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
+            placeholder="Search by order, return, customer, product, SKU…"
+            class="w-full rounded-2xl border bg-white px-4 py-3 pl-11 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10"
           />
-          <svg class="w-5 h-5 text-white/70 absolute left-4 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none">
+          <svg class="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none">
             <path d="M21 21l-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
         </div>
       </div>
 
-      <select formControlName="status" class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30">
-        <option *ngFor="let option of statusOptions" class="text-black" [value]="option.value">{{ option.label }}</option>
+      <select formControlName="status" class="w-full rounded-2xl border bg-white px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10">
+        <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
       </select>
 
-      <select formControlName="refundStatus" class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30">
-        <option *ngFor="let option of refundStatusOptions" class="text-black" [value]="option.value">{{ option.label }}</option>
+      <select formControlName="refundStatus" class="w-full rounded-2xl border bg-white px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10">
+        <option *ngFor="let option of refundStatusOptions" [value]="option.value">{{ option.label }}</option>
       </select>
 
-      <input formControlName="orderNumber" placeholder="Order number" class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30" />
-      <input formControlName="returnNumber" placeholder="Return number" class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30" />
-      <input type="date" formControlName="dateFrom" class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
-      <input type="date" formControlName="dateTo" class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
+      <input formControlName="orderNumber" placeholder="Order number" class="w-full rounded-2xl border bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+      <input formControlName="returnNumber" placeholder="Return number" class="w-full rounded-2xl border bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+      <input type="date" formControlName="dateFrom" class="w-full rounded-2xl border bg-white px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+      <input type="date" formControlName="dateTo" class="w-full rounded-2xl border bg-white px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
 
       <div class="xl:col-span-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div class="text-xs text-white/60">Use Filter to apply the current criteria. Reset clears all filters and returns to page 1.</div>
+        <div class="text-xs text-gray-500">Tip: use a return number or order number for fast lookups.</div>
         <div class="flex gap-3">
-          <button type="submit" class="rounded-2xl bg-white text-black font-medium px-4 py-3 hover:bg-gray-100 transition">Filter</button>
-          <button type="button" (click)="resetFilters()" class="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 font-medium text-white hover:bg-white/15 transition">Reset</button>
+          <button type="submit" class="rounded-xl bg-gray-900 text-white font-medium px-4 py-3 hover:bg-black transition">Apply filters</button>
         </div>
       </div>
     </form>
@@ -111,17 +119,17 @@
                 <div class="text-xs text-gray-500">SKU: {{ r.sku || '-' }}</div>
               </td>
               <td class="px-6 py-4 text-sm text-gray-700">{{ r.total_qty }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ r.reason_name || '-' }}</td>
-              <td class="px-6 py-4">
-                <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="badgeClass(r.status)">{{ formatStatus(r.status) }}</span>
-              </td>
-              <td class="px-6 py-4">
-                <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="badgeClass(r.refund_status)">{{ formatStatus(r.refund_status) }}</span>
-              </td>
-              <td class="px-6 py-4 text-right">
-                <button type="button" (click)="openDetails(r)" class="px-3 py-2 rounded-xl border hover:bg-gray-50 text-sm">View</button>
-              </td>
-            </tr>
+	              <td class="px-6 py-4 text-sm text-gray-700">{{ r.reason_name || '-' }}</td>
+	              <td class="px-6 py-4">
+	                <app-status-badge [label]="returnStatusBadge(r.status).label" [variant]="returnStatusBadge(r.status).variant"></app-status-badge>
+	              </td>
+	              <td class="px-6 py-4">
+	                <app-status-badge [label]="refundStatusBadge(r.refund_status).label" [variant]="refundStatusBadge(r.refund_status).variant"></app-status-badge>
+	              </td>
+	              <td class="px-6 py-4 text-right">
+	                <button type="button" (click)="openReturn(r)" class="px-3 py-2 rounded-xl bg-gray-900 text-white hover:bg-black text-sm">Review</button>
+	              </td>
+	            </tr>
             <tr *ngIf="!hasResults">
               <td colspan="9" class="px-6 py-10 text-center text-sm text-gray-500">No return requests found for the current filters.</td>
             </tr>
@@ -130,26 +138,29 @@
       </div>
 
       <div class="md:hidden p-4 space-y-3">
-        <div *ngFor="let r of requests; trackBy: trackByReturnId" class="rounded-3xl border p-4 shadow-sm">
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <div class="font-semibold text-gray-900">{{ r.return_number }}</div>
-              <div class="text-xs text-gray-500">{{ r.requested_at | date:'yyyy-MM-dd' }}</div>
-            </div>
-            <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="badgeClass(r.status)">{{ formatStatus(r.status) }}</span>
-          </div>
-          <div class="mt-3 text-sm text-gray-700">
-            <div class="font-semibold text-gray-900">{{ r.product_title }}</div>
-            <div class="text-xs text-gray-500">Order {{ r.order_number }} • SKU {{ r.sku || '-' }}</div>
-            <div class="mt-2"><span class="text-gray-500">Customer:</span> {{ r.customer_name }}</div>
-            <div class="mt-1"><span class="text-gray-500">Qty:</span> {{ r.total_qty }}</div>
-            <div class="mt-1"><span class="text-gray-500">Reason:</span> {{ r.reason_name || '-' }}</div>
-            <div class="mt-1"><span class="text-gray-500">Refund:</span> {{ formatStatus(r.refund_status) }}</div>
-          </div>
-          <div class="flex justify-end mt-4">
-            <button type="button" (click)="openDetails(r)" class="px-3 py-2 rounded-xl border text-sm">View</button>
-          </div>
-        </div>
+	        <div *ngFor="let r of requests; trackBy: trackByReturnId" class="rounded-3xl border p-4 shadow-sm">
+	          <div class="flex items-start justify-between gap-3">
+	            <div>
+	              <div class="font-semibold text-gray-900">{{ r.return_number }}</div>
+	              <div class="text-xs text-gray-500">{{ r.requested_at | date:'yyyy-MM-dd' }}</div>
+	            </div>
+	            <app-status-badge [label]="returnStatusBadge(r.status).label" [variant]="returnStatusBadge(r.status).variant"></app-status-badge>
+	          </div>
+	          <div class="mt-3 text-sm text-gray-700">
+	            <div class="font-semibold text-gray-900">{{ r.product_title }}</div>
+	            <div class="text-xs text-gray-500">Order {{ r.order_number }} • SKU {{ r.sku || '-' }}</div>
+	            <div class="mt-2"><span class="text-gray-500">Customer:</span> {{ r.customer_name }}</div>
+	            <div class="mt-1"><span class="text-gray-500">Qty:</span> {{ r.total_qty }}</div>
+	            <div class="mt-1"><span class="text-gray-500">Reason:</span> {{ r.reason_name || '-' }}</div>
+	            <div class="mt-2 flex items-center gap-2">
+	              <span class="text-gray-500 text-xs">Refund:</span>
+	              <app-status-badge [label]="refundStatusBadge(r.refund_status).label" [variant]="refundStatusBadge(r.refund_status).variant"></app-status-badge>
+	            </div>
+	          </div>
+	          <div class="flex justify-end mt-4">
+	            <button type="button" (click)="openReturn(r)" class="px-3 py-2 rounded-xl bg-gray-900 text-white hover:bg-black text-sm">Review</button>
+	          </div>
+	        </div>
         <div *ngIf="!hasResults" class="text-center text-sm text-gray-500 py-10">No return requests found for the current filters.</div>
       </div>
 
@@ -166,102 +177,11 @@
     </ng-container>
   </div>
 
-  <div *ngIf="detailOpen" class="fixed inset-0 z-50">
-    <div class="absolute inset-0 bg-black/50" (click)="closeDetails()"></div>
-    <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="w-full max-w-3xl rounded-3xl bg-white shadow-2xl overflow-hidden">
-        <div class="px-6 py-5 border-b flex items-center justify-between">
-          <div>
-            <div class="text-lg font-semibold text-gray-900">Return Details</div>
-            <div class="text-sm text-gray-500" *ngIf="selectedDetail">{{ selectedDetail.return_number }} • {{ selectedDetail.order_number }}</div>
-          </div>
-          <button type="button" class="p-2 rounded-xl hover:bg-gray-100" (click)="closeDetails()">
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </button>
-        </div>
-
-        <div *ngIf="detailLoading" class="p-6 text-sm text-gray-500">Loading details...</div>
-
-        <div *ngIf="!detailLoading && selectedDetail" class="p-6 space-y-5">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div class="rounded-2xl border bg-gray-50 p-4">
-              <div class="text-xs text-gray-500">Requested At</div>
-              <div class="font-semibold text-gray-900 mt-1">{{ selectedDetail.requested_at | date:'yyyy-MM-dd HH:mm' }}</div>
-            </div>
-            <div class="rounded-2xl border bg-gray-50 p-4">
-              <div class="text-xs text-gray-500">Requested Amount</div>
-              <div class="font-semibold text-gray-900 mt-1">{{ selectedDetail.currency }} {{ selectedDetail.requested_amount }}</div>
-            </div>
-            <div class="rounded-2xl border bg-gray-50 p-4">
-              <div class="text-xs text-gray-500">Refund Amount</div>
-              <div class="font-semibold text-gray-900 mt-1">{{ selectedDetail.currency }} {{ selectedDetail.refund_amount }}</div>
-            </div>
-          </div>
-
-          <div class="rounded-2xl border overflow-hidden">
-            <div class="px-4 py-3 border-b bg-gray-50 text-sm font-semibold text-gray-900">Returned Items</div>
-            <div class="divide-y">
-              <div *ngFor="let item of selectedDetail.items" class="px-4 py-4 grid grid-cols-1 md:grid-cols-5 gap-3 text-sm">
-                <div class="md:col-span-2">
-                  <div class="font-semibold text-gray-900">{{ item.product_title }}</div>
-                  <div class="text-xs text-gray-500">SKU: {{ item.sku || '-' }}</div>
-                </div>
-                <div>
-                  <div class="text-xs text-gray-500">Requested / Approved</div>
-                  <div class="font-semibold text-gray-900">{{ item.requested_qty }} / {{ item.approved_qty }}</div>
-                </div>
-                <div>
-                  <div class="text-xs text-gray-500">Reason</div>
-                  <div class="font-semibold text-gray-900">{{ item.reason_name }}</div>
-                </div>
-                <div>
-                  <div class="text-xs text-gray-500">Line Amount</div>
-                  <div class="font-semibold text-gray-900">{{ selectedDetail.currency }} {{ item.line_amount }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <form class="space-y-4" [formGroup]="detailForm" (ngSubmit)="saveStatusUpdate()">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label class="field">
-                <span class="text-sm font-medium text-gray-700">Return Status</span>
-                <select formControlName="status" class="mt-1 w-full rounded-2xl border px-4 py-3 text-sm text-gray-900">
-                  <option *ngFor="let status of updateStatusOptions" [value]="status">{{ formatStatus(status) }}</option>
-                </select>
-              </label>
-              <label class="field">
-                <span class="text-sm font-medium text-gray-700">Refund Status</span>
-                <select formControlName="refundStatus" class="mt-1 w-full rounded-2xl border px-4 py-3 text-sm text-gray-900">
-                  <option *ngFor="let status of updateRefundStatusOptions" [value]="status">{{ formatStatus(status) }}</option>
-                </select>
-              </label>
-              <label class="field">
-                <span class="text-sm font-medium text-gray-700">Refund Amount</span>
-                <input type="number" formControlName="refundAmount" class="mt-1 w-full rounded-2xl border px-4 py-3 text-sm text-gray-900" />
-              </label>
-              <label class="field">
-                <span class="text-sm font-medium text-gray-700">Refund ETA Note</span>
-                <input formControlName="refundEtaNote" class="mt-1 w-full rounded-2xl border px-4 py-3 text-sm text-gray-900" />
-              </label>
-            </div>
-
-            <label class="field">
-              <span class="text-sm font-medium text-gray-700">Admin Note</span>
-              <textarea rows="3" formControlName="adminNote" class="mt-1 w-full rounded-2xl border px-4 py-3 text-sm text-gray-900"></textarea>
-            </label>
-
-            <div class="flex justify-end gap-3">
-              <button type="button" (click)="closeDetails()" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50">Close</button>
-              <button type="submit" [disabled]="savingStatus" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900 disabled:opacity-50">
-                {{ savingStatus ? 'Saving...' : 'Update Status' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
+  <app-return-approval-drawer
+    [open]="returnDrawerOpen"
+    [orderId]="null"
+    [returnRequestId]="returnDrawerRequestId"
+    (closed)="closeReturn()"
+    (changed)="refreshAfterReturnChange()"
+  ></app-return-approval-drawer>
 </div>

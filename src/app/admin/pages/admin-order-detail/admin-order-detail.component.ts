@@ -382,6 +382,38 @@ export class AdminOrderDetailComponent implements OnInit {
     return { label: 'Pending', variant: 'warning' };
   }
 
+  returnStatusBadge(status: unknown): { label: string; variant: StatusBadgeVariant } {
+    const s = this.toText(status)?.toLowerCase() ?? '';
+    switch (s) {
+      case 'approved':
+        return { label: 'Approved', variant: 'success' };
+      case 'rejected':
+        return { label: 'Rejected', variant: 'danger' };
+      case 'cancelled':
+        return { label: 'Cancelled', variant: 'neutral' };
+      case 'in_review':
+        return { label: 'In Review', variant: 'info' };
+      case 'pending':
+      default:
+        return { label: s ? s.replace(/_/g, ' ') : 'Pending', variant: 'warning' };
+    }
+  }
+
+  refundStatusBadge(status: unknown): { label: string; variant: StatusBadgeVariant } {
+    const s = this.toText(status)?.toLowerCase() ?? '';
+    switch (s) {
+      case 'refunded':
+        return { label: 'Refunded', variant: 'success' };
+      case 'failed':
+        return { label: 'Failed', variant: 'danger' };
+      case 'processing':
+        return { label: 'Processing', variant: 'info' };
+      case 'pending':
+      default:
+        return { label: s ? s.replace(/_/g, ' ') : 'Pending', variant: 'warning' };
+    }
+  }
+
   objectEntries(value: unknown): Array<{ key: string; value: unknown }> {
     if (!value || typeof value !== 'object') return [];
     if (Array.isArray(value)) return [];

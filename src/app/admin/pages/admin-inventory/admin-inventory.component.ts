@@ -74,7 +74,6 @@ export class AdminInventoryComponent implements OnInit {
   readonly stockForm = this.fb.nonNullable.group({
     stockQty: [0, [Validators.required, Validators.min(0)]],
     lowStockThreshold: [0, [Validators.required, Validators.min(0)]],
-    stockStatus: ['in_stock', Validators.required],
     status: ['active', Validators.required],
     isActive: [true],
     inventorySource: [''],
@@ -178,6 +177,14 @@ export class AdminInventoryComponent implements OnInit {
     return Boolean(item.low_stock);
   }
 
+  stockStatusPreview(): 'in_stock' | 'low_stock' | 'out_of_stock' {
+    const qty = Number(this.stockForm.get('stockQty')?.value ?? 0);
+    const threshold = Number(this.stockForm.get('lowStockThreshold')?.value ?? 0);
+    if (!Number.isFinite(qty) || qty <= 0) return 'out_of_stock';
+    if (Number.isFinite(threshold) && threshold > 0 && qty <= threshold) return 'low_stock';
+    return 'in_stock';
+  }
+
   typeBadge(typeName: unknown): string {
     switch (this.toText(typeName).toLowerCase()) {
       case 'tire':
@@ -209,7 +216,6 @@ export class AdminInventoryComponent implements OnInit {
           this.stockForm.reset({
             stockQty: Number(response.data.available_qty ?? 0),
             lowStockThreshold: Number(response.data.low_stock_threshold ?? 0),
-            stockStatus: this.toText(response.data.stock_status) || 'in_stock',
             status: this.toText(response.data.status) || 'active',
             isActive: Boolean(response.data.is_active),
             inventorySource: this.toText(response.data.inventory_source),
@@ -231,7 +237,6 @@ export class AdminInventoryComponent implements OnInit {
     this.stockForm.reset({
       stockQty: 0,
       lowStockThreshold: 0,
-      stockStatus: 'in_stock',
       status: 'active',
       isActive: true,
       inventorySource: '',
@@ -252,7 +257,6 @@ export class AdminInventoryComponent implements OnInit {
     const payload: UpdateInventoryDto = {
       stock_qty: Number(value.stockQty),
       low_stock_threshold: Number(value.lowStockThreshold),
-      stock_status: this.emptyToUndefined(value.stockStatus),
       status: this.emptyToUndefined(value.status),
       is_active: value.isActive,
       inventory_source: this.emptyToUndefined(value.inventorySource),

@@ -249,50 +249,69 @@
 
         <div *ngIf="detailLoading" class="p-6 text-sm text-gray-500">Loading inventory details...</div>
 
-        <form *ngIf="!detailLoading && selectedDetail" class="p-6 space-y-4" [formGroup]="stockForm" (ngSubmit)="saveStock()">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="text-sm font-medium text-gray-700">Available Qty</label>
-              <input type="number" formControlName="stockQty" class="mt-1 w-full rounded-2xl border px-4 py-3" />
-            </div>
+	        <form *ngIf="!detailLoading && selectedDetail" class="p-6 space-y-4" [formGroup]="stockForm" (ngSubmit)="saveStock()">
+	          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Available Qty</label>
+	              <div class="mt-1 text-xs text-gray-500">How many units are currently available to sell.</div>
+	              <input type="number" formControlName="stockQty" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+	            </div>
 
-            <div>
-              <label class="text-sm font-medium text-gray-700">Low Stock Threshold</label>
-              <input type="number" formControlName="lowStockThreshold" class="mt-1 w-full rounded-2xl border px-4 py-3" />
-            </div>
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Low Stock Threshold</label>
+	              <div class="mt-1 text-xs text-gray-500">When available qty falls at or below this value, the item is considered low stock.</div>
+	              <input type="number" formControlName="lowStockThreshold" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+	            </div>
 
-            <div>
-              <label class="text-sm font-medium text-gray-700">Stock Status</label>
-              <input formControlName="stockStatus" class="mt-1 w-full rounded-2xl border px-4 py-3" />
-            </div>
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Stock Status (Auto)</label>
+	              <div class="mt-1 text-xs text-gray-500">Computed from Available Qty and Low Stock Threshold.</div>
+	              <div class="mt-1 rounded-2xl border bg-gray-50 px-4 py-3">
+	                <div class="flex flex-wrap items-center justify-between gap-2">
+	                  <div class="text-sm font-semibold text-gray-900">
+	                    {{ stockStatusPreview().split('_').join(' ') }}
+	                  </div>
+	                  <span class="text-xs font-medium rounded-full border px-3 py-1 bg-white text-gray-800 border-gray-200">
+	                    Preview
+	                  </span>
+	                </div>
+	                <div class="mt-1 text-xs text-gray-600">
+	                  Computed from Available Qty and Low Stock Threshold when you save.
+	                </div>
+	              </div>
+	            </div>
 
-            <div>
-              <label class="text-sm font-medium text-gray-700">Status</label>
-              <input formControlName="status" class="mt-1 w-full rounded-2xl border px-4 py-3" />
-            </div>
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Status</label>
+	              <div class="mt-1 text-xs text-gray-500">Administrative state of this inventory record (active/inactive).</div>
+	              <input formControlName="status" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+	            </div>
 
-            <div>
-              <label class="text-sm font-medium text-gray-700">Inventory Source</label>
-              <input formControlName="inventorySource" class="mt-1 w-full rounded-2xl border px-4 py-3" />
-            </div>
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Inventory Source</label>
+	              <div class="mt-1 text-xs text-gray-500">Where this stock comes from (supplier, return, transfer, manual adjustment, etc.).</div>
+	              <input formControlName="inventorySource" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+	            </div>
 
-            <div>
-              <label class="text-sm font-medium text-gray-700">Warehouse Bin</label>
-              <input formControlName="warehouseBin" class="mt-1 w-full rounded-2xl border px-4 py-3" />
-            </div>
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Warehouse Bin</label>
+	              <div class="mt-1 text-xs text-gray-500">Optional internal location to help pick/put-away (aisle/bin/shelf).</div>
+	              <input formControlName="warehouseBin" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+	            </div>
 
-            <div>
-              <label class="text-sm font-medium text-gray-700">Lead Time Days</label>
-              <input type="number" formControlName="leadTimeDays" class="mt-1 w-full rounded-2xl border px-4 py-3" />
-            </div>
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Lead Time Days</label>
+	              <div class="mt-1 text-xs text-gray-500">Estimated days to restock when inventory is low/out of stock.</div>
+	              <input type="number" formControlName="leadTimeDays" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+	            </div>
 
-            <label class="rounded-2xl border p-4 flex items-center gap-3 mt-6 md:mt-0">
-              <input type="checkbox" formControlName="isActive" class="h-4 w-4 rounded border-gray-300" />
-              <div>
-                <div class="font-medium text-gray-900">Active Product</div>
-                <div class="text-xs text-gray-500">Inactive products remain in inventory but can be hidden from active operations.</div>
-              </div>
-            </label>
+	            <label class="rounded-2xl border p-4 flex items-center gap-3 mt-6 md:mt-0">
+	              <input type="checkbox" formControlName="isActive" class="h-4 w-4 rounded border-gray-300" />
+	              <div>
+	                <div class="font-medium text-gray-900">Active Product</div>
+	                <div class="text-xs text-gray-500">Toggles visibility/availability in admin flows. Inventory can still exist even when inactive.</div>
+	              </div>
+	            </label>
           </div>
 
           <div class="rounded-2xl border bg-gray-50 p-4 text-sm text-gray-600">

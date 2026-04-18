@@ -1,20 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { finalize, switchMap } from 'rxjs';
+import { finalize } from 'rxjs';
 import { AdminReturnsService } from '../../../core/api/generated/admin-returns/admin-returns.service';
 import type {
   AdminReturnsControllerListRequestsParams,
-  ReturnRequestDetailDto,
   ReturnRequestListItemDto,
   ReturnRequestsListResponseDtoMeta,
-  UpdateReturnRefundDto,
-  UpdateReturnStatusDto,
 } from '../../../core/api/generated/schemas';
 import { ToastService } from '../../../core/notification/toast.service';
+import { ReturnApprovalDrawerComponent } from '../../orders/components/return-approval-drawer/return-approval-drawer.component';
+import { StatusBadgeComponent, type StatusBadgeVariant } from '../../components/status-badge/status-badge.component';
 
-type FilterStatus = 'all' | 'pending' | 'approved' | 'rejected' | 'refunded' | 'received' | 'requested';
-type RefundFilterStatus = 'all' | 'none' | 'pending' | 'approved' | 'refunded' | 'failed';
+type FilterStatus = 'all' | 'pending' | 'in_review' | 'approved' | 'rejected' | 'cancelled';
+type RefundFilterStatus = 'all' | 'pending' | 'processing' | 'refunded' | 'failed';
 
 interface ReturnMeta {
   page: number;
@@ -25,7 +24,7 @@ interface ReturnMeta {
 
 @Component({
   selector: 'app-admin-product-return',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ReturnApprovalDrawerComponent, StatusBadgeComponent],
   templateUrl: './admin-product-return.component.html',
   styleUrl: './admin-product-return.component.css',
 })
@@ -36,26 +35,22 @@ export class AdminProductReturnComponent implements OnInit {
 
   readonly statusOptions: Array<{ value: FilterStatus; label: string }> = [
     { value: 'all', label: 'All Status' },
-    { value: 'requested', label: 'Requested' },
     { value: 'pending', label: 'Pending' },
-    { value: 'received', label: 'Received' },
+    { value: 'in_review', label: 'In Review' },
     { value: 'approved', label: 'Approved' },
     { value: 'rejected', label: 'Rejected' },
-    { value: 'refunded', label: 'Refunded' },
+    { value: 'cancelled', label: 'Cancelled' },
   ];
 
   readonly refundStatusOptions: Array<{ value: RefundFilterStatus; label: string }> = [
     { value: 'all', label: 'All Refund States' },
-    { value: 'none', label: 'No Refund' },
     { value: 'pending', label: 'Pending' },
-    { value: 'approved', label: 'Approved' },
     { value: 'refunded', label: 'Refunded' },
+    { value: 'processing', label: 'Processing' },
     { value: 'failed', label: 'Failed' },
   ];
 
   readonly pageSizeOptions = ['10', '20', '50'];
-  readonly updateStatusOptions = ['requested', 'pending', 'received', 'approved', 'rejected', 'refunded'];
-  readonly updateRefundStatusOptions = ['none', 'pending', 'approved', 'refunded', 'failed'];
 
   readonly filterForm = this.fb.nonNullable.group({
     q: [''],
@@ -68,24 +63,15 @@ export class AdminProductReturnComponent implements OnInit {
     limit: ['50'],
   });
 
-  readonly detailForm = this.fb.group({
-    status: [''],
-    refundStatus: [''],
-    refundAmount: [null as number | null],
-    refundEtaNote: [''],
-    adminNote: [''],
-  });
-
   requests: ReturnRequestListItemDto[] = [];
-  selectedDetail: ReturnRequestDetailDto | null = null;
   meta: ReturnMeta = { page: 1, limit: 50, total: 0, totalPages: 1 };
   appliedParams: AdminReturnsControllerListRequestsParams = { page: 1, limit: 50 };
 
   loading = false;
   loadError: string | null = null;
-  detailLoading = false;
-  savingStatus = false;
-  detailOpen = false;
+
+  returnDrawerOpen = false;
+  returnDrawerRequestId: string | null = null;
 
   ngOnInit(): void {
     this.loadRequests();
@@ -156,113 +142,50 @@ export class AdminProductReturnComponent implements OnInit {
     this.loadRequests();
   }
 
-  openDetails(item: ReturnRequestListItemDto): void {
-    this.detailOpen = true;
-    this.detailLoading = true;
-    this.selectedDetail = null;
-
-    this.returnsApi
-      .adminReturnsControllerGetRequest(String(item.return_request_id))
-      .pipe(finalize(() => (this.detailLoading = false)))
-      .subscribe({
-        next: (response) => {
-          this.selectedDetail = response.data;
-          this.detailForm.reset({
-            status: this.toText(response.data.status),
-            refundStatus: this.toText(response.data.refund_status),
-            refundAmount: Number(response.data.refund_amount ?? 0),
-            refundEtaNote: this.toText(response.data.refund_eta_note),
-            adminNote: this.toText(response.data.admin_note),
-          });
-        },
-        error: (error: unknown) => {
-          this.toast.error(this.getApiErrorMessage(error, 'Failed to load return details.'));
-          this.closeDetails();
-        },
-      });
+  openReturn(item: ReturnRequestListItemDto): void {
+    this.returnDrawerRequestId = String(item.return_request_id);
+    this.returnDrawerOpen = true;
   }
 
-  closeDetails(): void {
-    this.detailOpen = false;
-    this.selectedDetail = null;
-    this.detailForm.reset({
-      status: '',
-      refundStatus: '',
-      refundAmount: null,
-      refundEtaNote: '',
-      adminNote: '',
-    });
+  closeReturn(): void {
+    this.returnDrawerOpen = false;
+    this.returnDrawerRequestId = null;
   }
 
-  saveStatusUpdate(): void {
-    if (!this.selectedDetail) return;
-
-    const value = this.detailForm.getRawValue();
-    const statusPayload: UpdateReturnStatusDto = {
-      status: this.emptyToUndefined(value.status),
-      admin_note: this.emptyToUndefined(value.adminNote),
-    };
-    const refundPayload: UpdateReturnRefundDto = {
-      refund_status: this.emptyToUndefined(value.refundStatus),
-      refund_amount: value.refundAmount ?? undefined,
-      refund_eta_note: this.emptyToUndefined(value.refundEtaNote),
-      admin_note: this.emptyToUndefined(value.adminNote),
-    };
-
-    this.savingStatus = true;
-    this.returnsApi
-      .adminReturnsControllerUpdateStatus(String(this.selectedDetail.return_request_id), statusPayload)
-      .pipe(
-        switchMap(() =>
-          this.returnsApi.adminReturnsControllerUpdateRefund(String(this.selectedDetail!.return_request_id), refundPayload),
-        ),
-      )
-      .pipe(finalize(() => (this.savingStatus = false)))
-      .subscribe({
-        next: (response) => {
-          this.toast.success(response.message || 'Return request updated.');
-          this.selectedDetail = response.data;
-          this.requests = this.requests.map((item) =>
-            item.return_request_id === response.data.return_request_id
-              ? { ...item, status: response.data.status, refund_status: response.data.refund_status }
-              : item,
-          );
-          this.detailForm.patchValue({
-            status: this.toText(response.data.status),
-            refundStatus: this.toText(response.data.refund_status),
-            refundAmount: Number(response.data.refund_amount ?? 0),
-            refundEtaNote: this.toText(response.data.refund_eta_note),
-            adminNote: this.toText(response.data.admin_note),
-          });
-        },
-        error: (error: unknown) => {
-          this.toast.error(this.getApiErrorMessage(error, 'Failed to update return status.'));
-        },
-      });
+  refreshAfterReturnChange(): void {
+    this.loadRequests();
   }
 
-  badgeClass(status: string): string {
-    switch (status.toLowerCase()) {
-      case 'pending':
-      case 'requested':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+  returnStatusBadge(status: unknown): { label: string; variant: StatusBadgeVariant } {
+    const s = this.toText(status)?.toLowerCase() ?? '';
+    switch (s) {
       case 'approved':
-      case 'received':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        return { label: 'Approved', variant: 'success' };
       case 'rejected':
-      case 'failed':
-        return 'bg-rose-50 text-rose-700 border-rose-200';
-      case 'refunded':
-        return 'bg-sky-50 text-sky-700 border-sky-200';
+        return { label: 'Rejected', variant: 'danger' };
+      case 'cancelled':
+        return { label: 'Cancelled', variant: 'neutral' };
+      case 'in_review':
+        return { label: 'In Review', variant: 'info' };
+      case 'pending':
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        return { label: s ? s.replace(/_/g, ' ') : 'Pending', variant: 'warning' };
     }
   }
 
-  formatStatus(value: string | null | undefined): string {
-    const normalized = this.toText(value).trim();
-    if (!normalized) return '-';
-    return normalized.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+  refundStatusBadge(status: unknown): { label: string; variant: StatusBadgeVariant } {
+    const s = this.toText(status)?.toLowerCase() ?? '';
+    switch (s) {
+      case 'refunded':
+        return { label: 'Refunded', variant: 'success' };
+      case 'failed':
+        return { label: 'Failed', variant: 'danger' };
+      case 'processing':
+        return { label: 'Processing', variant: 'info' };
+      case 'pending':
+      default:
+        return { label: s ? s.replace(/_/g, ' ') : 'Pending', variant: 'warning' };
+    }
   }
 
   trackByReturnId(_: number, item: ReturnRequestListItemDto): number {
@@ -331,7 +254,9 @@ export class AdminProductReturnComponent implements OnInit {
   }
 
   private toText(value: unknown): string {
-    return typeof value === 'string' ? value : '';
+    if (typeof value === 'string') return value;
+    if (value === null || value === undefined) return '';
+    return String(value);
   }
 
   private toNumber(value: unknown): number | undefined {

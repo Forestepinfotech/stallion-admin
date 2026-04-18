@@ -14,7 +14,7 @@ import type {
 } from '../../../../core/api/generated/schemas';
 import { ToastService } from '../../../../core/notification/toast.service';
 import { DrawerComponent } from '../../../components/drawer/drawer.component';
-import { StatusBadgeComponent } from '../../../components/status-badge/status-badge.component';
+import { StatusBadgeComponent, type StatusBadgeVariant } from '../../../components/status-badge/status-badge.component';
 import { FulfillmentSettingsService } from '../../services/fulfillment-settings.service';
 
 type RateRow = NetParcelRateDto & { service_code_number?: number | null };
@@ -23,6 +23,9 @@ type ReturnItemApprovalPatch = {
   return_request_item_id: number;
   approved_qty: number;
 };
+
+type ReturnStatus = 'pending' | 'in_review' | 'approved' | 'rejected' | 'cancelled';
+type RefundStatus = 'pending' | 'processing' | 'refunded' | 'failed';
 
 @Component({
   selector: 'app-return-approval-drawer',
@@ -54,6 +57,10 @@ export class ReturnApprovalDrawerComponent implements OnChanges {
   request = signal<ReturnRequestDetailDto | null>(null);
   rates = signal<RateRow[]>([]);
   selectedRateCode = signal<string | null>(null);
+  approveIdempotencyKey = signal<string>('');
+  labelPanelOpen = signal(false);
+  receivePanelOpen = signal(false);
+  refundPanelOpen = signal(false);
 
   approvedQty = signal<Record<number, number>>({});
   receivedQty = signal<Record<number, number>>({});
@@ -61,19 +68,54 @@ export class ReturnApprovalDrawerComponent implements OnChanges {
   canEditApprovals = computed(() => {
     const r = this.request();
     if (!r) return false;
-    return r.status === 'requested' || r.status === 'in_review';
+    return r.status === 'pending' || r.status === 'in_review';
+  });
+
+  canApprove = computed(() => {
+    const r = this.request();
+    if (!r) return false;
+    return r.status === 'pending' || r.status === 'in_review';
+  });
+
+  canReject = computed(() => {
+    const r = this.request();
+    if (!r) return false;
+    return r.status !== 'rejected' && r.status !== 'approved' && r.status !== 'cancelled';
+  });
+
+  canCancel = computed(() => {
+    const r = this.request();
+    if (!r) return false;
+    return r.status !== 'cancelled' && r.status !== 'approved' && r.status !== 'rejected';
+  });
+
+  canReceive = computed(() => {
+    const r = this.request();
+    if (!r) return false;
+    return r.status === 'approved';
+  });
+
+  canStripeRefund = computed(() => {
+    const r = this.request();
+    if (!r) return false;
+    const refund = this.text(r.refund_status).toLowerCase() as RefundStatus;
+    // Allow refund after approval; block when already refunded or processing.
+    if (r.status !== 'approved') return false;
+    return refund !== 'refunded' && refund !== 'processing';
   });
 
   readonly reviewForm = this.fb.nonNullable.group({
     admin_note: [''],
-    status: ['in_review'],
+    status: ['in_review' as ReturnStatus],
   });
 
-  readonly refundForm = this.fb.nonNullable.group({
-    refund_status: ['in_review'],
-    refund_amount: [0, [Validators.min(0)]],
-    refund_eta_note: [''],
-    admin_note: [''],
+  readonly receiveForm = this.fb.nonNullable.group({
+    note: [''],
+  });
+
+  readonly stripeRefundForm = this.fb.group({
+    refund_amount: [null as number | null],
+    reason: [''],
   });
 
   readonly returnPackageForm = this.fb.nonNullable.group({
@@ -212,7 +254,10 @@ export class ReturnApprovalDrawerComponent implements OnChanges {
     if (!this.request()) return;
     this.saving = true;
     this.returnsApi
-      .adminReturnsControllerUpdateStatus(id, { status: 'in_review', admin_note: this.reviewForm.get('admin_note')!.value || undefined })
+      .adminReturnsControllerUpdateStatus(id, {
+        status: 'in_review',
+        admin_note: this.reviewForm.get('admin_note')!.value || undefined,
+      })
       .pipe(finalize(() => (this.saving = false)))
       .subscribe({
         next: () => {
@@ -232,17 +277,26 @@ export class ReturnApprovalDrawerComponent implements OnChanges {
     const code = this.selectedRateCode();
     const selected = code ? this.rates().find((r) => r.service_code === code) : null;
     const serviceCodeNumber = selected?.service_code_number ?? (code ? Number(code) : null);
+    const idempotencyKey = this.approveIdempotencyKey() || (globalThis.crypto?.randomUUID?.() ?? '');
 
     this.saving = true;
     this.patchApprovedQuantitiesIfNeeded(id)
       .pipe(
         switchMap(() =>
-          this.returnsApi.adminReturnsControllerUpdateStatus(id, {
-            status: 'approved',
-            admin_note: this.reviewForm.get('admin_note')!.value || undefined,
-            return_label_service_code: Number.isFinite(serviceCodeNumber as number) ? (serviceCodeNumber as number) : undefined,
-            return_label_service_name: selected?.service_name ?? undefined,
-          }),
+          this.returnsApi.adminReturnsControllerUpdateStatus(
+            id,
+            {
+              status: 'approved',
+              admin_note: this.reviewForm.get('admin_note')!.value || undefined,
+              return_label_service_code: Number.isFinite(serviceCodeNumber as number)
+                ? (serviceCodeNumber as number)
+                : undefined,
+              return_label_service_name: selected?.service_name ?? undefined,
+            },
+            idempotencyKey
+              ? { headers: { 'idempotency-key': idempotencyKey } }
+              : undefined,
+          ),
         ),
         finalize(() => (this.saving = false)),
       )
@@ -279,19 +333,42 @@ export class ReturnApprovalDrawerComponent implements OnChanges {
       });
   }
 
+  cancelReturn(): void {
+    const id = this.returnRequestId;
+    if (!id) return;
+    const note = (this.reviewForm.get('admin_note')!.value || '').trim();
+    if (!note) {
+      this.toast.error('Add an admin note explaining the cancellation.');
+      return;
+    }
+
+    if (!confirm('Cancel this return request?')) return;
+
+    this.saving = true;
+    this.returnsApi
+      .adminReturnsControllerUpdateStatus(id, { status: 'cancelled', admin_note: note })
+      .pipe(finalize(() => (this.saving = false)))
+      .subscribe({
+        next: () => {
+          this.toast.success('Return cancelled.');
+          this.changed.emit();
+          if (this.returnRequestId) this.load(this.returnRequestId);
+        },
+        error: (error: unknown) => this.toast.error(this.getApiErrorMessage(error, 'Failed to cancel return.')),
+      });
+  }
+
   receiveReturn(): void {
     const id = this.returnRequestId;
     const req = this.request();
     if (!id || !req) return;
 
-    const items = req.items.map((i) => ({
-      return_request_item_id: i.return_request_item_id,
-      received_qty: this.receivedQty()[i.return_request_item_id] ?? i.received_qty ?? 0,
-    }));
+    const note = (this.receiveForm.get('note')!.value || '').trim() || undefined;
 
     this.saving = true;
     this.returnsApi
-      .adminReturnsControllerReceive(id, { items })
+      // Omitting `items` receives full approved qty for all items (server-side).
+      .adminReturnsControllerReceive(id, { note })
       .pipe(finalize(() => (this.saving = false)))
       .subscribe({
         next: () => {
@@ -303,28 +380,72 @@ export class ReturnApprovalDrawerComponent implements OnChanges {
       });
   }
 
-  updateRefund(): void {
-    const id = this.returnRequestId;
-    if (!id) return;
-    const value = this.refundForm.getRawValue();
+  refundViaStripe(): void {
+    const req = this.request();
+    if (!req) return;
+
+    const id = String(req.return_request_id);
+    const value = this.stripeRefundForm.getRawValue();
+    const amount =
+      Number.isFinite(Number(value.refund_amount)) && Number(value.refund_amount) > 0
+        ? Number(value.refund_amount)
+        : undefined;
+    const reason = (value.reason || '').trim() || undefined;
+
+    const confirmMsg = amount
+      ? `Refund via Stripe for return #${id} for ${amount}?`
+      : `Refund via Stripe for return #${id} (default amount)?`;
+    if (!confirm(confirmMsg)) return;
 
     this.saving = true;
-    this.returnsApi
-      .adminReturnsControllerUpdateRefund(id, {
-        refund_status: value.refund_status || undefined,
-        refund_amount: Number.isFinite(value.refund_amount) ? value.refund_amount : undefined,
-        refund_eta_note: value.refund_eta_note || undefined,
-        admin_note: value.admin_note || undefined,
+    this.http
+      .post(`/admin/returns/requests/${id}/refund/stripe`, {
+        refund_amount: amount,
+        reason,
       })
       .pipe(finalize(() => (this.saving = false)))
       .subscribe({
         next: () => {
-          this.toast.success('Refund updated.');
+          this.toast.success('Stripe refund created.');
           this.changed.emit();
           if (this.returnRequestId) this.load(this.returnRequestId);
         },
-        error: (error: unknown) => this.toast.error(this.getApiErrorMessage(error, 'Failed to update refund.')),
+        error: (error: unknown) => {
+          this.toast.error(this.getApiErrorMessage(error, 'Failed to refund via Stripe.'));
+        },
       });
+  }
+
+  returnStatusBadge(status: unknown): { label: string; variant: StatusBadgeVariant } {
+    const s = this.text(status).toLowerCase();
+    switch (s) {
+      case 'approved':
+        return { label: 'Approved', variant: 'success' };
+      case 'rejected':
+        return { label: 'Rejected', variant: 'danger' };
+      case 'cancelled':
+        return { label: 'Cancelled', variant: 'neutral' };
+      case 'in_review':
+        return { label: 'In Review', variant: 'info' };
+      case 'pending':
+      default:
+        return { label: 'Pending', variant: 'warning' };
+    }
+  }
+
+  refundStatusBadge(status: unknown): { label: string; variant: StatusBadgeVariant } {
+    const s = this.text(status).toLowerCase();
+    switch (s) {
+      case 'refunded':
+        return { label: 'Refunded', variant: 'success' };
+      case 'failed':
+        return { label: 'Failed', variant: 'danger' };
+      case 'processing':
+        return { label: 'Processing', variant: 'info' };
+      case 'pending':
+      default:
+        return { label: 'Pending', variant: 'warning' };
+    }
   }
 
   labelUrlFromReturnLabel(label: unknown): string | null {
@@ -366,39 +487,55 @@ export class ReturnApprovalDrawerComponent implements OnChanges {
     this.loading = true;
     this.rates.set([]);
     this.selectedRateCode.set(null);
+    this.approveIdempotencyKey.set(globalThis.crypto?.randomUUID?.() ?? '');
+    this.labelPanelOpen.set(false);
+    this.receivePanelOpen.set(false);
+    this.refundPanelOpen.set(false);
 
-    const order$ = this.orderId
-      ? this.ordersApi.ordersControllerGet(this.orderId).pipe(map((r) => r.data ?? null))
-      : of(null);
-    const return$ = this.returnsApi.adminReturnsControllerGetRequest(returnRequestId).pipe(map((r) => r.data));
+    this.returnsApi
+      .adminReturnsControllerGetRequest(returnRequestId)
+      .pipe(
+        map((r) => r.data),
+        switchMap((req) => {
+          const inferredOrderId =
+            this.orderId ||
+            (req.items && req.items.length > 0 ? String((req.items[0] as any)?.order_id ?? '') : '') ||
+            null;
 
-    forkJoin([order$, return$])
-      .pipe(finalize(() => (this.loading = false)))
+          const order$ = inferredOrderId
+            ? this.ordersApi.ordersControllerGet(inferredOrderId).pipe(
+                map((r) => r.data ?? null),
+                catchError(() => of(null)),
+              )
+            : of(null);
+
+          return forkJoin({ req: of(req), order: order$ });
+        }),
+        finalize(() => (this.loading = false)),
+      )
       .subscribe({
-        next: ([order, req]) => {
+        next: ({ req, order }) => {
           this.order.set(order);
           this.request.set(req);
           this.reviewForm.patchValue(
             {
-              status: req.status === 'requested' ? 'in_review' : req.status,
+              status: (req.status === 'pending' ? 'in_review' : req.status) as ReturnStatus,
               admin_note: this.text(req.admin_note),
             },
             { emitEvent: false },
           );
-          this.refundForm.patchValue(
-            {
-              refund_status: req.refund_status || 'in_review',
-              refund_amount: req.refund_amount ?? 0,
-              refund_eta_note: this.text(req.refund_eta_note),
-              admin_note: this.text(req.admin_note),
-            },
-            { emitEvent: false },
-          );
+          this.receiveForm.patchValue({ note: '' }, { emitEvent: false });
+          this.stripeRefundForm.patchValue({ refund_amount: null, reason: '' }, { emitEvent: false });
+
+          // Prefill return-label package from the original outbound shipment when possible.
+          // Only do this when the admin hasn't started editing the package form.
+          this.prefillReturnLabelPackage(order);
 
           const approvals: Record<number, number> = {};
           const receives: Record<number, number> = {};
           for (const item of req.items ?? []) {
-            approvals[item.return_request_item_id] = item.approved_qty ?? item.requested_qty ?? 0;
+            approvals[item.return_request_item_id] =
+              item.approved_qty ?? item.requested_qty ?? 0;
             receives[item.return_request_item_id] = item.received_qty ?? 0;
           }
           this.approvedQty.set(approvals);
@@ -408,6 +545,82 @@ export class ReturnApprovalDrawerComponent implements OnChanges {
           this.toast.error(this.getApiErrorMessage(error, 'Failed to load return request.'));
         },
       });
+  }
+
+  private prefillReturnLabelPackage(order: AdminOrderDetailDto | null): void {
+    if (!order) return;
+    if (this.returnPackageForm.dirty) return;
+
+    const o = order as any;
+
+    // Prefer `original_shipments` (if backend provides it), otherwise fall back to `shipments`.
+    const shipments =
+      (Array.isArray(o?.original_shipments) ? o.original_shipments : null) ??
+      (Array.isArray(o?.shipments) ? o.shipments : null) ??
+      [];
+
+    const firstShipment = shipments?.[0] as any;
+    const rawPackages =
+      firstShipment?.packages ??
+      // Fallbacks sometimes used by other parts of the app/backends.
+      o?.shipping_estimated_packages ??
+      o?.estimated_packages ??
+      o?.shipping_packages_estimated ??
+      o?.package_estimates ??
+      null;
+
+    const pkg = this.packageFromRaw(rawPackages);
+    if (!pkg) return;
+
+    this.returnPackageForm.patchValue(pkg, { emitEvent: false });
+    this.returnPackageForm.markAsPristine();
+    this.returnPackageForm.markAsUntouched();
+  }
+
+  private packageFromRaw(raw: unknown): { weight: number; length: number; width: number; height: number } | null {
+    const list: unknown[] = Array.isArray(raw) ? raw : [];
+    if (list.length === 0) return null;
+
+    const toNum = (v: unknown): number | null => {
+      const n = typeof v === 'number' ? v : Number(String(v ?? '').trim());
+      return Number.isFinite(n) ? n : null;
+    };
+
+    const read = (p: any) => ({
+      weight: toNum(p?.weight ?? p?.actual_weight ?? p?.billable_weight),
+      length: toNum(p?.length),
+      width: toNum(p?.width),
+      height: toNum(p?.height),
+    });
+
+    // If there are multiple packages, sum the weights and take max dimensions.
+    // This gives a reasonable "single parcel" estimate for rate shopping.
+    let weightSum = 0;
+    let hasWeight = false;
+    let lengthMax = 0;
+    let widthMax = 0;
+    let heightMax = 0;
+
+    for (const item of list) {
+      if (!item || typeof item !== 'object') continue;
+      const p = read(item);
+      if (p.weight != null && p.weight > 0) {
+        hasWeight = true;
+        weightSum += p.weight;
+      }
+      if (p.length != null && p.length > lengthMax) lengthMax = p.length;
+      if (p.width != null && p.width > widthMax) widthMax = p.width;
+      if (p.height != null && p.height > heightMax) heightMax = p.height;
+    }
+
+    if (!hasWeight) return null;
+
+    return {
+      weight: Math.max(0.01, Number(weightSum.toFixed(2))),
+      length: lengthMax > 0 ? lengthMax : 0,
+      width: widthMax > 0 ? widthMax : 0,
+      height: heightMax > 0 ? heightMax : 0,
+    };
   }
 
   private getApiErrorMessage(error: unknown, fallback: string): string {
