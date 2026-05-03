@@ -4,8 +4,9 @@ import url from "node:url";
 import dotenv from "dotenv";
 
 const PRODUCTION_BASE_URL =
-  process.env.PRODUCTION_API_BASE_URL || "https://stallionautolab.com/apis";
-const LOCAL_BASE_URL = process.env.LOCAL_API_BASE_URL || "http://localhost:3002";
+  process.env.PRODUCTION_API_BASE_URL || "https://stallionauto.com/apis";
+const LOCAL_BASE_URL =
+  process.env.LOCAL_API_BASE_URL || "http://localhost:3002";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, "..");

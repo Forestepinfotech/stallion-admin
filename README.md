@@ -4,10 +4,10 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 ## Production deployment
 
-The frontend is built as a static Angular SPA and is configured to be served from `https://stallionautolab.com/admin/`.
+The frontend is built as a static Angular SPA and is configured to be served from `https://stallionauto.com/admin/`.
 
 1. Copy `.env.example` to `.env` and set the real auth values.
-2. For production builds, keep `IS_SERVER=true`. That generates `src/assets/runtime-config.json` with `https://stallionautolab.com/apis` by default.
+2. For production builds, keep `IS_SERVER=true`. That generates `src/assets/runtime-config.json` with `https://stallionauto.com/apis` by default.
 3. For local development, set `IS_SERVER=false`. That keeps API calls on `http://localhost:3002`.
 4. Run `npm ci`.
 5. Run `npm run build`.
@@ -19,7 +19,7 @@ PM2 serves the compiled frontend on port `4300` through [ecosystem.config.cjs](/
 
 ### Nginx on the main droplet
 
-DNS should point `stallionautolab.com` and/or `stallionautolab.ca` to the main droplet. That droplet should reverse proxy:
+DNS should point `stallionauto.com` and/or `stallionautolab.ca` to the main droplet. That droplet should reverse proxy:
 
 - `/admin/` to the admin droplet
 - `/apis/` to the API droplet
@@ -54,7 +54,7 @@ If you want HTTPS, point your domain to the droplet and then run:
 
 ```bash
 sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d stallionautolab.com -d www.stallionautolab.com -d stallionautolab.ca -d www.stallionautolab.ca
+sudo certbot --nginx -d stallionauto.com -d www.stallionauto.com -d stallionautolab.ca -d www.stallionautolab.ca
 ```
 
 ## Development server
@@ -89,7 +89,7 @@ To build the project run:
 npm run build
 ```
 
-This compiles the app into `dist/` with `/admin/` as the deploy base path and with production API calls targeting `https://stallionautolab.com/apis` unless `PRODUCTION_API_BASE_URL` overrides it.
+This compiles the app into `dist/` with `/admin/` as the deploy base path and with production API calls targeting `https://stallionauto.com/apis` unless `PRODUCTION_API_BASE_URL` overrides it.
 
 ## Running unit tests
 

@@ -6,11 +6,14 @@ import { RuntimeConfig } from './runtime-config.model';
 const LOCALHOST_NAMES = new Set(['localhost', '127.0.0.1']);
 
 function resolveDefaultApiBaseUrl(): string {
-  if (typeof window !== 'undefined' && LOCALHOST_NAMES.has(window.location.hostname)) {
+  if (
+    typeof window !== 'undefined' &&
+    LOCALHOST_NAMES.has(window.location.hostname)
+  ) {
     return 'http://localhost:3002';
   }
 
-  return 'https://stallionautolab.com/apis';
+  return 'https://stallionauto.com/apis';
 }
 
 function resolveRuntimeConfigUrl(): string {
