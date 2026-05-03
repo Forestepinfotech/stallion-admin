@@ -25,7 +25,7 @@ export class LandingRedirectComponent implements OnInit {
     const tokens = this.session.snapshot.tokens;
 
     if (tokens && !this.session.isAccessTokenExpired()) {
-      this.router.navigateByUrl('/admin');
+      this.router.navigateByUrl('/dashboard');
       return;
     }
 
@@ -37,7 +37,7 @@ export class LandingRedirectComponent implements OnInit {
             catchError(() => of(false)),
           ),
         );
-        this.router.navigateByUrl('/admin');
+        this.router.navigateByUrl('/dashboard');
         return;
       } catch {
         // fall through to login

@@ -1,7 +1,7 @@
 <div class="space-y-6">
   <div class="flex items-center gap-3">
     <a
-      routerLink="/admin/orders"
+      routerLink="/orders"
       class="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"
     >
       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
@@ -270,7 +270,7 @@
               <div class="rounded-2xl bg-white p-4 ring-1 ring-gray-200/70">
                 <div class="text-xs text-gray-500">Customer</div>
                 <a
-                  [routerLink]="['/admin/users', order.user_id]"
+                  [routerLink]="['/users', order.user_id]"
                   class="mt-1 inline-flex items-center gap-2 font-semibold text-gray-900 hover:underline"
                 >
                   <span class="truncate">{{
@@ -299,7 +299,7 @@
                 </div>
                 <div class="mt-3">
                   <a
-                    [routerLink]="['/admin/users', order.user_id]"
+                    [routerLink]="['/users', order.user_id]"
                     class="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-900 hover:bg-gray-50"
                   >
                     View Customer
@@ -309,7 +309,7 @@
               <div class="rounded-2xl bg-white p-4 ring-1 ring-gray-200/70">
                 <div class="text-xs text-gray-500">User</div>
                 <a
-                  [routerLink]="['/admin/users', order.user_id]"
+                  [routerLink]="['/users', order.user_id]"
                   class="mt-1 inline-flex items-center gap-2 font-semibold text-gray-900 hover:underline"
                 >
                   <span>#{{ order.user_id }}</span>
@@ -1415,7 +1415,7 @@
                         }}
                       </div>
                       <a
-                        [routerLink]="['/admin/products-list', item.product_id]"
+                        [routerLink]="['/products-list', item.product_id]"
                         class="inline-flex items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"
                       >
                         View
@@ -1539,7 +1539,7 @@
                       <td class="py-4 pl-4 pr-6 text-right whitespace-nowrap">
                         <a
                           [routerLink]="[
-                            '/admin/products-list',
+                            '/products-list',
                             item.product_id,
                           ]"
                           class="inline-flex items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"

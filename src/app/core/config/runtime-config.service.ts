@@ -3,9 +3,27 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { RuntimeConfig } from './runtime-config.model';
 
+const LOCALHOST_NAMES = new Set(['localhost', '127.0.0.1']);
+
+function resolveDefaultApiBaseUrl(): string {
+  if (typeof window !== 'undefined' && LOCALHOST_NAMES.has(window.location.hostname)) {
+    return 'http://localhost:3002';
+  }
+
+  return 'https://stallionautolab.com/apis';
+}
+
+function resolveRuntimeConfigUrl(): string {
+  if (typeof document !== 'undefined') {
+    return new URL('assets/runtime-config.json', document.baseURI).toString();
+  }
+
+  return 'assets/runtime-config.json';
+}
+
 const DEFAULT_CONFIG: RuntimeConfig = {
-  apiBaseUrl: 'http://178.128.228.186',
-  adminGalleryApiBaseUrl: 'http://178.128.228.186',
+  apiBaseUrl: resolveDefaultApiBaseUrl(),
+  adminGalleryApiBaseUrl: resolveDefaultApiBaseUrl(),
   mediaBaseUrl: 'https://stallio-public.tor1.digitaloceanspaces.com',
   tokenRefreshLeewaySeconds: 20,
 };
@@ -26,7 +44,7 @@ export class RuntimeConfigService {
   async load(): Promise<void> {
     try {
       const cfg = await firstValueFrom(
-        this.http.get<RuntimeConfig>('/assets/runtime-config.json'),
+        this.http.get<RuntimeConfig>(resolveRuntimeConfigUrl()),
       );
       this.configSubject.next({ ...DEFAULT_CONFIG, ...cfg });
     } catch (error) {

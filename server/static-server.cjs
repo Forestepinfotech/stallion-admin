@@ -4,6 +4,7 @@ const path = require("node:path");
 
 const host = process.env.HOST || "0.0.0.0";
 const port = Number(process.env.PORT || 4300);
+const basePath = (process.env.APP_BASE_PATH || "").trim().replace(/\/+$/, "");
 const rootCandidates = [
   path.resolve(__dirname, "../dist/stallionadmin/browser"),
   path.resolve(__dirname, "../dist/stallionadmin"),
@@ -39,9 +40,23 @@ const sendFile = (res, filePath) => {
   fs.createReadStream(filePath).pipe(res);
 };
 
+const normalizeRequestPath = (requestPath) => {
+  if (basePath && requestPath.startsWith(`${basePath}/`)) {
+    return requestPath.slice(basePath.length) || "/";
+  }
+
+  if (basePath && requestPath === basePath) {
+    return "/";
+  }
+
+  return requestPath;
+};
+
 const server = http.createServer((req, res) => {
   const requestPath = decodeURIComponent((req.url || "/").split("?")[0]);
-  const safePath = path.normalize(requestPath).replace(/^(\.\.[/\\])+/, "");
+  const safePath = path
+    .normalize(normalizeRequestPath(requestPath))
+    .replace(/^(\.\.[/\\])+/, "");
   let filePath = path.join(
     webRoot,
     safePath === "/" ? "/index.html" : safePath,

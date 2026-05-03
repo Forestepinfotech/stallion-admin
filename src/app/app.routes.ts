@@ -5,6 +5,7 @@ import { roleGuard } from './core/auth/role.guard';
 export const routes: Routes = [
   {
     path: '',
+    pathMatch: 'full',
     loadComponent: () =>
       import('./core/auth/landing-redirect.component').then((m) => m.LandingRedirectComponent),
   },
@@ -13,7 +14,6 @@ export const routes: Routes = [
     loadComponent: () => import('./login/login.component').then((m) => m.LoginComponent),
   },
   {
-    path: 'admin',
     loadComponent: () =>
       import('./admin/layout/admin-layout/admin-layout.component').then((m) => m.AdminLayoutComponent),
     children: [
@@ -135,7 +135,5 @@ export const routes: Routes = [
       },
     ],
   },
-
-  { path: '', pathMatch: 'full', redirectTo: 'login' },
   { path: '**', redirectTo: 'login' },
 ];

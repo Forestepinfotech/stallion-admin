@@ -233,17 +233,17 @@ export class AdminProductListComponent implements OnInit {
   }
 
   openCreate(): void {
-    this.router.navigate(['/admin/products']);
+    this.router.navigate(['/products']);
   }
 
   openEdit(product: ProductRow): void {
-    this.router.navigate(['/admin/products'], {
+    this.router.navigate(['/products'], {
       queryParams: { edit: product.product_id },
     });
   }
 
   viewProduct(productId: number): void {
-    this.router.navigate(['/admin/products-list', productId]);
+    this.router.navigate(['/products-list', productId]);
   }
 
   closeModal(): void {

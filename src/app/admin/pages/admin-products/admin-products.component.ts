@@ -481,7 +481,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigateByUrl('/admin/products-list');
+    this.router.navigateByUrl('/products-list');
   }
 
   async onFileChange(event: Event): Promise<void> {
@@ -1119,7 +1119,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.router.navigate(['/admin/gallery'], {
+    this.router.navigate(['/gallery'], {
       queryParams: { productId: this.editingProductId },
     });
   }
@@ -1423,7 +1423,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
           this.toastService.error(
             this.getApiErrorMessage(error, 'Failed to load product.'),
           );
-          this.router.navigate(['/admin/products-list']);
+          this.router.navigate(['/products-list']);
         },
       });
   }

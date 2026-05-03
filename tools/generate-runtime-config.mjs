@@ -3,8 +3,9 @@ import path from 'node:path';
 import url from 'node:url';
 import dotenv from 'dotenv';
 
-const SERVER_BASE_URL = 'http://178.128.228.186';
-const LOCAL_BASE_URL = 'http://localhost:3002';
+const PRODUCTION_BASE_URL =
+  process.env.PRODUCTION_API_BASE_URL || 'https://stallionautolab.com/apis';
+const LOCAL_BASE_URL = process.env.LOCAL_API_BASE_URL || 'http://localhost:3002';
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -13,7 +14,9 @@ dotenv.config({ path: envPath });
 
 const isServerEnv = process.env.IS_SERVER?.trim().toLowerCase();
 const useServerBaseUrl = isServerEnv !== 'false';
-const resolvedApiBaseUrl = useServerBaseUrl ? SERVER_BASE_URL : LOCAL_BASE_URL;
+const resolvedApiBaseUrl = useServerBaseUrl
+  ? PRODUCTION_BASE_URL
+  : LOCAL_BASE_URL;
 const resolvedAdminGalleryApiBaseUrl =
   process.env.ADMIN_GALLERY_API_BASE_URL || resolvedApiBaseUrl;
 const resolvedOpenApiSchemaUrl = `${resolvedApiBaseUrl.replace(/\/+$/, '')}/docs-json`;

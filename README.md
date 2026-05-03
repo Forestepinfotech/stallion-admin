@@ -4,20 +4,27 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 ## Production deployment
 
-The frontend is built as a static Angular SPA and can be served on a DigitalOcean droplet with PM2.
+The frontend is built as a static Angular SPA and is configured to be served from `https://stallionautolab.com/admin/`.
 
 1. Copy `.env.example` to `.env` and set the real auth values.
-2. Set `IS_SERVER=true` to use `http://178.128.228.186`, or `IS_SERVER=false` to use `http://localhost:3002`.
-3. `IS_SERVER` defaults to the server URL when the flag is omitted.
+2. For production builds, keep `IS_SERVER=true`. That generates `src/assets/runtime-config.json` with `https://stallionautolab.com/apis` by default.
+3. For local development, set `IS_SERVER=false`. That keeps API calls on `http://localhost:3002`.
 4. Run `npm ci`.
 5. Run `npm run build`.
 6. Run `npm run pm2:start`.
 
-PM2 serves the compiled frontend on port `4300` through [ecosystem.config.cjs](/Users/mac/Desktop/NATIVE_IOS/VarinderCuApps/stallion-admin-main/ecosystem.config.cjs). Production PM2 stdout/stderr logs are disabled there.
+`npm run build` uses Angular production mode with `--base-href /admin/`, so the generated `index.html`, JS, CSS, and asset URLs are all rooted under `/admin/`.
 
-### Nginx on the droplet
+PM2 serves the compiled frontend on port `4300` through [ecosystem.config.cjs](/Users/mac/Desktop/NATIVE_IOS/VarinderCuApps/stallion-admin-main/ecosystem.config.cjs). Production PM2 stdout/stderr logs are disabled there, and `APP_BASE_PATH=/admin` lets the static server resolve `/admin/*` requests correctly.
 
-Nginx should be installed on the server, not in this repo. This repo now includes a ready site config at [deploy/nginx/stallionadmin.conf](/Users/mac/Desktop/NATIVE_IOS/VarinderCuApps/stallion-admin-main/deploy/nginx/stallionadmin.conf).
+### Nginx on the main droplet
+
+DNS should point `stallionautolab.com` and/or `stallionautolab.ca` to the main droplet. That droplet should reverse proxy:
+
+- `/admin/` to the admin droplet
+- `/apis/` to the API droplet
+
+This repo includes an example site config at [deploy/nginx/stallionadmin.conf](/Users/mac/Desktop/NATIVE_IOS/VarinderCuApps/stallion-admin-main/deploy/nginx/stallionadmin.conf).
 
 Typical setup on Ubuntu/Debian:
 
@@ -31,13 +38,23 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-That config listens on port `80` and proxies requests to the PM2 app on `127.0.0.1:4300`.
+Replace `admin_droplet_ip_or_dns` and `api_droplet_ip_or_dns` in the sample config before enabling it.
+
+### Refresh handling under `/admin`
+
+Angular route refreshes such as `/admin/dashboard` and `/admin/orders` work when both layers behave like an SPA:
+
+1. The app is built with `base href /admin/`.
+2. The main Nginx server forwards `/admin/*` to the admin droplet.
+3. The admin droplet serves `index.html` for unknown frontend routes.
+
+The included `server/static-server.cjs` already falls back to `index.html`, so refreshes do not return `404` as long as requests reach the admin droplet.
 
 If you want HTTPS, point your domain to the droplet and then run:
 
 ```bash
 sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d your-domain.com -d www.your-domain.com
+sudo certbot --nginx -d stallionautolab.com -d www.stallionautolab.com -d stallionautolab.ca -d www.stallionautolab.ca
 ```
 
 ## Development server
@@ -45,7 +62,7 @@ sudo certbot --nginx -d your-domain.com -d www.your-domain.com
 To start a local development server, run:
 
 ```bash
-ng serve
+npm run dev:config
 ```
 
 Once the server is running, open your browser and navigate to `http://localhost:4300/`. The application will automatically reload whenever you modify any of the source files.
@@ -69,10 +86,10 @@ ng generate --help
 To build the project run:
 
 ```bash
-ng build
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+This compiles the app into `dist/` with `/admin/` as the deploy base path and with production API calls targeting `https://stallionautolab.com/apis` unless `PRODUCTION_API_BASE_URL` overrides it.
 
 ## Running unit tests
 

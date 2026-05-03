@@ -120,7 +120,7 @@
                 </div>
 
                 <div class="min-w-0">
-                  <a [routerLink]="['/admin/users', u.id]" (click)="warnIfRestricted(u)" class="font-semibold text-gray-900 truncate hover:underline">{{ u.name }}</a>
+                  <a [routerLink]="['/users', u.id]" (click)="warnIfRestricted(u)" class="font-semibold text-gray-900 truncate hover:underline">{{ u.name }}</a>
                   <div class="text-xs text-gray-500 truncate">{{ u.email }}</div>
                 </div>
               </div>
@@ -194,7 +194,7 @@
             </div>
 
             <div class="min-w-0">
-              <a [routerLink]="['/admin/users', u.id]" (click)="warnIfRestricted(u)" class="font-semibold text-gray-900 truncate hover:underline">{{ u.name }}</a>
+              <a [routerLink]="['/users', u.id]" (click)="warnIfRestricted(u)" class="font-semibold text-gray-900 truncate hover:underline">{{ u.name }}</a>
               <div class="text-xs text-gray-500 truncate">{{ u.email }}</div>
             </div>
           </div>

@@ -201,7 +201,7 @@
 
             <td class="px-6 py-4">
               <div class="flex justify-end gap-2">
-                <a [routerLink]="['/admin/coupons', c.id]" class="px-3 py-2 rounded-xl border hover:bg-gray-50 text-sm">
+                <a [routerLink]="['/coupons', c.id]" class="px-3 py-2 rounded-xl border hover:bg-gray-50 text-sm">
                   View
                 </a>
                 <button (click)="openEdit(c)" type="button" class="px-3 py-2 rounded-xl border hover:bg-gray-50 text-sm">
@@ -270,7 +270,7 @@
         </div>
 
         <div class="flex justify-end gap-2 mt-4">
-          <a [routerLink]="['/admin/coupons', c.id]" class="px-3 py-2 rounded-xl border text-sm">View</a>
+          <a [routerLink]="['/coupons', c.id]" class="px-3 py-2 rounded-xl border text-sm">View</a>
           <button (click)="openEdit(c)" type="button" class="px-3 py-2 rounded-xl border text-sm">Edit</button>
           <button (click)="openDelete(c)" type="button" class="px-3 py-2 rounded-xl bg-black text-white text-sm">Delete</button>
         </div>

@@ -46,7 +46,7 @@ export class LoginComponent {
           password: password ?? '',
         }),
       );
-      this.router.navigateByUrl('/admin');
+      this.router.navigateByUrl('/dashboard');
     } catch (e) {
       const msg =
         (e as any)?.error?.message ||
