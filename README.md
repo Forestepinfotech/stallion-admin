@@ -19,7 +19,7 @@ PM2 serves the compiled frontend on port `4300` through [ecosystem.config.cjs](/
 
 ### Nginx on the main droplet
 
-DNS should point `stallionauto.com` and/or `stallionautolab.ca` to the main droplet. That droplet should reverse proxy:
+DNS should point `stallionauto.com` and/or `stallionauto.ca` to the main droplet. That droplet should reverse proxy:
 
 - `/admin/` to the admin droplet
 - `/apis/` to the API droplet
@@ -54,7 +54,7 @@ If you want HTTPS, point your domain to the droplet and then run:
 
 ```bash
 sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d stallionauto.com -d www.stallionauto.com -d stallionautolab.ca -d www.stallionautolab.ca
+sudo certbot --nginx -d stallionauto.com -d www.stallionauto.com -d stallionauto.ca -d www.stallionauto.ca
 ```
 
 ## Development server
