@@ -15,7 +15,43 @@ The frontend is built as a static Angular SPA and is configured to be served fro
 
 `npm run build` uses Angular production mode with `--base-href /admin/`, so the generated `index.html`, JS, CSS, and asset URLs are all rooted under `/admin/`.
 
-PM2 serves the compiled frontend on port `4300` through [ecosystem.config.cjs](/Users/mac/Desktop/NATIVE_IOS/VarinderCuApps/stallion-admin-main/ecosystem.config.cjs). Production PM2 stdout/stderr logs are disabled there, and `APP_BASE_PATH=/admin` lets the static server resolve `/admin/*` requests correctly.
+PM2 serves the compiled frontend on port `4300` through [ecosystem.config.cjs](/Users/mac/Desktop/NATIVE_IOS/VarinderCuApps/stallion-admin-main/ecosystem.config.cjs). The production process binds to `0.0.0.0:4300`, and `APP_BASE_PATH=/admin` lets the static server resolve both `/admin/*` reverse-proxy traffic and direct IP checks such as `http://167.99.179.122:4300`.
+
+If you want to run the compiled frontend without PM2, use:
+
+```bash
+npm run build
+npm run serve:prod
+```
+
+### Firewall
+
+If `ufw` is enabled on the admin droplet, open TCP port `4300`:
+
+```bash
+sudo ufw allow 4300/tcp
+sudo ufw status
+```
+
+If you are using DigitalOcean Cloud Firewalls instead, add an inbound TCP rule for port `4300` from the main website droplet IP or from the specific private/public source that should reach the admin droplet.
+
+### Verification
+
+After starting PM2 or `npm run serve:prod`, verify locally on the admin droplet:
+
+```bash
+curl -I http://127.0.0.1:4300
+curl -I http://127.0.0.1:4300/admin/
+```
+
+Then verify from the other droplet or another host that is allowed through the firewall:
+
+```bash
+curl -I http://167.99.179.122:4300
+curl -I http://167.99.179.122:4300/admin/
+```
+
+Both direct IP URLs should return `HTTP/1.1 200 OK`. The root URL works because the built SPA uses `<base href="/admin/">`, so the browser follows up under `/admin/`, and the static server maps `/admin/*` back to the same build output.
 
 ### Nginx on the main droplet
 

@@ -33,10 +33,18 @@ const mimeTypes = {
   ".webp": "image/webp",
 };
 
-const sendFile = (res, filePath) => {
+const sendFile = (req, res, filePath) => {
   const ext = path.extname(filePath).toLowerCase();
+  const stats = fs.statSync(filePath);
   res.statusCode = 200;
   res.setHeader("Content-Type", mimeTypes[ext] || "application/octet-stream");
+  res.setHeader("Content-Length", stats.size);
+
+  if (req.method === "HEAD") {
+    res.end();
+    return;
+  }
+
   fs.createReadStream(filePath).pipe(res);
 };
 
@@ -53,6 +61,13 @@ const normalizeRequestPath = (requestPath) => {
 };
 
 const server = http.createServer((req, res) => {
+  if (!req.method || !["GET", "HEAD"].includes(req.method)) {
+    res.statusCode = 405;
+    res.setHeader("Allow", "GET, HEAD");
+    res.end("Method Not Allowed");
+    return;
+  }
+
   const requestPath = decodeURIComponent((req.url || "/").split("?")[0]);
   const safePath = path
     .normalize(normalizeRequestPath(requestPath))
@@ -73,11 +88,14 @@ const server = http.createServer((req, res) => {
   }
 
   if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-    sendFile(res, filePath);
+    sendFile(req, res, filePath);
     return;
   }
 
-  sendFile(res, path.join(webRoot, "index.html"));
+  sendFile(req, res, path.join(webRoot, "index.html"));
 });
 
-server.listen(port, host);
+server.listen(port, host, () => {
+  const publicBasePath = basePath || "/";
+  console.log(`stallionadmin listening on http://${host}:${port}${publicBasePath}`);
+});
