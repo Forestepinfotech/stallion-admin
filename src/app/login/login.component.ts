@@ -46,7 +46,10 @@ export class LoginComponent {
           password: password ?? '',
         }),
       );
-      this.router.navigateByUrl('/dashboard');
+      const navigated = await this.router.navigateByUrl('/dashboard');
+      if (!navigated && typeof window !== 'undefined') {
+        window.location.assign(new URL('dashboard', document.baseURI).toString());
+      }
     } catch (e) {
       const msg =
         (e as any)?.error?.message ||

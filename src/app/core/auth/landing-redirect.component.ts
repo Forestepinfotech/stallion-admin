@@ -21,11 +21,18 @@ export class LandingRedirectComponent implements OnInit {
   private readonly session = inject(AuthSessionService);
   private readonly router = inject(Router);
 
+  private async navigateTo(path: string): Promise<void> {
+    const navigated = await this.router.navigateByUrl(path);
+    if (!navigated && typeof window !== 'undefined') {
+      window.location.assign(new URL(path.replace(/^\//, ''), document.baseURI).toString());
+    }
+  }
+
   async ngOnInit(): Promise<void> {
     const tokens = this.session.snapshot.tokens;
 
     if (tokens && !this.session.isAccessTokenExpired()) {
-      this.router.navigateByUrl('/dashboard');
+      await this.navigateTo('/dashboard');
       return;
     }
 
@@ -37,13 +44,13 @@ export class LandingRedirectComponent implements OnInit {
             catchError(() => of(false)),
           ),
         );
-        this.router.navigateByUrl('/dashboard');
+        await this.navigateTo('/dashboard');
         return;
       } catch {
         // fall through to login
       }
     }
 
-    this.router.navigateByUrl('/login');
+    await this.navigateTo('/login');
   }
 }
