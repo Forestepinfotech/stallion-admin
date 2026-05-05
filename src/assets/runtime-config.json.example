@@ -1,6 +1,6 @@
 {
-  "apiBaseUrl": "https://stallionauto.com/apis",
-  "adminGalleryApiBaseUrl": "https://stallionauto.com/apis",
+  "apiBaseUrl": "https://api.stallionauto.com",
+  "adminGalleryApiBaseUrl": "https://api.stallionauto.com",
   "mediaBaseUrl": "https://stallio-public.tor1.digitaloceanspaces.com",
   "tokenRefreshLeewaySeconds": 20,
   "authIssuer": "https://your-issuer.example.com/",

@@ -4,7 +4,7 @@ import url from "node:url";
 import dotenv from "dotenv";
 
 const PRODUCTION_BASE_URL =
-  process.env.PRODUCTION_API_BASE_URL || "https://stallionauto.com/apis";
+  process.env.PRODUCTION_API_BASE_URL || "https://api.stallionauto.com";
 const LOCAL_BASE_URL =
   process.env.LOCAL_API_BASE_URL || "http://localhost:3002";
 

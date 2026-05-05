@@ -7,7 +7,7 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 The frontend is built as a static Angular SPA and is configured to be served from `https://stallionauto.com/admin/`.
 
 1. Copy `.env.example` to `.env` and set the real auth values.
-2. For production builds, keep `IS_SERVER=true`. That generates `src/assets/runtime-config.json` with `https://stallionauto.com/apis` by default.
+2. For production builds, keep `IS_SERVER=true`. That generates `src/assets/runtime-config.json` with `https://api.stallionauto.com` by default.
 3. For local development, set `IS_SERVER=false`. That keeps API calls on `http://localhost:3002`.
 4. Run `npm ci`.
 5. Run `npm run build`.
@@ -55,10 +55,10 @@ Both direct IP URLs should return `HTTP/1.1 200 OK`. The root URL works because 
 
 ### Nginx on the main droplet
 
-DNS should point `stallionauto.com` to the main droplet. That droplet should reverse proxy:
+DNS should point both `stallionauto.com` and `api.stallionauto.com` to the main droplet. That droplet should reverse proxy:
 
 - `/admin/` to the admin droplet
-- `/apis/` to the API droplet
+- `api.stallionauto.com` to the API droplet
 
 This repo includes an example site config at [deploy/nginx/stallionadmin.conf](/Users/mac/Desktop/NATIVE_IOS/VarinderCuApps/stallion-admin-main/deploy/nginx/stallionadmin.conf).
 
@@ -90,7 +90,7 @@ If you want HTTPS, point your domain to the droplet and then run:
 
 ```bash
 sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d stallionauto.com -d www.stallionauto.com
+sudo certbot --nginx -d stallionauto.com -d www.stallionauto.com -d api.stallionauto.com
 ```
 
 ## Development server
@@ -125,7 +125,7 @@ To build the project run:
 npm run build
 ```
 
-This compiles the app into `dist/` with `/admin/` as the deploy base path and with production API calls targeting `https://stallionauto.com/apis` unless `PRODUCTION_API_BASE_URL` overrides it.
+This compiles the app into `dist/` with `/admin/` as the deploy base path and with production API calls targeting `https://api.stallionauto.com` unless `PRODUCTION_API_BASE_URL` overrides it.
 
 ## Running unit tests
 

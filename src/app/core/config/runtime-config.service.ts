@@ -13,7 +13,7 @@ function resolveDefaultApiBaseUrl(): string {
     return 'http://localhost:3002';
   }
 
-  return 'https://stallionauto.com/apis';
+  return 'https://api.stallionauto.com';
 }
 
 function resolveRuntimeConfigUrl(): string {
