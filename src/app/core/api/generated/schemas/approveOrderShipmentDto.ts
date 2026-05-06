@@ -6,6 +6,7 @@
  */
 import type { ApproveOrderShipmentDtoGenerateLabel } from "./approveOrderShipmentDtoGenerateLabel";
 import type { ApproveOrderShipmentDtoMetadata } from "./approveOrderShipmentDtoMetadata";
+import type { ApproveOrderShipmentDtoOverrideReason } from "./approveOrderShipmentDtoOverrideReason";
 import type { ApproveOrderShipmentDtoServiceName } from "./approveOrderShipmentDtoServiceName";
 import type { ApproveOrderShipmentDtoShipDate } from "./approveOrderShipmentDtoShipDate";
 import type { ApproveOrderShipmentPackageDto } from "./approveOrderShipmentPackageDto";
@@ -32,4 +33,8 @@ export interface ApproveOrderShipmentDto {
    * @nullable
    */
   metadata?: ApproveOrderShipmentDtoMetadata;
+  /** When true, allows admin to override the customer-selected checkout service_code (requires override_reason). */
+  force_override?: boolean;
+  /** Required when force_override=true and service_code differs from checkout selection. */
+  override_reason?: ApproveOrderShipmentDtoOverrideReason;
 }

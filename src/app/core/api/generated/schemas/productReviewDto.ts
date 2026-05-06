@@ -5,13 +5,19 @@
  * OpenAPI spec version: 1.0
  */
 import type { ProductReviewDtoComment } from "./productReviewDtoComment";
+import type { ProductReviewDtoModerationReason } from "./productReviewDtoModerationReason";
+import type { ProductReviewDtoReviewerName } from "./productReviewDtoReviewerName";
+import type { ProductReviewDtoReviewStatus } from "./productReviewDtoReviewStatus";
 import type { ProductReviewDtoTitle } from "./productReviewDtoTitle";
+import type { ProductReviewDtoUserId } from "./productReviewDtoUserId";
 import type { ProductReviewDtoUserRole } from "./productReviewDtoUserRole";
+import type { ProductReviewReplyDto } from "./productReviewReplyDto";
 
 export interface ProductReviewDto {
   review_id: number;
   product_id: number;
-  user_id: number;
+  /** @nullable */
+  user_id: ProductReviewDtoUserId;
   /** Integer star rating (1-5) */
   rating: number;
   /** @nullable */
@@ -20,6 +26,14 @@ export interface ProductReviewDto {
   comment: ProductReviewDtoComment;
   /** @nullable */
   user_role: ProductReviewDtoUserRole;
+  /** @nullable */
+  reviewer_name: ProductReviewDtoReviewerName;
+  review_status: ProductReviewDtoReviewStatus;
+  is_verified_purchase: boolean;
+  flag_count: number;
+  /** @nullable */
+  moderation_reason: ProductReviewDtoModerationReason;
+  reply?: ProductReviewReplyDto | null;
   created_at: string;
   updated_at: string;
 }

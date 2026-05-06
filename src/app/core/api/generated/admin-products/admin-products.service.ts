@@ -20,8 +20,10 @@ import type {
   AdminProductFullResponseDto,
   AnswerProductQuestionDto,
   CreateProductQuestionDto,
+  CreateProductReviewReplyDto,
   CreateProductsDto,
   CreateStorefrontProductReviewDto,
+  ModerateProductReviewDto,
   PaginatedProductQuestionDto,
   PaginatedProductReviewDto,
   PaginatedProductsResponseDto,
@@ -333,6 +335,116 @@ export class AdminProductsService {
 
     return this.http.delete<TData>(
       `/products/${productId}/reviews/${reviewId}`,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
+  productsControllerModerateReview<TData = ProductReviewDto>(
+    productId: string,
+    reviewId: string,
+    moderateProductReviewDto: ModerateProductReviewDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  productsControllerModerateReview<TData = ProductReviewDto>(
+    productId: string,
+    reviewId: string,
+    moderateProductReviewDto: ModerateProductReviewDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  productsControllerModerateReview<TData = ProductReviewDto>(
+    productId: string,
+    reviewId: string,
+    moderateProductReviewDto: ModerateProductReviewDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  productsControllerModerateReview<TData = ProductReviewDto>(
+    productId: string,
+    reviewId: string,
+    moderateProductReviewDto: ModerateProductReviewDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.patch<TData>(
+        `/products/${productId}/reviews/${reviewId}/moderation`,
+        moderateProductReviewDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.patch<TData>(
+        `/products/${productId}/reviews/${reviewId}/moderation`,
+        moderateProductReviewDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.patch<TData>(
+      `/products/${productId}/reviews/${reviewId}/moderation`,
+      moderateProductReviewDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
+  productsControllerReplyToReview<TData = ProductReviewDto>(
+    productId: string,
+    reviewId: string,
+    createProductReviewReplyDto: CreateProductReviewReplyDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  productsControllerReplyToReview<TData = ProductReviewDto>(
+    productId: string,
+    reviewId: string,
+    createProductReviewReplyDto: CreateProductReviewReplyDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  productsControllerReplyToReview<TData = ProductReviewDto>(
+    productId: string,
+    reviewId: string,
+    createProductReviewReplyDto: CreateProductReviewReplyDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  productsControllerReplyToReview<TData = ProductReviewDto>(
+    productId: string,
+    reviewId: string,
+    createProductReviewReplyDto: CreateProductReviewReplyDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.post<TData>(
+        `/products/${productId}/reviews/${reviewId}/reply`,
+        createProductReviewReplyDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.post<TData>(
+        `/products/${productId}/reviews/${reviewId}/reply`,
+        createProductReviewReplyDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.post<TData>(
+      `/products/${productId}/reviews/${reviewId}/reply`,
+      createProductReviewReplyDto,
       {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "body",

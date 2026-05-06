@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:3002"
+      "url": "https://api.stallionauto.com"
     }
   ],
   "tags": [],
@@ -3732,6 +3732,112 @@
         ]
       }
     },
+    "/products/{product_id}/reviews/{review_id}/moderation": {
+      "patch": {
+        "operationId": "ProductsController_moderateReview",
+        "parameters": [
+          {
+            "name": "review_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "product_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModerateProductReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductReviewDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-products"
+        ]
+      }
+    },
+    "/products/{product_id}/reviews/{review_id}/reply": {
+      "post": {
+        "operationId": "ProductsController_replyToReview",
+        "parameters": [
+          {
+            "name": "review_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "product_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductReviewReplyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductReviewDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-products"
+        ]
+      }
+    },
     "/products/{product_id}/questions": {
       "get": {
         "operationId": "ProductsController_questions",
@@ -6815,6 +6921,49 @@
         ]
       }
     },
+    "/orders/{order_id}/shipments/{shipment_id}/sync-tracking": {
+      "post": {
+        "operationId": "OrdersFulfillmentController_syncTracking",
+        "parameters": [
+          {
+            "name": "order_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "shipment_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentMutationResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-order-fulfillment"
+        ]
+      }
+    },
     "/order-shipment": {
       "get": {
         "operationId": "OrderShipmentController_list",
@@ -7535,6 +7684,104 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CouponsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-coupons"
+        ]
+      }
+    },
+    "/coupons/{coupon_id}/usage": {
+      "get": {
+        "operationId": "CouponsController_usage",
+        "parameters": [
+          {
+            "name": "coupon_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "harminder",
+              "type": "string"
+            }
+          },
+          {
+            "name": "user_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 5,
+              "type": "number"
+            }
+          },
+          {
+            "name": "order_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 12,
+              "type": "number"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCouponUsageResponseDto"
                 }
               }
             }
@@ -9135,6 +9382,7 @@
             "name": "low_stock_only",
             "required": false,
             "in": "query",
+            "description": "When true, returns only low-stock products. Defaults to true when no other filters are provided.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -10225,6 +10473,51 @@
         ]
       }
     },
+    "/admin/returns/requests/{return_request_id}/refund/stripe": {
+      "post": {
+        "operationId": "AdminReturnsController_refundViaStripe",
+        "parameters": [
+          {
+            "name": "return_request_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundReturnViaStripeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReturnMutationResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-returns"
+        ]
+      }
+    },
     "/admin/returns/requests/{return_request_id}/receive": {
       "patch": {
         "operationId": "AdminReturnsController_receive",
@@ -10267,6 +10560,151 @@
         ],
         "tags": [
           "admin-returns"
+        ]
+      }
+    },
+    "/admin/contact-us": {
+      "get": {
+        "operationId": "AdminCustomerContactController_list",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "john",
+              "type": "string"
+            }
+          },
+          {
+            "name": "replied",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerContactListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-contact-us"
+        ]
+      }
+    },
+    "/admin/contact-us/{contact_us_id}": {
+      "get": {
+        "operationId": "AdminCustomerContactController_detail",
+        "parameters": [
+          {
+            "name": "contact_us_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerContactUsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-contact-us"
+        ]
+      }
+    },
+    "/admin/contact-us/{contact_us_id}/reply": {
+      "post": {
+        "operationId": "AdminCustomerContactController_reply",
+        "parameters": [
+          {
+            "name": "contact_us_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerContactReplyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerContactUsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-contact-us"
         ]
       }
     },
@@ -10416,6 +10854,41 @@
         ]
       }
     },
+    "/customer/payments/methods/{payment_method_id}": {
+      "delete": {
+        "operationId": "CustomerPaymentsController_deleteMethod",
+        "parameters": [
+          {
+            "name": "payment_method_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteSavedPaymentMethodResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-payments"
+        ]
+      }
+    },
     "/customer/payments/pay": {
       "post": {
         "operationId": "CustomerPaymentsController_pay",
@@ -10487,7 +10960,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaginatedProductReviewDto"
+                  "$ref": "#/components/schemas/ProductReviewListResponseDto"
                 }
               }
             }
@@ -10616,6 +11089,59 @@
         "responses": {
           "200": {
             "description": "Review deleted"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-catalog"
+        ]
+      }
+    },
+    "/customer/products/{slug}/reviews/{review_id}/report": {
+      "post": {
+        "operationId": "CustomerCatalogController_reportProductReview",
+        "parameters": [
+          {
+            "name": "review_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportProductReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductReviewActionResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -11019,7 +11545,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Customer product list filtered by optional q, brand, model, category, and year parameters.",
+            "description": "Compatibility alias for the unified customer search API. Prefer GET /customer/search for full search, pagination, and default suggestion products.",
             "content": {
               "application/json": {
                 "schema": {
@@ -11585,7 +12111,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Customer search",
+            "description": "Unified customer search API. Searches product title, SKU, MPN, barcode, category, brand, model, year, fitment, descriptions, attributes, tags, and specification values. Includes pagination and default suggestion_products in the same response.",
             "content": {
               "application/json": {
                 "schema": {
@@ -12359,6 +12885,42 @@
     "/customer/checkout/review": {
       "post": {
         "operationId": "CustomerCheckoutController_review",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerCheckoutReviewRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCheckoutReviewResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customer-checkout"
+        ]
+      }
+    },
+    "/customer/checkout/review-no-netparcel": {
+      "post": {
+        "operationId": "CustomerCheckoutController_reviewNoNetparcel",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -13292,6 +13854,37 @@
           "customer-returns"
         ]
       }
+    },
+    "/customer/contact-us": {
+      "post": {
+        "operationId": "CustomerContactController_submit",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerContactUsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerContactUsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "customer-contact"
+        ]
+      }
     }
   },
   "components": {
@@ -13428,15 +14021,19 @@
       "ResetPasswordDto": {
         "type": "object",
         "properties": {
+          "otp": {
+            "type": "string",
+            "description": "4-digit OTP sent to the user email. Legacy token field is still accepted."
+          },
           "token": {
-            "type": "string"
+            "type": "string",
+            "description": "Legacy reset token field. Prefer otp."
           },
           "newPassword": {
             "type": "string"
           }
         },
         "required": [
-          "token",
           "newPassword"
         ]
       },
@@ -15756,6 +16353,48 @@
           "label"
         ]
       },
+      "ProductReviewReplyDto": {
+        "type": "object",
+        "properties": {
+          "reply_id": {
+            "type": "number",
+            "example": 1
+          },
+          "review_id": {
+            "type": "number",
+            "example": 22
+          },
+          "reply": {
+            "type": "string",
+            "example": "Thanks for your feedback. We appreciate the detailed fitment notes."
+          },
+          "replied_by": {
+            "type": "number",
+            "example": 3
+          },
+          "replier_role": {
+            "type": "object",
+            "example": "Manager",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "example": "2026-04-23T23:10:00.000Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "example": "2026-04-23T23:10:00.000Z"
+          }
+        },
+        "required": [
+          "reply_id",
+          "review_id",
+          "reply",
+          "replied_by",
+          "created_at",
+          "updated_at"
+        ]
+      },
       "ProductReviewDto": {
         "type": "object",
         "properties": {
@@ -15766,7 +16405,8 @@
             "type": "number"
           },
           "user_id": {
-            "type": "number"
+            "type": "object",
+            "nullable": true
           },
           "rating": {
             "type": "number",
@@ -15785,6 +16425,41 @@
             "type": "object",
             "nullable": true
           },
+          "reviewer_name": {
+            "type": "object",
+            "nullable": true,
+            "example": "Verified Buyer"
+          },
+          "review_status": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "pending",
+              "flagged",
+              "rejected"
+            ],
+            "example": "approved"
+          },
+          "is_verified_purchase": {
+            "type": "boolean",
+            "example": true
+          },
+          "flag_count": {
+            "type": "number",
+            "example": 0
+          },
+          "moderation_reason": {
+            "type": "object",
+            "nullable": true
+          },
+          "reply": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductReviewReplyDto"
+              }
+            ]
+          },
           "created_at": {
             "type": "string"
           },
@@ -15800,6 +16475,11 @@
           "title",
           "comment",
           "user_role",
+          "reviewer_name",
+          "review_status",
+          "is_verified_purchase",
+          "flag_count",
+          "moderation_reason",
           "created_at",
           "updated_at"
         ]
@@ -15842,11 +16522,14 @@
             "type": "string"
           },
           "comment": {
-            "type": "string"
+            "type": "string",
+            "example": "Installed after delivery and the fitment was correct. Material quality is solid and shipping was on time.",
+            "minLength": 10
           }
         },
         "required": [
-          "rating"
+          "rating",
+          "comment"
         ]
       },
       "UpdateStorefrontProductReviewDto": {
@@ -15866,6 +16549,38 @@
             "type": "string"
           }
         }
+      },
+      "ModerateProductReviewDto": {
+        "type": "object",
+        "properties": {
+          "review_status": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "flagged",
+              "rejected",
+              "pending"
+            ]
+          },
+          "moderation_reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "review_status"
+        ]
+      },
+      "CreateProductReviewReplyDto": {
+        "type": "object",
+        "properties": {
+          "reply": {
+            "type": "string",
+            "example": "Thanks for your review. Our support team is available if you need anything else."
+          }
+        },
+        "required": [
+          "reply"
+        ]
       },
       "ProductQuestionDto": {
         "type": "object",
@@ -19312,6 +20027,46 @@
           "updated_at": {
             "type": "string"
           },
+          "shipped_at": {
+            "type": "object",
+            "nullable": true,
+            "description": "Latest shipment shipped_at for this order (if any)."
+          },
+          "delivered_at": {
+            "type": "object",
+            "nullable": true,
+            "description": "Latest shipment delivered_at for this order (if any)."
+          },
+          "shipping_selected_service_code": {
+            "type": "object",
+            "nullable": true,
+            "description": "Checkout-selected shipping service_code (customer choice). Admin label purchase should match unless explicitly overridden."
+          },
+          "shipping_selected_service_name": {
+            "type": "object",
+            "nullable": true,
+            "description": "Checkout-selected shipping service_name (customer choice)."
+          },
+          "shipping_selected_total": {
+            "type": "object",
+            "nullable": true,
+            "description": "Checkout-selected shipping total (customer choice)."
+          },
+          "shipping_selected_currency": {
+            "type": "object",
+            "nullable": true,
+            "description": "Checkout-selected shipping currency (customer choice)."
+          },
+          "checkout_shipping_snapshot": {
+            "type": "object",
+            "nullable": true,
+            "description": "Convenience snapshot of the checkout-selected shipping method (customer choice) and supporting metadata."
+          },
+          "warehouse_origin": {
+            "type": "object",
+            "nullable": true,
+            "description": "Configured NetParcel warehouse origin used for rating/label purchase (NetParcel-style address)."
+          },
           "status_id": {
             "type": "object",
             "nullable": true
@@ -19833,6 +20588,16 @@
             "type": "object",
             "nullable": true,
             "description": "Optional extra metadata to store on shipment."
+          },
+          "force_override": {
+            "type": "boolean",
+            "example": false,
+            "description": "When true, allows admin to override the customer-selected checkout service_code (requires override_reason)."
+          },
+          "override_reason": {
+            "type": "object",
+            "example": "Service unavailable for actual package size; switched to closest option.",
+            "description": "Required when force_override=true and service_code differs from checkout selection."
           }
         },
         "required": [
@@ -19939,6 +20704,16 @@
             "type": "object",
             "example": "UPS Standard",
             "nullable": true
+          },
+          "force_override": {
+            "type": "boolean",
+            "example": false,
+            "description": "When true, allows admin to override the customer-selected checkout service_code (requires override_reason)."
+          },
+          "override_reason": {
+            "type": "object",
+            "example": "Customer requested faster delivery after checkout.",
+            "description": "Required when force_override=true and service_code differs from the checkout selection."
           },
           "ship_date": {
             "type": "object",
@@ -20461,6 +21236,94 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CouponTargetSearchCategoryDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "example": {
+              "page": 1,
+              "limit": 20,
+              "total": 0,
+              "totalPages": 0
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "CouponUsageItemDto": {
+        "type": "object",
+        "properties": {
+          "red_id": {
+            "type": "number"
+          },
+          "coupon_id": {
+            "type": "number"
+          },
+          "coupon_code": {
+            "type": "string"
+          },
+          "coupon_description": {
+            "type": "object",
+            "nullable": true
+          },
+          "user_id": {
+            "type": "number"
+          },
+          "customer_name": {
+            "type": "object",
+            "nullable": true
+          },
+          "customer_email": {
+            "type": "object",
+            "nullable": true
+          },
+          "customer_phone": {
+            "type": "object",
+            "nullable": true
+          },
+          "order_id": {
+            "type": "object",
+            "nullable": true
+          },
+          "order_number": {
+            "type": "object",
+            "nullable": true
+          },
+          "order_grand_total": {
+            "type": "object",
+            "nullable": true
+          },
+          "order_discount_total": {
+            "type": "object",
+            "nullable": true
+          },
+          "applied_coupon_snapshot": {
+            "type": "object",
+            "nullable": true,
+            "description": "Saved coupon snapshot from the paid order."
+          },
+          "created_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "red_id",
+          "coupon_id",
+          "coupon_code",
+          "user_id",
+          "created_at"
+        ]
+      },
+      "PaginatedCouponUsageResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CouponUsageItemDto"
             }
           },
           "meta": {
@@ -23537,6 +24400,12 @@
             "type": "number",
             "example": 44
           },
+          "order_item_id": {
+            "type": "object",
+            "example": 987,
+            "nullable": true,
+            "description": "Order line item id (order_group_items.order_item_id). Used to link to original shipments/packaging."
+          },
           "product_id": {
             "type": "number",
             "example": 101
@@ -23549,6 +24418,30 @@
             "type": "object",
             "example": "TIRE-20555R16-MIC",
             "nullable": true
+          },
+          "weight": {
+            "type": "object",
+            "example": 2.5,
+            "nullable": true,
+            "description": "Per-unit product weight (from products.weight)."
+          },
+          "length": {
+            "type": "object",
+            "example": 10,
+            "nullable": true,
+            "description": "Per-unit product length (from products.length)."
+          },
+          "width": {
+            "type": "object",
+            "example": 8,
+            "nullable": true,
+            "description": "Per-unit product width (from products.width)."
+          },
+          "height": {
+            "type": "object",
+            "example": 4,
+            "nullable": true,
+            "description": "Per-unit product height (from products.height)."
           },
           "requested_qty": {
             "type": "number",
@@ -23681,6 +24574,105 @@
           "created_at"
         ]
       },
+      "ReturnOriginalShipmentItemDto": {
+        "type": "object",
+        "properties": {
+          "order_item_id": {
+            "type": "number",
+            "example": 987
+          },
+          "qty": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "order_item_id",
+          "qty"
+        ]
+      },
+      "ReturnOriginalShipmentDto": {
+        "type": "object",
+        "properties": {
+          "shipment_id": {
+            "type": "number",
+            "example": 123
+          },
+          "status_code": {
+            "type": "object",
+            "example": "label_purchased",
+            "nullable": true
+          },
+          "provider": {
+            "type": "object",
+            "example": "netparcel",
+            "nullable": true
+          },
+          "carrier": {
+            "type": "object",
+            "example": "UPS",
+            "nullable": true
+          },
+          "service_code": {
+            "type": "object",
+            "example": "204",
+            "nullable": true
+          },
+          "service_name": {
+            "type": "object",
+            "example": "UPS Standard",
+            "nullable": true
+          },
+          "tracking_number": {
+            "type": "object",
+            "example": "1Z999...",
+            "nullable": true
+          },
+          "shipped_at": {
+            "type": "object",
+            "example": "2026-04-17T12:00:00.000Z",
+            "nullable": true
+          },
+          "delivered_at": {
+            "type": "object",
+            "example": "2026-04-18T12:00:00.000Z",
+            "nullable": true
+          },
+          "packages_used": {
+            "type": "object",
+            "nullable": true,
+            "description": "Packages used when the order shipped. Prefer `actual_packages`, then `estimated_packages`, then legacy `packages`."
+          },
+          "packages_source": {
+            "type": "object",
+            "example": "actual_packages",
+            "nullable": true,
+            "description": "Which shipment column the packages were derived from."
+          },
+          "origin": {
+            "type": "object",
+            "nullable": true
+          },
+          "destination": {
+            "type": "object",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReturnOriginalShipmentItemDto"
+            }
+          }
+        },
+        "required": [
+          "shipment_id",
+          "items"
+        ]
+      },
       "ReturnRequestDetailDto": {
         "type": "object",
         "properties": {
@@ -23777,6 +24769,14 @@
               "$ref": "#/components/schemas/ReturnEventDto"
             }
           },
+          "original_shipments": {
+            "nullable": true,
+            "description": "Original outbound shipments (and their packaging) for the order items included in this return request.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReturnOriginalShipmentDto"
+            }
+          },
           "return_label": {
             "type": "object",
             "nullable": true,
@@ -23851,6 +24851,11 @@
             "type": "string",
             "example": "Return request updated successfully"
           },
+          "stripe_refund": {
+            "type": "object",
+            "nullable": true,
+            "description": "Present when refund is initiated via Stripe (POST /admin/returns/requests/:id/refund/stripe)."
+          },
           "data": {
             "$ref": "#/components/schemas/ReturnRequestDetailDto"
           }
@@ -23879,6 +24884,21 @@
           "admin_note": {
             "type": "string",
             "example": "Refund started in Stripe."
+          }
+        }
+      },
+      "RefundReturnViaStripeDto": {
+        "type": "object",
+        "properties": {
+          "refund_amount": {
+            "type": "number",
+            "example": 120.5,
+            "description": "Refund amount in major currency units. If omitted, defaults to the return requested_amount."
+          },
+          "reason": {
+            "type": "string",
+            "example": "requested_by_customer",
+            "description": "Stripe refund reason (duplicate, fraudulent, requested_by_customer)."
           }
         }
       },
@@ -23914,6 +24934,130 @@
             "example": "Return received and added back to stock."
           }
         }
+      },
+      "CustomerContactUsRecordDto": {
+        "type": "object",
+        "properties": {
+          "contact_us_id": {
+            "type": "number",
+            "example": 1
+          },
+          "first_name": {
+            "type": "string",
+            "example": "John"
+          },
+          "last_name": {
+            "type": "string",
+            "example": "Smith"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
+          "phone_number": {
+            "type": "object",
+            "example": "+1 647 555 0123",
+            "nullable": true
+          },
+          "location": {
+            "type": "object",
+            "example": "Toronto, ON",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "example": "I need help with my order and product availability."
+          },
+          "email_sent_at": {
+            "type": "object",
+            "example": "2026-04-23T22:15:00.000Z",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "object",
+            "example": "2026-04-23T22:15:00.000Z",
+            "nullable": true
+          },
+          "team_reply": {
+            "type": "object",
+            "example": "Thanks for contacting us. Our team checked your request and will help with the next step.",
+            "nullable": true
+          },
+          "team_replier_role": {
+            "type": "object",
+            "example": "Manager",
+            "nullable": true
+          },
+          "team_replied_at": {
+            "type": "object",
+            "example": "2026-04-24T10:00:00.000Z",
+            "nullable": true
+          }
+        },
+        "required": [
+          "contact_us_id",
+          "first_name",
+          "last_name",
+          "email",
+          "message"
+        ]
+      },
+      "CustomerContactListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerContactUsRecordDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "example": {
+              "page": 1,
+              "limit": 20,
+              "total": 1,
+              "totalPages": 1
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "CustomerContactUsResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Your message has been sent successfully."
+          },
+          "data": {
+            "$ref": "#/components/schemas/CustomerContactUsRecordDto"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "CustomerContactReplyDto": {
+        "type": "object",
+        "properties": {
+          "reply": {
+            "type": "string",
+            "example": "Thanks for contacting Stallion Auto. Our team reviewed your message and will follow up shortly."
+          }
+        },
+        "required": [
+          "reply"
+        ]
       },
       "CreateCheckoutSessionDto": {
         "type": "object",
@@ -23976,6 +25120,21 @@
           "client_secret"
         ]
       },
+      "DeleteSavedPaymentMethodResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "payment_method_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "payment_method_id"
+        ]
+      },
       "PayWithSavedMethodDto": {
         "type": "object",
         "properties": {
@@ -24010,6 +25169,118 @@
         "required": [
           "payment_intent_id",
           "status"
+        ]
+      },
+      "ProductReviewEligibilityDto": {
+        "type": "object",
+        "properties": {
+          "can_review": {
+            "type": "boolean",
+            "example": false
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "allowed",
+              "not_logged_in",
+              "not_purchased",
+              "not_delivered",
+              "waiting_period",
+              "already_reviewed"
+            ],
+            "example": "waiting_period"
+          },
+          "message": {
+            "type": "string",
+            "example": "Reviews open 7 days after delivery."
+          },
+          "eligible_after": {
+            "type": "object",
+            "example": "2026-04-30T12:00:00.000Z",
+            "nullable": true
+          },
+          "has_existing_review": {
+            "type": "boolean",
+            "example": false
+          },
+          "is_verified_purchase": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "can_review",
+          "reason",
+          "message",
+          "has_existing_review",
+          "is_verified_purchase"
+        ]
+      },
+      "ProductReviewListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductReviewDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "example": {
+              "page": 1,
+              "limit": 20,
+              "total": 0,
+              "totalPages": 0
+            }
+          },
+          "review_eligibility": {
+            "$ref": "#/components/schemas/ProductReviewEligibilityDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta",
+          "review_eligibility"
+        ]
+      },
+      "ReportProductReviewDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "spam",
+              "abuse",
+              "irrelevant",
+              "misleading",
+              "other"
+            ],
+            "example": "misleading"
+          },
+          "details": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "ProductReviewActionResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Review reported successfully."
+          }
+        },
+        "required": [
+          "success",
+          "message"
         ]
       },
       "CustomerCategoryAttributeOptionDto": {
@@ -24591,6 +25862,12 @@
               "$ref": "#/components/schemas/CustomerProductCardDto"
             }
           },
+          "suggestion_products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerProductCardDto"
+            }
+          },
           "facets": {
             "type": "array",
             "items": {
@@ -24603,6 +25880,7 @@
         },
         "required": [
           "items",
+          "suggestion_products",
           "facets",
           "meta"
         ]
@@ -25584,6 +26862,11 @@
             "type": "number",
             "example": 120
           },
+          "savings_total": {
+            "type": "number",
+            "example": 0,
+            "description": "Total product savings vs compare_at_price (informational; not subtracted from grand_total)."
+          },
           "shipping_total": {
             "type": "number",
             "example": 0
@@ -25627,6 +26910,7 @@
         "required": [
           "currency",
           "subtotal",
+          "savings_total",
           "shipping_total",
           "tax_total",
           "coupon_discount",
@@ -25645,6 +26929,22 @@
           },
           "pricing": {
             "$ref": "#/components/schemas/CustomerCouponSummaryDto"
+          },
+          "applied_coupon": {
+            "nullable": true,
+            "description": "Currently applied cart coupon (if any).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerApplicableCouponDto"
+              }
+            ]
+          },
+          "available_coupons": {
+            "description": "Coupons currently applicable on the cart (for selection UI).",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerApplicableCouponDto"
+            }
           },
           "delivery_address": {
             "type": "object",
@@ -26388,6 +27688,18 @@
             "example": "2026-03-01T10:00:00.000Z",
             "nullable": true
           },
+          "shipped_at": {
+            "type": "object",
+            "example": "2026-04-17T12:00:00.000Z",
+            "nullable": true,
+            "description": "Latest shipment shipped_at for this order (if any)."
+          },
+          "delivered_at": {
+            "type": "object",
+            "example": "2026-04-19T16:40:00.000Z",
+            "nullable": true,
+            "description": "Latest shipment delivered_at for this order (if any)."
+          },
           "is_paid": {
             "type": "boolean",
             "example": true
@@ -26406,6 +27718,44 @@
             "type": "object",
             "example": 11,
             "nullable": true
+          },
+          "shipping_selected_service_code": {
+            "type": "object",
+            "nullable": true,
+            "description": "Checkout-selected shipping service_code (customer choice)."
+          },
+          "shipping_selected_service_name": {
+            "type": "object",
+            "nullable": true,
+            "description": "Checkout-selected shipping service_name (customer choice)."
+          },
+          "shipping_selected_total": {
+            "type": "object",
+            "nullable": true,
+            "description": "Checkout-selected shipping total (customer choice)."
+          },
+          "shipping_selected_currency": {
+            "type": "object",
+            "nullable": true,
+            "description": "Checkout-selected shipping currency (customer choice)."
+          },
+          "expected_delivery_min_date": {
+            "type": "object",
+            "nullable": true,
+            "example": "2026-04-21",
+            "description": "Estimated delivery date (min) from the checkout shipping quote (if available)."
+          },
+          "expected_delivery_max_date": {
+            "type": "object",
+            "nullable": true,
+            "example": "2026-04-23",
+            "description": "Estimated delivery date (max) from the checkout shipping quote (if available)."
+          },
+          "expected_transit_days": {
+            "type": "object",
+            "nullable": true,
+            "example": "2",
+            "description": "Transit days estimate from the checkout shipping quote (if available)."
           },
           "total_qty": {
             "type": "number",
@@ -26858,6 +28208,41 @@
         "required": [
           "order_number",
           "items"
+        ]
+      },
+      "CustomerContactUsDto": {
+        "type": "object",
+        "properties": {
+          "first_name": {
+            "type": "string",
+            "example": "John"
+          },
+          "last_name": {
+            "type": "string",
+            "example": "Smith"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
+          "phone_number": {
+            "type": "string",
+            "example": "+1 647 555 0123"
+          },
+          "location": {
+            "type": "string",
+            "example": "Toronto, ON"
+          },
+          "message": {
+            "type": "string",
+            "example": "I need help with my order and product availability."
+          }
+        },
+        "required": [
+          "first_name",
+          "last_name",
+          "email",
+          "message"
         ]
       }
     }

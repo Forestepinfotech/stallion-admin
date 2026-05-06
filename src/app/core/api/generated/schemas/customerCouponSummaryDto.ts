@@ -10,6 +10,8 @@ import type { CustomerCouponSummaryDtoShippingNotice } from "./customerCouponSum
 export interface CustomerCouponSummaryDto {
   currency: string;
   subtotal: number;
+  /** Total product savings vs compare_at_price (informational; not subtracted from grand_total). */
+  savings_total: number;
   shipping_total: number;
   tax_total: number;
   coupon_discount: number;

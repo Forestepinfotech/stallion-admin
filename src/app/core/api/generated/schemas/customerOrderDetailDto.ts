@@ -7,6 +7,10 @@
 import type { CustomerOrderDetailDtoAddressId } from "./customerOrderDetailDtoAddressId";
 import type { CustomerOrderDetailDtoApprovalStatus } from "./customerOrderDetailDtoApprovalStatus";
 import type { CustomerOrderDetailDtoCreatedAt } from "./customerOrderDetailDtoCreatedAt";
+import type { CustomerOrderDetailDtoDeliveredAt } from "./customerOrderDetailDtoDeliveredAt";
+import type { CustomerOrderDetailDtoExpectedDeliveryMaxDate } from "./customerOrderDetailDtoExpectedDeliveryMaxDate";
+import type { CustomerOrderDetailDtoExpectedDeliveryMinDate } from "./customerOrderDetailDtoExpectedDeliveryMinDate";
+import type { CustomerOrderDetailDtoExpectedTransitDays } from "./customerOrderDetailDtoExpectedTransitDays";
 import type { CustomerOrderDetailDtoFulfillmentStatus } from "./customerOrderDetailDtoFulfillmentStatus";
 import type { CustomerOrderDetailDtoOrderNote } from "./customerOrderDetailDtoOrderNote";
 import type { CustomerOrderDetailDtoOrderNumber } from "./customerOrderDetailDtoOrderNumber";
@@ -14,6 +18,11 @@ import type { CustomerOrderDetailDtoOverallStatus } from "./customerOrderDetailD
 import type { CustomerOrderDetailDtoPaymentStatus } from "./customerOrderDetailDtoPaymentStatus";
 import type { CustomerOrderDetailDtoRefundState } from "./customerOrderDetailDtoRefundState";
 import type { CustomerOrderDetailDtoReturnState } from "./customerOrderDetailDtoReturnState";
+import type { CustomerOrderDetailDtoShippedAt } from "./customerOrderDetailDtoShippedAt";
+import type { CustomerOrderDetailDtoShippingSelectedCurrency } from "./customerOrderDetailDtoShippingSelectedCurrency";
+import type { CustomerOrderDetailDtoShippingSelectedServiceCode } from "./customerOrderDetailDtoShippingSelectedServiceCode";
+import type { CustomerOrderDetailDtoShippingSelectedServiceName } from "./customerOrderDetailDtoShippingSelectedServiceName";
+import type { CustomerOrderDetailDtoShippingSelectedTotal } from "./customerOrderDetailDtoShippingSelectedTotal";
 import type { CustomerOrderDetailDtoStatusName } from "./customerOrderDetailDtoStatusName";
 import type { CustomerOrderItemDto } from "./customerOrderItemDto";
 import type { CustomerOrderRefundDto } from "./customerOrderRefundDto";
@@ -26,6 +35,16 @@ export interface CustomerOrderDetailDto {
   order_number?: CustomerOrderDetailDtoOrderNumber;
   /** @nullable */
   created_at?: CustomerOrderDetailDtoCreatedAt;
+  /**
+   * Latest shipment shipped_at for this order (if any).
+   * @nullable
+   */
+  shipped_at?: CustomerOrderDetailDtoShippedAt;
+  /**
+   * Latest shipment delivered_at for this order (if any).
+   * @nullable
+   */
+  delivered_at?: CustomerOrderDetailDtoDeliveredAt;
   is_paid: boolean;
   /** @nullable */
   status_name?: CustomerOrderDetailDtoStatusName;
@@ -33,6 +52,41 @@ export interface CustomerOrderDetailDto {
   order_note?: CustomerOrderDetailDtoOrderNote;
   /** @nullable */
   address_id?: CustomerOrderDetailDtoAddressId;
+  /**
+   * Checkout-selected shipping service_code (customer choice).
+   * @nullable
+   */
+  shipping_selected_service_code?: CustomerOrderDetailDtoShippingSelectedServiceCode;
+  /**
+   * Checkout-selected shipping service_name (customer choice).
+   * @nullable
+   */
+  shipping_selected_service_name?: CustomerOrderDetailDtoShippingSelectedServiceName;
+  /**
+   * Checkout-selected shipping total (customer choice).
+   * @nullable
+   */
+  shipping_selected_total?: CustomerOrderDetailDtoShippingSelectedTotal;
+  /**
+   * Checkout-selected shipping currency (customer choice).
+   * @nullable
+   */
+  shipping_selected_currency?: CustomerOrderDetailDtoShippingSelectedCurrency;
+  /**
+   * Estimated delivery date (min) from the checkout shipping quote (if available).
+   * @nullable
+   */
+  expected_delivery_min_date?: CustomerOrderDetailDtoExpectedDeliveryMinDate;
+  /**
+   * Estimated delivery date (max) from the checkout shipping quote (if available).
+   * @nullable
+   */
+  expected_delivery_max_date?: CustomerOrderDetailDtoExpectedDeliveryMaxDate;
+  /**
+   * Transit days estimate from the checkout shipping quote (if available).
+   * @nullable
+   */
+  expected_transit_days?: CustomerOrderDetailDtoExpectedTransitDays;
   total_qty: number;
   items_count: number;
   tax_total: number;

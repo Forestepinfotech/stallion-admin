@@ -20,10 +20,12 @@ import type {
   CouponsControllerListParams,
   CouponsControllerTargetCategoriesParams,
   CouponsControllerTargetProductsParams,
+  CouponsControllerUsageParams,
   CouponsResponseDto,
   CreateCouponsDto,
   PaginatedCouponTargetCategoriesResponseDto,
   PaginatedCouponTargetProductsResponseDto,
+  PaginatedCouponUsageResponseDto,
   PaginatedCouponsResponseDto,
   UpdateCouponsDto,
 } from "../schemas";
@@ -381,6 +383,53 @@ export class AdminCouponsService {
     return this.http.delete<TData>(`/coupons/${couponId}`, {
       ...(options as Omit<NonNullable<typeof options>, "observe">),
       observe: "body",
+    });
+  }
+  couponsControllerUsage<TData = PaginatedCouponUsageResponseDto>(
+    couponId: string,
+    params?: CouponsControllerUsageParams,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  couponsControllerUsage<TData = PaginatedCouponUsageResponseDto>(
+    couponId: string,
+    params?: CouponsControllerUsageParams,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  couponsControllerUsage<TData = PaginatedCouponUsageResponseDto>(
+    couponId: string,
+    params?: CouponsControllerUsageParams,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  couponsControllerUsage<TData = PaginatedCouponUsageResponseDto>(
+    couponId: string,
+    params?: CouponsControllerUsageParams,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams(
+      { ...params, ...options?.params },
+      new Set<string>([]),
+    );
+
+    if (options?.observe === "events") {
+      return this.http.get<TData>(`/coupons/${couponId}/usage`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "events",
+        params: filteredParams,
+      });
+    }
+
+    if (options?.observe === "response") {
+      return this.http.get<TData>(`/coupons/${couponId}/usage`, {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "response",
+        params: filteredParams,
+      });
+    }
+
+    return this.http.get<TData>(`/coupons/${couponId}/usage`, {
+      ...(options as Omit<NonNullable<typeof options>, "observe">),
+      observe: "body",
+      params: filteredParams,
     });
   }
 }

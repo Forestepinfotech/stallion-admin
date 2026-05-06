@@ -10,6 +10,9 @@ export type InventoryControllerListParams = {
   type?: string;
   status?: string;
   stock_status?: string;
+  /**
+   * When true, returns only low-stock products. Defaults to true when no other filters are provided.
+   */
   low_stock_only?: boolean;
   date_from?: string;
   date_to?: string;

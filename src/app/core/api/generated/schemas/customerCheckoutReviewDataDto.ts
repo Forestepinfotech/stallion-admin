@@ -4,6 +4,7 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
+import type { CustomerApplicableCouponDto } from "./customerApplicableCouponDto";
 import type { CustomerCheckoutReviewDataDtoBillingAddress } from "./customerCheckoutReviewDataDtoBillingAddress";
 import type { CustomerCheckoutReviewDataDtoCart } from "./customerCheckoutReviewDataDtoCart";
 import type { CustomerCheckoutReviewDataDtoDeliveryAddress } from "./customerCheckoutReviewDataDtoDeliveryAddress";
@@ -15,6 +16,10 @@ import type { CustomerShippingMethodDto } from "./customerShippingMethodDto";
 export interface CustomerCheckoutReviewDataDto {
   cart: CustomerCheckoutReviewDataDtoCart;
   pricing: CustomerCouponSummaryDto;
+  /** Currently applied cart coupon (if any). */
+  applied_coupon?: CustomerApplicableCouponDto | null;
+  /** Coupons currently applicable on the cart (for selection UI). */
+  available_coupons?: CustomerApplicableCouponDto[];
   /** @nullable */
   delivery_address?: CustomerCheckoutReviewDataDtoDeliveryAddress;
   shipping_methods: CustomerShippingMethodDto[];

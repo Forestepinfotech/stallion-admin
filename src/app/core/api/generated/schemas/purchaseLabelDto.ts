@@ -4,6 +4,7 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
+import type { PurchaseLabelDtoOverrideReason } from "./purchaseLabelDtoOverrideReason";
 import type { PurchaseLabelDtoServiceName } from "./purchaseLabelDtoServiceName";
 import type { PurchaseLabelDtoShipDate } from "./purchaseLabelDtoShipDate";
 
@@ -12,6 +13,10 @@ export interface PurchaseLabelDto {
   service_code?: number;
   /** @nullable */
   service_name?: PurchaseLabelDtoServiceName;
+  /** When true, allows admin to override the customer-selected checkout service_code (requires override_reason). */
+  force_override?: boolean;
+  /** Required when force_override=true and service_code differs from the checkout selection. */
+  override_reason?: PurchaseLabelDtoOverrideReason;
   /** YYYY-MM-DD (optional). */
   ship_date?: PurchaseLabelDtoShipDate;
 }

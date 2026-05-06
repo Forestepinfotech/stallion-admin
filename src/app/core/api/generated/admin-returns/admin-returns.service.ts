@@ -21,6 +21,7 @@ import type {
   AdminReturnsControllerListRequestsParams,
   CreateReturnReasonDto,
   ReceiveReturnDto,
+  RefundReturnViaStripeDto,
   ReturnMutationResponseDto,
   ReturnReasonResponseDto,
   ReturnReasonsListResponseDto,
@@ -453,6 +454,57 @@ export class AdminReturnsService {
     return this.http.patch<TData>(
       `/admin/returns/requests/${returnRequestId}/refund`,
       updateReturnRefundDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
+  adminReturnsControllerRefundViaStripe<TData = ReturnMutationResponseDto>(
+    returnRequestId: string,
+    refundReturnViaStripeDto: RefundReturnViaStripeDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  adminReturnsControllerRefundViaStripe<TData = ReturnMutationResponseDto>(
+    returnRequestId: string,
+    refundReturnViaStripeDto: RefundReturnViaStripeDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  adminReturnsControllerRefundViaStripe<TData = ReturnMutationResponseDto>(
+    returnRequestId: string,
+    refundReturnViaStripeDto: RefundReturnViaStripeDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  adminReturnsControllerRefundViaStripe<TData = ReturnMutationResponseDto>(
+    returnRequestId: string,
+    refundReturnViaStripeDto: RefundReturnViaStripeDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.post<TData>(
+        `/admin/returns/requests/${returnRequestId}/refund/stripe`,
+        refundReturnViaStripeDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.post<TData>(
+        `/admin/returns/requests/${returnRequestId}/refund/stripe`,
+        refundReturnViaStripeDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.post<TData>(
+      `/admin/returns/requests/${returnRequestId}/refund/stripe`,
+      refundReturnViaStripeDto,
       {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "body",

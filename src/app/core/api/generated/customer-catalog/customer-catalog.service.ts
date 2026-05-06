@@ -40,8 +40,10 @@ import type {
   CustomerProductResponseDto,
   CustomerProductSearchResponseDto,
   CustomerSearchSuggestionListResponseDto,
-  PaginatedProductReviewDto,
+  ProductReviewActionResponseDto,
   ProductReviewDto,
+  ProductReviewListResponseDto,
+  ReportProductReviewDto,
   UpdateStorefrontProductReviewDto,
 } from "../schemas";
 
@@ -111,22 +113,22 @@ function filterParams(
 @Injectable({ providedIn: "root" })
 export class CustomerCatalogService {
   private readonly http = inject(HttpClient);
-  customerCatalogControllerProductReviews<TData = PaginatedProductReviewDto>(
+  customerCatalogControllerProductReviews<TData = ProductReviewListResponseDto>(
     slug: string,
     params?: CustomerCatalogControllerProductReviewsParams,
     options?: HttpClientOptions & { observe?: "body" },
   ): Observable<TData>;
-  customerCatalogControllerProductReviews<TData = PaginatedProductReviewDto>(
+  customerCatalogControllerProductReviews<TData = ProductReviewListResponseDto>(
     slug: string,
     params?: CustomerCatalogControllerProductReviewsParams,
     options?: HttpClientOptions & { observe: "events" },
   ): Observable<HttpEvent<TData>>;
-  customerCatalogControllerProductReviews<TData = PaginatedProductReviewDto>(
+  customerCatalogControllerProductReviews<TData = ProductReviewListResponseDto>(
     slug: string,
     params?: CustomerCatalogControllerProductReviewsParams,
     options?: HttpClientOptions & { observe: "response" },
   ): Observable<AngularHttpResponse<TData>>;
-  customerCatalogControllerProductReviews<TData = PaginatedProductReviewDto>(
+  customerCatalogControllerProductReviews<TData = ProductReviewListResponseDto>(
     slug: string,
     params?: CustomerCatalogControllerProductReviewsParams,
     options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
@@ -306,6 +308,69 @@ export class CustomerCatalogService {
 
     return this.http.delete<TData>(
       `/customer/products/${slug}/reviews/${reviewId}`,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
+  customerCatalogControllerReportProductReview<
+    TData = ProductReviewActionResponseDto,
+  >(
+    slug: string,
+    reviewId: string,
+    reportProductReviewDto: ReportProductReviewDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  customerCatalogControllerReportProductReview<
+    TData = ProductReviewActionResponseDto,
+  >(
+    slug: string,
+    reviewId: string,
+    reportProductReviewDto: ReportProductReviewDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  customerCatalogControllerReportProductReview<
+    TData = ProductReviewActionResponseDto,
+  >(
+    slug: string,
+    reviewId: string,
+    reportProductReviewDto: ReportProductReviewDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  customerCatalogControllerReportProductReview<
+    TData = ProductReviewActionResponseDto,
+  >(
+    slug: string,
+    reviewId: string,
+    reportProductReviewDto: ReportProductReviewDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.post<TData>(
+        `/customer/products/${slug}/reviews/${reviewId}/report`,
+        reportProductReviewDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.post<TData>(
+        `/customer/products/${slug}/reviews/${reviewId}/report`,
+        reportProductReviewDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.post<TData>(
+      `/customer/products/${slug}/reviews/${reviewId}/report`,
+      reportProductReviewDto,
       {
         ...(options as Omit<NonNullable<typeof options>, "observe">),
         observe: "body",

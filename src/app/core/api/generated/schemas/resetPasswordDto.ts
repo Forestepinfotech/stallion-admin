@@ -6,6 +6,9 @@
  */
 
 export interface ResetPasswordDto {
-  token: string;
+  /** 4-digit OTP sent to the user email. Legacy token field is still accepted. */
+  otp?: string;
+  /** Legacy reset token field. Prefer otp. */
+  token?: string;
   newPassword: string;
 }

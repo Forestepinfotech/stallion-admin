@@ -153,6 +153,61 @@ export class CustomerCheckoutService {
       },
     );
   }
+  customerCheckoutControllerReviewNoNetparcel<
+    TData = CustomerCheckoutReviewResponseDto,
+  >(
+    customerCheckoutReviewRequestDto: CustomerCheckoutReviewRequestDto,
+    options?: HttpClientOptions & { observe?: "body" },
+  ): Observable<TData>;
+  customerCheckoutControllerReviewNoNetparcel<
+    TData = CustomerCheckoutReviewResponseDto,
+  >(
+    customerCheckoutReviewRequestDto: CustomerCheckoutReviewRequestDto,
+    options?: HttpClientOptions & { observe: "events" },
+  ): Observable<HttpEvent<TData>>;
+  customerCheckoutControllerReviewNoNetparcel<
+    TData = CustomerCheckoutReviewResponseDto,
+  >(
+    customerCheckoutReviewRequestDto: CustomerCheckoutReviewRequestDto,
+    options?: HttpClientOptions & { observe: "response" },
+  ): Observable<AngularHttpResponse<TData>>;
+  customerCheckoutControllerReviewNoNetparcel<
+    TData = CustomerCheckoutReviewResponseDto,
+  >(
+    customerCheckoutReviewRequestDto: CustomerCheckoutReviewRequestDto,
+    options?: HttpClientOptions & { observe?: "body" | "events" | "response" },
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === "events") {
+      return this.http.post<TData>(
+        `/customer/checkout/review-no-netparcel`,
+        customerCheckoutReviewRequestDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "events",
+        },
+      );
+    }
+
+    if (options?.observe === "response") {
+      return this.http.post<TData>(
+        `/customer/checkout/review-no-netparcel`,
+        customerCheckoutReviewRequestDto,
+        {
+          ...(options as Omit<NonNullable<typeof options>, "observe">),
+          observe: "response",
+        },
+      );
+    }
+
+    return this.http.post<TData>(
+      `/customer/checkout/review-no-netparcel`,
+      customerCheckoutReviewRequestDto,
+      {
+        ...(options as Omit<NonNullable<typeof options>, "observe">),
+        observe: "body",
+      },
+    );
+  }
   customerCheckoutControllerPay<TData = CustomerCheckoutPayResponseDto>(
     customerCheckoutPayRequestDto: CustomerCheckoutPayRequestDto,
     options?: HttpClientOptions & { observe?: "body" },

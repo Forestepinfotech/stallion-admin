@@ -13,6 +13,7 @@ export interface CustomerProductSearchResponseDto {
   /** @nullable */
   query?: CustomerProductSearchResponseDtoQuery;
   items: CustomerProductCardDto[];
+  suggestion_products: CustomerProductCardDto[];
   facets: CustomerProductSearchResponseDtoFacetsItem[];
   meta: CustomerProductSearchMetaDto;
 }

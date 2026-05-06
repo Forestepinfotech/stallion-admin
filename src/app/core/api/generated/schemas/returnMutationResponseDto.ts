@@ -4,10 +4,16 @@
  * stallio-auto-parts merged API
  * OpenAPI spec version: 1.0
  */
+import type { ReturnMutationResponseDtoStripeRefund } from "./returnMutationResponseDtoStripeRefund";
 import type { ReturnRequestDetailDto } from "./returnRequestDetailDto";
 
 export interface ReturnMutationResponseDto {
   success: boolean;
   message: string;
+  /**
+   * Present when refund is initiated via Stripe (POST /admin/returns/requests/:id/refund/stripe).
+   * @nullable
+   */
+  stripe_refund?: ReturnMutationResponseDtoStripeRefund;
   data: ReturnRequestDetailDto;
 }

@@ -13,5 +13,6 @@ export interface CreateStorefrontProductReviewDto {
    */
   rating: number;
   title?: string;
-  comment?: string;
+  /** @minLength 10 */
+  comment: string;
 }

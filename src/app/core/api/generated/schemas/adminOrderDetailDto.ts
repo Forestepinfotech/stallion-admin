@@ -12,12 +12,14 @@ import type { AdminOrderDetailDtoAddressPhone } from "./adminOrderDetailDtoAddre
 import type { AdminOrderDetailDtoApprovalStatus } from "./adminOrderDetailDtoApprovalStatus";
 import type { AdminOrderDetailDtoApprovedAt } from "./adminOrderDetailDtoApprovedAt";
 import type { AdminOrderDetailDtoApprovedBy } from "./adminOrderDetailDtoApprovedBy";
+import type { AdminOrderDetailDtoCheckoutShippingSnapshot } from "./adminOrderDetailDtoCheckoutShippingSnapshot";
 import type { AdminOrderDetailDtoCity } from "./adminOrderDetailDtoCity";
 import type { AdminOrderDetailDtoCountry } from "./adminOrderDetailDtoCountry";
 import type { AdminOrderDetailDtoCountryId } from "./adminOrderDetailDtoCountryId";
 import type { AdminOrderDetailDtoCustomerEmail } from "./adminOrderDetailDtoCustomerEmail";
 import type { AdminOrderDetailDtoCustomerName } from "./adminOrderDetailDtoCustomerName";
 import type { AdminOrderDetailDtoCustomerPhone } from "./adminOrderDetailDtoCustomerPhone";
+import type { AdminOrderDetailDtoDeliveredAt } from "./adminOrderDetailDtoDeliveredAt";
 import type { AdminOrderDetailDtoFulfillmentStatus } from "./adminOrderDetailDtoFulfillmentStatus";
 import type { AdminOrderDetailDtoLine1 } from "./adminOrderDetailDtoLine1";
 import type { AdminOrderDetailDtoLine2 } from "./adminOrderDetailDtoLine2";
@@ -30,9 +32,15 @@ import type { AdminOrderDetailDtoPostalcode } from "./adminOrderDetailDtoPostalc
 import type { AdminOrderDetailDtoProvince } from "./adminOrderDetailDtoProvince";
 import type { AdminOrderDetailDtoRefundState } from "./adminOrderDetailDtoRefundState";
 import type { AdminOrderDetailDtoReturnState } from "./adminOrderDetailDtoReturnState";
+import type { AdminOrderDetailDtoShippedAt } from "./adminOrderDetailDtoShippedAt";
+import type { AdminOrderDetailDtoShippingSelectedCurrency } from "./adminOrderDetailDtoShippingSelectedCurrency";
+import type { AdminOrderDetailDtoShippingSelectedServiceCode } from "./adminOrderDetailDtoShippingSelectedServiceCode";
+import type { AdminOrderDetailDtoShippingSelectedServiceName } from "./adminOrderDetailDtoShippingSelectedServiceName";
+import type { AdminOrderDetailDtoShippingSelectedTotal } from "./adminOrderDetailDtoShippingSelectedTotal";
 import type { AdminOrderDetailDtoStatusId } from "./adminOrderDetailDtoStatusId";
 import type { AdminOrderDetailDtoStatusName } from "./adminOrderDetailDtoStatusName";
 import type { AdminOrderDetailDtoUsertype } from "./adminOrderDetailDtoUsertype";
+import type { AdminOrderDetailDtoWarehouseOrigin } from "./adminOrderDetailDtoWarehouseOrigin";
 import type { AdminOrderItemDto } from "./adminOrderItemDto";
 import type { AdminOrderLogDto } from "./adminOrderLogDto";
 import type { AdminOrderRefundDto } from "./adminOrderRefundDto";
@@ -72,6 +80,46 @@ export interface AdminOrderDetailDto {
   total_cost: number;
   created_at: string;
   updated_at: string;
+  /**
+   * Latest shipment shipped_at for this order (if any).
+   * @nullable
+   */
+  shipped_at?: AdminOrderDetailDtoShippedAt;
+  /**
+   * Latest shipment delivered_at for this order (if any).
+   * @nullable
+   */
+  delivered_at?: AdminOrderDetailDtoDeliveredAt;
+  /**
+   * Checkout-selected shipping service_code (customer choice). Admin label purchase should match unless explicitly overridden.
+   * @nullable
+   */
+  shipping_selected_service_code?: AdminOrderDetailDtoShippingSelectedServiceCode;
+  /**
+   * Checkout-selected shipping service_name (customer choice).
+   * @nullable
+   */
+  shipping_selected_service_name?: AdminOrderDetailDtoShippingSelectedServiceName;
+  /**
+   * Checkout-selected shipping total (customer choice).
+   * @nullable
+   */
+  shipping_selected_total?: AdminOrderDetailDtoShippingSelectedTotal;
+  /**
+   * Checkout-selected shipping currency (customer choice).
+   * @nullable
+   */
+  shipping_selected_currency?: AdminOrderDetailDtoShippingSelectedCurrency;
+  /**
+   * Convenience snapshot of the checkout-selected shipping method (customer choice) and supporting metadata.
+   * @nullable
+   */
+  checkout_shipping_snapshot?: AdminOrderDetailDtoCheckoutShippingSnapshot;
+  /**
+   * Configured NetParcel warehouse origin used for rating/label purchase (NetParcel-style address).
+   * @nullable
+   */
+  warehouse_origin?: AdminOrderDetailDtoWarehouseOrigin;
   /** @nullable */
   status_id?: AdminOrderDetailDtoStatusId;
   /** @nullable */

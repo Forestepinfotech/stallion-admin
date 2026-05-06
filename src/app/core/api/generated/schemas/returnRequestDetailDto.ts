@@ -6,6 +6,7 @@
  */
 import type { ReturnEventDto } from "./returnEventDto";
 import type { ReturnOrderItemDto } from "./returnOrderItemDto";
+import type { ReturnOriginalShipmentDto } from "./returnOriginalShipmentDto";
 import type { ReturnRequestDetailDtoAdminNote } from "./returnRequestDetailDtoAdminNote";
 import type { ReturnRequestDetailDtoApprovedAt } from "./returnRequestDetailDtoApprovedAt";
 import type { ReturnRequestDetailDtoCancelledAt } from "./returnRequestDetailDtoCancelledAt";
@@ -49,6 +50,11 @@ export interface ReturnRequestDetailDto {
   items: ReturnRequestItemDto[];
   order_items: ReturnOrderItemDto[];
   events: ReturnEventDto[];
+  /**
+   * Original outbound shipments (and their packaging) for the order items included in this return request.
+   * @nullable
+   */
+  original_shipments?: ReturnOriginalShipmentDto[] | null;
   /**
    * Prepaid return shipping label (available after admin approves the return).
    * @nullable
