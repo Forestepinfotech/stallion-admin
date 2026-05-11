@@ -1,39 +1,45 @@
 <div class="space-y-6">
-  <!-- Hero -->
   <div class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
       <div>
         <h1 class="text-2xl md:text-3xl font-semibold">Inventory</h1>
-        <p class="text-sm text-white/70 mt-1">Track products available vs sold</p>
+        <p class="mt-1 text-sm text-white/70">Track live stock, review sell-through, and update operational inventory fields.</p>
       </div>
 
-      <div class="flex gap-3">
-        <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
-          <div class="text-xs text-white/70">Products</div>
-          <div class="text-xl font-semibold">{{ totalProducts }}</div>
-        </div>
-        <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
-          <div class="text-xs text-white/70">Available</div>
-          <div class="text-xl font-semibold">{{ totalAvailable }}</div>
-        </div>
-        <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
-          <div class="text-xs text-white/70">Sold</div>
-          <div class="text-xl font-semibold">{{ totalSold }}</div>
-        </div>
-        <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
-          <div class="text-xs text-white/70">Low Stock</div>
-          <div class="text-xl font-semibold">{{ lowStockCount }}</div>
-        </div>
+      <button
+        type="button"
+        (click)="refresh()"
+        class="rounded-2xl bg-white text-black font-medium px-4 py-3 hover:bg-gray-100 transition"
+      >
+        Refresh List
+      </button>
+    </div>
+
+    <div class="mt-5 grid grid-cols-2 xl:grid-cols-4 gap-3">
+      <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+        <div class="text-xs text-white/70">Products</div>
+        <div class="text-xl font-semibold">{{ totalProducts }}</div>
+      </div>
+      <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+        <div class="text-xs text-white/70">Available</div>
+        <div class="text-xl font-semibold">{{ totalAvailable }}</div>
+      </div>
+      <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+        <div class="text-xs text-white/70">Sold</div>
+        <div class="text-xl font-semibold">{{ totalSold }}</div>
+      </div>
+      <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+        <div class="text-xs text-white/70">Low Stock</div>
+        <div class="text-xl font-semibold">{{ lowStockCount }}</div>
       </div>
     </div>
 
-    <!-- Search + filter -->
-    <div class="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3">
-      <div class="md:col-span-2">
+    <form class="mt-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3" [formGroup]="filterForm" (ngSubmit)="applyFilters()">
+      <div class="xl:col-span-2">
         <div class="relative">
           <input
-            [(ngModel)]="query"
-            placeholder="Search by name, SKU, type..."
+            formControlName="q"
+            placeholder="Search by title or SKU..."
             class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 pl-11 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
           />
           <svg class="w-5 h-5 text-white/70 absolute left-4 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none">
@@ -42,150 +48,196 @@
         </div>
       </div>
 
-      <div>
-        <select
-          [(ngModel)]="filterType"
-          class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-        >
-          <option class="text-black" value="All">All Types</option>
-          <option class="text-black" value="Tire">Tire</option>
-          <option class="text-black" value="Rim">Rim</option>
-          <option class="text-black" value="Cover">Cover</option>
-        </select>
+      <select formControlName="type" class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30">
+        <option *ngFor="let option of typeOptions" class="text-black" [value]="option.value">{{ option.label }}</option>
+      </select>
+
+      <select formControlName="stockStatus" class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30">
+        <option *ngFor="let option of stockStatusOptions" class="text-black" [value]="option.value">{{ option.label }}</option>
+      </select>
+
+      <select formControlName="status" class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30">
+        <option *ngFor="let option of statusOptions" class="text-black" [value]="option.value">{{ option.label }}</option>
+      </select>
+
+      <select formControlName="lowStockOnly" class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30">
+        <option *ngFor="let option of lowStockOptions" class="text-black" [value]="option.value">{{ option.label }}</option>
+      </select>
+
+      <input type="date" formControlName="dateFrom" class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
+      <input type="date" formControlName="dateTo" class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
+
+      <div class="xl:col-span-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="text-xs text-white/60">Use Filter to apply criteria. Reset clears all fields and reloads the first page with 50 rows.</div>
+        <div class="flex gap-3">
+          <button type="submit" class="rounded-2xl bg-white text-black font-medium px-4 py-3 hover:bg-gray-100 transition">Filter</button>
+          <button type="button" (click)="resetFilters()" class="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 font-medium text-white hover:bg-white/15 transition">Reset</button>
+        </div>
       </div>
-    </div>
+    </form>
   </div>
 
-  <!-- List -->
   <div class="rounded-3xl border bg-white shadow-sm overflow-hidden">
-    <div class="px-6 py-5 border-b flex items-center justify-between">
+    <div class="px-6 py-5 border-b flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div>
         <div class="text-lg font-semibold text-gray-900">Stock List</div>
-        <div class="text-sm text-gray-500">Update available & sold numbers</div>
+        <div class="text-sm text-gray-500">API-backed inventory list with filters and pagination</div>
       </div>
 
-      <div class="text-sm text-gray-600">
-        Showing <span class="font-semibold text-gray-900">{{ filtered.length }}</span>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <label class="flex items-center gap-2 text-sm text-gray-600" [formGroup]="filterForm">
+          <span>Rows</span>
+          <select formControlName="limit" (change)="onPageSizeChange()" class="rounded-xl border px-3 py-2 text-sm text-gray-900">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          </select>
+        </label>
+        <div class="text-sm text-gray-600">
+          Showing <span class="font-semibold text-gray-900">{{ showingFrom }}-{{ showingTo }}</span> of
+          <span class="font-semibold text-gray-900">{{ meta.total }}</span>
+        </div>
       </div>
     </div>
 
-    <!-- Desktop Table -->
-    <div class="hidden md:block">
-      <table class="w-full">
-        <thead class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          <tr>
-            <th class="px-6 py-3">Product</th>
-            <th class="px-6 py-3">Type</th>
-            <th class="px-6 py-3">SKU</th>
-            <th class="px-6 py-3">Price</th>
-            <th class="px-6 py-3">Available</th>
-            <th class="px-6 py-3">Sold</th>
-            <th class="px-6 py-3">Updated</th>
-            <th class="px-6 py-3 text-right">Action</th>
-          </tr>
-        </thead>
+    <div *ngIf="loading" class="px-6 py-10 text-center text-sm text-gray-500">Loading inventory...</div>
 
-        <tbody class="divide-y">
-          <tr *ngFor="let x of filtered" class="hover:bg-gray-50 transition">
-            <td class="px-6 py-4">
-              <div class="font-semibold text-gray-900">{{ x.name }}</div>
-              <div *ngIf="lowStock(x)" class="text-xs text-rose-600 mt-1">Low stock</div>
-            </td>
-
-            <td class="px-6 py-4">
-              <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="typeBadge(x.type)">
-                {{ x.type }}
-              </span>
-            </td>
-
-            <td class="px-6 py-4 text-sm text-gray-700">{{ x.sku }}</td>
-            <td class="px-6 py-4 text-sm text-gray-700">${{ x.price }}</td>
-
-            <td class="px-6 py-4">
-              <span
-                class="text-sm font-semibold"
-                [class.text-rose-600]="lowStock(x)"
-                [class.text-gray-900]="!lowStock(x)"
-              >
-                {{ x.available }}
-              </span>
-            </td>
-
-            <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ x.sold }}</td>
-            <td class="px-6 py-4 text-sm text-gray-700">{{ x.updatedAt }}</td>
-
-            <td class="px-6 py-4 text-right">
-              <button
-                type="button"
-                (click)="openUpdate(x)"
-                class="px-3 py-2 rounded-xl border hover:bg-gray-50 text-sm"
-              >
-                Update
-              </button>
-            </td>
-          </tr>
-
-          <tr *ngIf="filtered.length === 0">
-            <td colspan="8" class="px-6 py-10 text-center text-sm text-gray-500">
-              No inventory items found.
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div *ngIf="!loading && loadError" class="m-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+      <div class="font-semibold text-red-800">Unable to load inventory</div>
+      <div class="mt-1">{{ loadError }}</div>
+      <button type="button" (click)="refresh()" class="mt-3 rounded-xl border border-red-200 bg-white px-3 py-2 font-medium text-red-700 transition hover:bg-red-100">
+        Try Again
+      </button>
     </div>
 
-    <!-- Mobile Cards -->
-    <div class="md:hidden p-4 space-y-3">
-      <div *ngFor="let x of filtered" class="rounded-3xl border p-4 shadow-sm">
-        <div class="flex items-start justify-between gap-3">
-          <div class="min-w-0">
-            <div class="font-semibold text-gray-900 truncate">{{ x.name }}</div>
-            <div class="text-xs text-gray-500 mt-1">{{ x.sku }}</div>
-          </div>
+    <ng-container *ngIf="!loading && !loadError">
+      <div class="hidden md:block">
+        <table class="w-full">
+          <thead class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <tr>
+              <th class="px-6 py-3">Product</th>
+              <th class="px-6 py-3">Type</th>
+              <th class="px-6 py-3">SKU</th>
+              <th class="px-6 py-3">Price</th>
+              <th class="px-6 py-3">Available</th>
+              <th class="px-6 py-3">Sold</th>
+              <th class="px-6 py-3">Stock Status</th>
+              <th class="px-6 py-3">Updated</th>
+              <th class="px-6 py-3 text-right">Action</th>
+            </tr>
+          </thead>
 
-          <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="typeBadge(x.type)">
-            {{ x.type }}
-          </span>
-        </div>
+          <tbody class="divide-y">
+            <tr *ngFor="let item of items; trackBy: trackByProductId" class="hover:bg-gray-50 transition">
+              <td class="px-6 py-4">
+                <div class="font-semibold text-gray-900">{{ item.title }}</div>
+                <div *ngIf="lowStock(item)" class="text-xs text-rose-600 mt-1">Low stock</div>
+              </td>
 
-        <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
-          <div class="rounded-2xl bg-gray-50 border p-3">
-            <div class="text-xs text-gray-500">Available</div>
-            <div class="font-semibold mt-1" [class.text-rose-600]="lowStock(x)">{{ x.available }}</div>
-          </div>
+              <td class="px-6 py-4">
+                <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="typeBadge(item.type_name)">
+                  {{ item.type_name || 'General' }}
+                </span>
+              </td>
 
-          <div class="rounded-2xl bg-gray-50 border p-3">
-            <div class="text-xs text-gray-500">Sold</div>
-            <div class="font-semibold mt-1">{{ x.sold }}</div>
-          </div>
-        </div>
+              <td class="px-6 py-4 text-sm text-gray-700">{{ item.sku || '-' }}</td>
+              <td class="px-6 py-4 text-sm text-gray-700">{{ item.selling_price | currency:'USD':'symbol':'1.0-2' }}</td>
 
-        <div class="mt-3 flex items-center justify-between">
-          <div class="text-xs text-gray-500">Updated: {{ x.updatedAt }}</div>
-          <button type="button" (click)="openUpdate(x)" class="px-3 py-2 rounded-xl border text-sm">
-            Update
-          </button>
-        </div>
+              <td class="px-6 py-4">
+                <span class="text-sm font-semibold" [class.text-rose-600]="lowStock(item)" [class.text-gray-900]="!lowStock(item)">
+                  {{ item.available_qty }}
+                </span>
+              </td>
 
-        <div *ngIf="lowStock(x)" class="mt-2 text-xs text-rose-600">Low stock</div>
+              <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ item.sold_qty }}</td>
+
+              <td class="px-6 py-4">
+                <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="lowStock(item) ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'">
+                  {{ item.stock_status }}
+                </span>
+              </td>
+
+              <td class="px-6 py-4 text-sm text-gray-700">{{ item.updated_at | date:'yyyy-MM-dd' }}</td>
+
+              <td class="px-6 py-4 text-right">
+                <button type="button" (click)="openUpdate(item)" class="px-3 py-2 rounded-xl border hover:bg-gray-50 text-sm">
+                  Update
+                </button>
+              </td>
+            </tr>
+
+            <tr *ngIf="!hasResults">
+              <td colspan="9" class="px-6 py-10 text-center text-sm text-gray-500">
+                No inventory items found for the current filters.
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <div *ngIf="filtered.length === 0" class="text-center text-sm text-gray-500 py-10">
-        No inventory items found.
+      <div class="md:hidden p-4 space-y-3">
+        <div *ngFor="let item of items; trackBy: trackByProductId" class="rounded-3xl border p-4 shadow-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="font-semibold text-gray-900">{{ item.title }}</div>
+              <div class="text-xs text-gray-500 mt-1">{{ item.sku || '-' }}</div>
+            </div>
+
+            <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="typeBadge(item.type_name)">
+              {{ item.type_name || 'General' }}
+            </span>
+          </div>
+
+          <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+            <div class="rounded-2xl bg-gray-50 border p-3">
+              <div class="text-xs text-gray-500">Available</div>
+              <div class="font-semibold mt-1" [class.text-rose-600]="lowStock(item)">{{ item.available_qty }}</div>
+            </div>
+
+            <div class="rounded-2xl bg-gray-50 border p-3">
+              <div class="text-xs text-gray-500">Sold</div>
+              <div class="font-semibold mt-1">{{ item.sold_qty }}</div>
+            </div>
+          </div>
+
+          <div class="mt-3 text-sm text-gray-600">
+            <div>Price: {{ item.selling_price | currency:'USD':'symbol':'1.0-2' }}</div>
+            <div class="mt-1">Stock Status: {{ item.stock_status }}</div>
+            <div class="mt-1">Updated: {{ item.updated_at | date:'yyyy-MM-dd' }}</div>
+          </div>
+
+          <div class="mt-4 flex justify-end">
+            <button type="button" (click)="openUpdate(item)" class="px-3 py-2 rounded-xl border text-sm">Update</button>
+          </div>
+
+          <div *ngIf="lowStock(item)" class="mt-2 text-xs text-rose-600">Low stock</div>
+        </div>
+
+        <div *ngIf="!hasResults" class="text-center text-sm text-gray-500 py-10">
+          No inventory items found for the current filters.
+        </div>
       </div>
-    </div>
+
+      <div class="border-t px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="text-sm text-gray-500">
+          Page <span class="font-semibold text-gray-900">{{ meta.page }}</span> of
+          <span class="font-semibold text-gray-900">{{ meta.totalPages }}</span>
+        </div>
+        <div class="flex gap-3">
+          <button type="button" (click)="changePage(meta.page - 1)" [disabled]="!canGoPrev" class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+          <button type="button" (click)="changePage(meta.page + 1)" [disabled]="!canGoNext" class="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+        </div>
+      </div>
+    </ng-container>
   </div>
 
-  <!-- Update Stock Modal -->
-  <div *ngIf="modalOpen && selected" class="fixed inset-0 z-50">
+  <div *ngIf="modalOpen" class="fixed inset-0 z-50">
     <div class="absolute inset-0 bg-black/50" (click)="closeModal()"></div>
 
     <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden">
+      <div class="w-full max-w-2xl rounded-3xl bg-white shadow-2xl overflow-hidden">
         <div class="px-6 py-5 border-b flex items-center justify-between">
           <div>
-            <div class="text-lg font-semibold text-gray-900">Update Stock</div>
-            <div class="text-sm text-gray-500">{{ selected.name }}</div>
+            <div class="text-lg font-semibold text-gray-900">Update Inventory</div>
+            <div class="text-sm text-gray-500" *ngIf="selectedDetail">{{ selectedDetail.title }}</div>
           </div>
 
           <button type="button" class="p-2 rounded-xl hover:bg-gray-100" (click)="closeModal()">
@@ -195,25 +247,82 @@
           </button>
         </div>
 
-        <form class="p-6 space-y-4" [formGroup]="stockForm" (ngSubmit)="saveStock()">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="text-sm font-medium text-gray-700">Available</label>
-              <input type="number" formControlName="available" class="mt-1 w-full rounded-2xl border px-4 py-3" />
-            </div>
+        <div *ngIf="detailLoading" class="p-6 text-sm text-gray-500">Loading inventory details...</div>
 
-            <div>
-              <label class="text-sm font-medium text-gray-700">Sold</label>
-              <input type="number" formControlName="sold" class="mt-1 w-full rounded-2xl border px-4 py-3" />
-            </div>
+	        <form *ngIf="!detailLoading && selectedDetail" class="p-6 space-y-4" [formGroup]="stockForm" (ngSubmit)="saveStock()">
+	          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Available Qty</label>
+	              <div class="mt-1 text-xs text-gray-500">How many units are currently available to sell.</div>
+	              <input type="number" formControlName="stockQty" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+	            </div>
+
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Low Stock Threshold</label>
+	              <div class="mt-1 text-xs text-gray-500">When available qty falls at or below this value, the item is considered low stock.</div>
+	              <input type="number" formControlName="lowStockThreshold" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+	            </div>
+
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Stock Status (Auto)</label>
+	              <div class="mt-1 text-xs text-gray-500">Computed from Available Qty and Low Stock Threshold.</div>
+	              <div class="mt-1 rounded-2xl border bg-gray-50 px-4 py-3">
+	                <div class="flex flex-wrap items-center justify-between gap-2">
+	                  <div class="text-sm font-semibold text-gray-900">
+	                    {{ stockStatusPreview().split('_').join(' ') }}
+	                  </div>
+	                  <span class="text-xs font-medium rounded-full border px-3 py-1 bg-white text-gray-800 border-gray-200">
+	                    Preview
+	                  </span>
+	                </div>
+	                <div class="mt-1 text-xs text-gray-600">
+	                  Computed from Available Qty and Low Stock Threshold when you save.
+	                </div>
+	              </div>
+	            </div>
+
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Status</label>
+	              <div class="mt-1 text-xs text-gray-500">Administrative state of this inventory record (active/inactive).</div>
+	              <input formControlName="status" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+	            </div>
+
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Inventory Source</label>
+	              <div class="mt-1 text-xs text-gray-500">Where this stock comes from (supplier, return, transfer, manual adjustment, etc.).</div>
+	              <input formControlName="inventorySource" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+	            </div>
+
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Warehouse Bin</label>
+	              <div class="mt-1 text-xs text-gray-500">Optional internal location to help pick/put-away (aisle/bin/shelf).</div>
+	              <input formControlName="warehouseBin" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+	            </div>
+
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Lead Time Days</label>
+	              <div class="mt-1 text-xs text-gray-500">Estimated days to restock when inventory is low/out of stock.</div>
+	              <input type="number" formControlName="leadTimeDays" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+	            </div>
+
+	            <label class="rounded-2xl border p-4 flex items-center gap-3 mt-6 md:mt-0">
+	              <input type="checkbox" formControlName="isActive" class="h-4 w-4 rounded border-gray-300" />
+	              <div>
+	                <div class="font-medium text-gray-900">Active Product</div>
+	                <div class="text-xs text-gray-500">Toggles visibility/availability in admin flows. Inventory can still exist even when inactive.</div>
+	              </div>
+	            </label>
+          </div>
+
+          <div class="rounded-2xl border bg-gray-50 p-4 text-sm text-gray-600">
+            <div>Sold Qty: <span class="font-semibold text-gray-900">{{ selectedDetail.sold_qty }}</span></div>
+            <div class="mt-1">Last Updated: <span class="font-semibold text-gray-900">{{ selectedDetail.updated_at | date:'yyyy-MM-dd HH:mm' }}</span></div>
           </div>
 
           <div class="flex justify-end gap-3 pt-2">
-            <button type="button" (click)="closeModal()" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50">
-              Cancel
-            </button>
-            <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900">
-              Save
+            <button type="button" (click)="closeModal()" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50">Cancel</button>
+            <button type="submit" [disabled]="saving" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900 disabled:opacity-50">
+              {{ saving ? 'Saving...' : 'Save Inventory' }}
             </button>
           </div>
         </form>

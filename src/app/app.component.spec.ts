@@ -20,10 +20,11 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('stallionadmin');
   });
 
-  it('should render title', () => {
+  it('should render the app shell', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, stallionadmin');
+    expect(compiled.querySelector('app-toast-container')).not.toBeNull();
+    expect(compiled.querySelector('router-outlet')).not.toBeNull();
   });
 });

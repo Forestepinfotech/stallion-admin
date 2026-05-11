@@ -1,136 +1,307 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-type CategoryItem = {
-  id: number;
-  name: string;
-  image?: string | null;
-  imageName?: string | null;
-};
+import { Component, OnInit } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
+import { CategoryModalComponent } from '../../components/category-modal/category-modal.component';
+import { AdminProductCategoryService as ProductCategoryService } from '../../../core/api/generated/admin-product-category/admin-product-category.service';
+import type {
+  CreateProductCategoryDto,
+  ProductCategoryResponseDto,
+  UpdateProductCategoryDto,
+} from '../../../core/api/generated/schemas';
+import { MediaUrlService } from '../../../core/media/media-url.service';
+import { ToastService } from '../../../core/notification/toast.service';
+
+type CategoryStatusFilter = 'All' | 'Active' | 'Inactive';
 
 @Component({
   selector: 'app-admin-category',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, CategoryModalComponent],
   templateUrl: './admin-category.component.html',
   styleUrl: './admin-category.component.css',
 })
-export class AdminCategoryComponent {
-  categories: CategoryItem[] = [
-    { id: 1, name: 'Tires', image: null, imageName: null },
-    { id: 2, name: 'Wheels', image: null, imageName: null },
-    { id: 3, name: 'Tonneau Covers', image: null, imageName: null },
+export class AdminCategoryComponent implements OnInit {
+  readonly statusOptions: CategoryStatusFilter[] = [
+    'All',
+    'Active',
+    'Inactive',
   ];
+  readonly pageSizeOptions = [20, 50, 100];
+
+  query = '';
+  statusFilter: CategoryStatusFilter = 'All';
+  appliedQuery = '';
+  appliedStatusFilter: CategoryStatusFilter = 'All';
+
+  loading = true;
+  loadError: string | null = null;
+  saving = false;
+  deleting = false;
+
+  page = 1;
+  pageSize = 50;
+  totalItems = 0;
 
   categoryModalOpen = false;
+  confirmOpen = false;
   categoryMode: 'create' | 'edit' = 'create';
-  editingCategoryId: number | null = null;
+  selectedCategory: ProductCategoryResponseDto | null = null;
 
-  selectedCategoryImageFile: File | null = null;
-  selectedCategoryImageName = '';
-  categoryImagePreview: string | null = null;
+  categories: ProductCategoryResponseDto[] = [];
+  filteredCategories: ProductCategoryResponseDto[] = [];
 
-  categoryForm: FormGroup;
+  constructor(
+    private readonly productCategoryService: ProductCategoryService,
+    private readonly mediaUrlService: MediaUrlService,
+    private readonly toastService: ToastService,
+  ) {}
 
-  constructor(private fb: FormBuilder) {
-    this.categoryForm = this.fb.group({
-      name: ['', Validators.required],
-    });
+  ngOnInit(): void {
+    this.loadCategories();
   }
 
-  invalid(form: FormGroup, controlName: string): boolean {
-    const control = form.get(controlName);
-    return !!control && control.invalid && (control.touched || control.dirty);
+  get totalCount(): number {
+    return this.totalItems;
+  }
+
+  get activeCount(): number {
+    return this.filteredCategories.filter((item) => item.is_active).length;
+  }
+
+  get inactiveCount(): number {
+    return this.filteredCategories.filter((item) => !item.is_active).length;
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.totalItems / this.pageSize));
+  }
+
+  get paginatedCategories(): ProductCategoryResponseDto[] {
+    return this.filteredCategories;
+  }
+
+  applyFilters(): void {
+    this.appliedQuery = this.query.trim();
+    this.appliedStatusFilter = this.statusFilter;
+    this.page = 1;
+    this.loadCategories();
+  }
+
+  resetFilters(): void {
+    this.query = '';
+    this.statusFilter = 'All';
+    this.appliedQuery = '';
+    this.appliedStatusFilter = 'All';
+    this.page = 1;
+    this.loadCategories();
+  }
+
+  changePageSize(size: number): void {
+    this.pageSize = Number(size) || 50;
+    this.page = 1;
+    this.loadCategories();
+  }
+
+  prevPage(): void {
+    if (this.page > 1) {
+      this.page -= 1;
+      this.loadCategories();
+    }
+  }
+
+  nextPage(): void {
+    if (this.page < this.totalPages) {
+      this.page += 1;
+      this.loadCategories();
+    }
   }
 
   openCreateCategory(): void {
     this.categoryMode = 'create';
-    this.editingCategoryId = null;
-
-    this.categoryForm.reset({
-      name: '',
-    });
-
-    this.selectedCategoryImageFile = null;
-    this.selectedCategoryImageName = '';
-    this.categoryImagePreview = null;
-
+    this.selectedCategory = null;
     this.categoryModalOpen = true;
   }
 
-  openEditCategory(category: CategoryItem): void {
+  openEditCategory(category: ProductCategoryResponseDto): void {
     this.categoryMode = 'edit';
-    this.editingCategoryId = category.id;
-
-    this.categoryForm.patchValue({
-      name: category.name,
-    });
-
-    this.selectedCategoryImageFile = null;
-    this.selectedCategoryImageName = category.imageName || '';
-    this.categoryImagePreview = category.image || null;
-
+    this.selectedCategory = category;
     this.categoryModalOpen = true;
   }
 
   closeCategoryModal(): void {
-    this.categoryModalOpen = false;
-  }
-
-  onCategoryImageSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] || null;
-
-    if (!file) return;
-
-    this.selectedCategoryImageFile = file;
-    this.selectedCategoryImageName = file.name;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.categoryImagePreview = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  removeCategoryImage(): void {
-    this.selectedCategoryImageFile = null;
-    this.selectedCategoryImageName = '';
-    this.categoryImagePreview = null;
-  }
-
-  saveCategory(): void {
-    if (this.categoryForm.invalid) {
-      this.categoryForm.markAllAsTouched();
+    if (this.saving) {
       return;
     }
 
-    const payload: CategoryItem = {
-      id: this.editingCategoryId ?? Date.now(),
-      name: (this.categoryForm.value['name'] || '').trim(),
-      image: this.categoryImagePreview || null,
-      imageName: this.selectedCategoryImageName || null,
-    };
-
-    if (this.categoryMode === 'create') {
-      this.categories.unshift(payload);
-    } else {
-      this.categories = this.categories.map((item) =>
-        item.id === this.editingCategoryId ? payload : item,
-      );
-    }
-
-    this.closeCategoryModal();
+    this.categoryModalOpen = false;
+    this.selectedCategory = null;
   }
 
-  deleteCategory(category: CategoryItem): void {
-    const ok = confirm(`Delete "${category.name}"?`);
-    if (!ok) return;
+  openDeleteCategory(category: ProductCategoryResponseDto): void {
+    this.selectedCategory = category;
+    this.confirmOpen = true;
+  }
 
-    this.categories = this.categories.filter((item) => item.id !== category.id);
+  closeConfirm(): void {
+    if (this.deleting) {
+      return;
+    }
+
+    this.confirmOpen = false;
+    this.selectedCategory = null;
+  }
+
+  saveCategory(payload: CreateProductCategoryDto): void {
+    this.saving = true;
+
+    const request =
+      this.categoryMode === 'create'
+        ? this.productCategoryService.productCategoryControllerCreate(payload)
+        : this.productCategoryService.productCategoryControllerUpdate(
+            String(this.selectedCategory?.category_id),
+            this.toUpdatePayload(payload),
+          );
+
+    request.pipe(finalize(() => (this.saving = false))).subscribe({
+      next: () => {
+        this.toastService.success(
+          this.categoryMode === 'create'
+            ? 'Category created successfully.'
+            : 'Category updated successfully.',
+        );
+        this.categoryModalOpen = false;
+        this.selectedCategory = null;
+        this.loadCategories();
+      },
+      error: (error) => {
+        this.toastService.error(
+          this.getErrorMessage(error, 'Failed to save category.'),
+        );
+      },
+    });
+  }
+
+  confirmDelete(): void {
+    if (!this.selectedCategory || this.deleting) {
+      return;
+    }
+
+    this.deleting = true;
+    this.productCategoryService
+      .productCategoryControllerRemove(
+        String(this.selectedCategory.category_id),
+      )
+      .pipe(finalize(() => (this.deleting = false)))
+      .subscribe({
+        next: () => {
+          this.toastService.success('Category deleted successfully.');
+          this.confirmOpen = false;
+          this.selectedCategory = null;
+          this.loadCategories();
+        },
+        error: (error) => {
+          this.toastService.error(
+            this.getErrorMessage(error, 'Failed to delete category.'),
+          );
+        },
+      });
+  }
+
+  onCategoryModalWarning(message: string): void {
+    this.toastService.warning(message);
+  }
+
+  onCategoryModalError(message: string): void {
+    this.toastService.error(message);
+  }
+
+  trackByCategoryId(_: number, item: ProductCategoryResponseDto): number {
+    return item.category_id;
+  }
+
+  getCategoryImageSrc(category: ProductCategoryResponseDto): string {
+    return this.mediaUrlService.resolve(category.category_image);
+  }
+
+  retryLoad(): void {
+    this.loadCategories();
+  }
+
+  private loadCategories(): void {
+    const params: Record<string, string | number | boolean> = {
+      page: this.page,
+      limit: this.pageSize,
+    };
+
+    if (this.appliedQuery) {
+      params['search'] = this.appliedQuery;
+    }
+
+    if (this.appliedStatusFilter !== 'All') {
+      params['is_active'] = this.appliedStatusFilter === 'Active';
+    }
+
+    this.loading = true;
+    this.loadError = null;
+    this.productCategoryService
+      .productCategoryControllerList({
+        params,
+      })
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+        next: (response) => {
+          this.categories = response.data ?? [];
+          this.filteredCategories = response.data ?? [];
+          this.totalItems = Number(response.meta?.['total'] ?? response.data?.length ?? 0);
+        },
+        error: (error) => {
+          this.categories = [];
+          this.filteredCategories = [];
+          this.totalItems = 0;
+          this.loadError = this.getErrorMessage(error, 'Failed to load categories.');
+          this.toastService.error(this.loadError);
+        },
+      });
+  }
+
+  private toUpdatePayload(
+    payload: CreateProductCategoryDto,
+  ): UpdateProductCategoryDto {
+    return {
+      category_name: payload.category_name,
+      category_image: payload.category_image,
+      is_active: payload.is_active,
+      is_deleted: payload.is_deleted,
+    };
+  }
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'error' in error &&
+      typeof error.error === 'object' &&
+      error.error !== null &&
+      'message' in error.error
+    ) {
+      const message = error.error.message;
+      if (typeof message === 'string') {
+        return message;
+      }
+      if (Array.isArray(message) && message.length > 0) {
+        return String(message[0]);
+      }
+    }
+
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'message' in error &&
+      typeof error.message === 'string'
+    ) {
+      return error.message;
+    }
+
+    return fallback;
   }
 }

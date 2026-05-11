@@ -1,0 +1,419 @@
+<div class="min-h-screen bg-slate-50">
+  <div class="mx-auto max-w-7xl p-4 sm:p-6">
+    <div class="flex flex-col gap-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <a
+          routerLink="/products-list"
+          class="inline-flex items-center text-sm font-medium text-slate-500 transition hover:text-slate-800"
+        >
+          Back to products
+        </a>
+        <h1 class="mt-3 text-2xl font-semibold tracking-tight text-slate-900">
+          {{ product()?.title || "Product Detail" }}
+        </h1>
+        <p class="mt-1 text-sm text-slate-500">
+          SKU: {{ product()?.sku || "—" }} <span class="mx-2">•</span> Status:
+          {{ formatText(product()?.status || (isTruthy(product()?.is_active) ? "active" : "")) }}
+        </p>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <span
+          class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+          *ngIf="product()"
+        >
+          {{ formatText(product()?.visibility) }}
+        </span>
+        <span
+          class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 ring-1 ring-indigo-200"
+          *ngIf="isTruthy(product()?.featured)"
+        >
+          Featured
+        </span>
+        <span
+          class="rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700 ring-1 ring-rose-200"
+          *ngIf="isTruthy(product()?.is_deleted)"
+        >
+          Deleted
+        </span>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="mt-6 rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center text-sm text-slate-500">
+      Loading product details...
+    </div>
+
+    <div *ngIf="!loading && loadError()" class="mt-6 rounded-3xl border border-red-200 bg-red-50 px-6 py-16 text-center text-sm text-red-700">
+      <div class="font-semibold text-red-800">Unable to load product details</div>
+      <div class="mt-2">{{ loadError() }}</div>
+      <button type="button" (click)="retry()" class="mt-4 rounded-xl border border-red-200 bg-white px-4 py-2 font-medium text-red-700 transition hover:bg-red-100">
+        Try Again
+      </button>
+    </div>
+
+    <div *ngIf="!loading && !loadError() && !product()" class="mt-6 rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center text-sm text-slate-500">
+      Product details are not available.
+    </div>
+
+    <div *ngIf="!loading && !loadError() && product() as detail" class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+      <section class="space-y-6">
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+          <div class="overflow-hidden rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <div class="aspect-[4/3] overflow-hidden rounded-2xl bg-slate-100">
+              <img
+                *ngIf="detail.thumbnail_image"
+                [src]="thumbnailImageSrc"
+                [alt]="detail.title"
+                class="h-full w-full object-cover"
+              />
+            </div>
+
+            <div class="mt-4 grid gap-3 sm:grid-cols-2" *ngIf="galleryImages.length > 0">
+              <div
+                *ngFor="let image of galleryImages"
+                class="overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200"
+              >
+                <div class="aspect-[4/3]">
+                  <img [src]="image" alt="" class="h-full w-full object-cover" />
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 space-y-3" *ngIf="videoItems.length > 0">
+              <div
+                *ngFor="let video of videoItems; let i = index"
+                class="overflow-hidden rounded-2xl bg-slate-950 ring-1 ring-slate-200"
+              >
+                <video
+                  *ngIf="isVideo(video)"
+                  [src]="video"
+                  controls
+                  preload="metadata"
+                  class="aspect-video w-full"
+                ></video>
+                <a
+                  *ngIf="!isVideo(video)"
+                  [href]="video"
+                  target="_blank"
+                  rel="noreferrer"
+                  class="flex min-h-24 items-center justify-between px-4 py-3 text-sm font-medium text-white"
+                >
+                  <span>Open Video {{ i + 1 }}</span>
+                  <span>View</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <h2 class="text-lg font-semibold text-slate-900">Commerce</h2>
+            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Price</div>
+                <div class="mt-1 text-base font-semibold text-slate-900">
+                  {{ formatMoney(detail.price, detail.currency) }}
+                </div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Compare At</div>
+                <div class="mt-1 text-base text-slate-900">
+                  {{ formatMoney(detail.compare_at_price, detail.currency) }}
+                </div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Cost</div>
+                <div class="mt-1 text-base text-slate-900">
+                  {{ formatMoney(detail.cost_price, detail.currency) }}
+                </div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Stock Qty</div>
+                <div class="mt-1 text-base text-slate-900">{{ formatNumber(detail.stock_qty) }}</div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Low Stock</div>
+                <div class="mt-1 text-base text-slate-900">
+                  {{ formatNumber(detail.low_stock_threshold) }}
+                </div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Stock Status</div>
+                <div class="mt-1 text-base text-slate-900">{{ formatText(detail.stock_status) }}</div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Minimum Order Qty</div>
+                <div class="mt-1 text-base text-slate-900">{{ formatNumber(detail.min_order_qty) }}</div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Currency</div>
+                <div class="mt-1 text-base text-slate-900">{{ formatText(detail.currency) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+          <h2 class="text-lg font-semibold text-slate-900">Product Information</h2>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Product ID</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatNumber(detail.product_id) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Category</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.category_name) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Slug</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.slug) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Barcode</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.barcode) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">MPN</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.mpn) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Brand</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.brand_name) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Car Model</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.model_name) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Supplier</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.supplier) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Shipping Class</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.shipping_class) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Warehouse Bin</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.warehouse_bin) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Lead Time</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatNumber(detail.lead_time_days) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Condition</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.condition) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Inventory Source</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.inventory_source) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Internal Reference</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.internal_reference_code) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Stock Strategy</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.stock_strategy) }}</div>
+            </div>
+          </div>
+
+          <div class="mt-6 border-t border-slate-200 pt-6">
+            <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Short Description</div>
+            <p class="mt-2 text-sm leading-6 text-slate-700">{{ formatText(detail.short_description) }}</p>
+          </div>
+
+          <div class="mt-6 border-t border-slate-200 pt-6">
+            <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Description</div>
+            <p class="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{{ formatText(detail.description) }}</p>
+          </div>
+        </div>
+
+        <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+          <h2 class="text-lg font-semibold text-slate-900">Dimensions & Policies</h2>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Weight</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatNumber(detail.weight) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Length</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatNumber(detail.length) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Width</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatNumber(detail.width) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Height</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatNumber(detail.height) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Warranty</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatText(detail.warranty) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Returnable</div>
+              <div class="mt-1 text-sm text-slate-900">{{ isTruthy(detail.returnable) ? "Yes" : "No" }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Return Window</div>
+              <div class="mt-1 text-sm text-slate-900">{{ formatNumber(detail.return_window_days) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Universal Fit</div>
+              <div class="mt-1 text-sm text-slate-900">{{ isTruthy(detail.universal_fit) ? "Yes" : "No" }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Requires Serial</div>
+              <div class="mt-1 text-sm text-slate-900">{{ isTruthy(detail.requires_serial) ? "Yes" : "No" }}</div>
+            </div>
+          </div>
+
+          <div class="mt-6 grid gap-6 lg:grid-cols-2">
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Return Policy Note</div>
+              <p class="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{{ formatText(detail.return_policy_note) }}</p>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Serial Tracking Note</div>
+              <p class="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{{ formatText(detail.serial_tracking_note) }}</p>
+            </div>
+            <div class="lg:col-span-2">
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Fulfillment Note</div>
+              <p class="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{{ formatText(detail.fulfillment_note) }}</p>
+            </div>
+          </div>
+
+          <div class="mt-6 border-t border-slate-200 pt-6" *ngIf="nonReturnableReasons.length > 0">
+            <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Non-returnable Reasons</div>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <span
+                *ngFor="let item of nonReturnableReasons"
+                class="rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700 ring-1 ring-rose-200"
+              >
+                {{ item }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-6 xl:grid-cols-2">
+          <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200" *ngIf="fitmentEntries.length > 0">
+            <h2 class="text-lg font-semibold text-slate-900">Fitment</h2>
+            <div class="mt-4 space-y-3">
+              <div
+                *ngFor="let item of fitmentEntries"
+                class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-900"
+              >
+                {{ item }}
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200" *ngIf="packageContents.length > 0">
+            <h2 class="text-lg font-semibold text-slate-900">Package Contents</h2>
+            <div class="mt-4 space-y-3">
+              <div
+                *ngFor="let item of packageContents"
+                class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-900"
+              >
+                {{ item }}
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200" *ngIf="notesList.length > 0">
+            <h2 class="text-lg font-semibold text-slate-900">Notes</h2>
+            <div class="mt-4 space-y-3">
+              <div
+                *ngFor="let item of notesList"
+                class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-900"
+              >
+                {{ item }}
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200" *ngIf="tagsList.length > 0">
+            <h2 class="text-lg font-semibold text-slate-900">Tags</h2>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span
+                *ngFor="let item of tagsList"
+                class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+              >
+                {{ item }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="space-y-6">
+        <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+          <h2 class="text-lg font-semibold text-slate-900">Catalog Path</h2>
+          <div class="mt-4 flex flex-wrap gap-2" *ngIf="breadcrumbs.length > 0; else categoryPath">
+            <span
+              *ngFor="let crumb of breadcrumbs"
+              class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+            >
+              {{ crumb }}
+            </span>
+          </div>
+          <ng-template #categoryPath>
+            <div class="mt-4 text-sm text-slate-700">
+              {{ formatText(detail.category_name) }}
+            </div>
+          </ng-template>
+        </div>
+
+        <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+          <h2 class="text-lg font-semibold text-slate-900">Metadata</h2>
+          <div class="mt-4 space-y-4 text-sm">
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Created</div>
+              <div class="mt-1 text-slate-900">{{ formatDate(detail.created_at) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Updated</div>
+              <div class="mt-1 text-slate-900">{{ formatDate(detail.updated_at) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">SEO Title</div>
+              <div class="mt-1 text-slate-900">{{ formatText(detail.seo_title) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">SEO Description</div>
+              <div class="mt-1 text-slate-900">{{ formatText(detail.seo_description) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200" *ngIf="specificationEntries.length > 0">
+          <h2 class="text-lg font-semibold text-slate-900">Specifications</h2>
+          <div class="mt-4 space-y-3">
+            <div
+              *ngFor="let item of specificationEntries"
+              class="rounded-2xl bg-slate-50 px-4 py-3"
+            >
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ item.label }}</div>
+              <div class="mt-1 text-sm text-slate-900">{{ item.value }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200" *ngIf="attributeEntries.length > 0">
+          <h2 class="text-lg font-semibold text-slate-900">Attributes</h2>
+          <div class="mt-4 space-y-3">
+            <div
+              *ngFor="let item of attributeEntries"
+              class="rounded-2xl bg-slate-50 px-4 py-3"
+            >
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ item.key }}</div>
+              <div class="mt-1 text-sm text-slate-900">{{ item.value }}</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>

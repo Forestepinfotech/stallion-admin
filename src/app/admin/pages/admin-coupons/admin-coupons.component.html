@@ -4,10 +4,10 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <h1 class="text-2xl md:text-3xl font-semibold">Coupons</h1>
-        <p class="text-sm text-white/70 mt-1">Create and manage discounts for your e-commerce store</p>
+        <p class="text-sm text-white/70 mt-1">Create and manage promotional codes, discount rules, and campaign validity for your store.</p>
       </div>
 
-      <div class="flex gap-3">
+      <div class="flex flex-wrap gap-3">
         <div class="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
           <div class="text-xs text-white/70">Total</div>
           <div class="text-xl font-semibold">{{ totalCount }}</div>
@@ -32,12 +32,23 @@
     </div>
 
     <!-- Search / Filter -->
-    <div class="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3">
-      <div class="md:col-span-2">
+    <div class="mt-6 rounded-[1.75rem] border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <div class="text-sm font-semibold text-white">Filter Coupons</div>
+          <div class="text-xs text-white/60">Date range is required before applying filters.</div>
+        </div>
+        <div class="text-xs text-white/60">
+          Active range: {{ appliedStartDate }} to {{ appliedEndDate }}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3 xl:grid-cols-6">
+      <div class="xl:col-span-2">
         <div class="relative">
           <input
             [(ngModel)]="query"
-            placeholder="Search by code or type..."
+            placeholder="Search by code, type, or description..."
             class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 pl-11 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
           />
           <svg class="w-5 h-5 text-white/70 absolute left-4 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none">
@@ -56,63 +67,124 @@
           <option class="text-black" value="Inactive">Inactive</option>
         </select>
       </div>
+
+      <div>
+        <input
+          type="date"
+          [(ngModel)]="filterStartDate"
+          class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+        />
+      </div>
+
+      <div>
+        <input
+          type="date"
+          [(ngModel)]="filterEndDate"
+          class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+        />
+      </div>
+
+      <button
+        type="button"
+        (click)="resetFilters()"
+        class="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
+      >
+        Reset
+      </button>
+
+      <button
+        type="button"
+        (click)="applyFilters()"
+        class="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-gray-100"
+      >
+        Filter
+      </button>
+      </div>
     </div>
   </div>
 
   <!-- List card -->
   <div class="rounded-3xl border bg-white shadow-sm overflow-hidden">
-    <div class="px-6 py-5 border-b flex items-center justify-between">
+    <div class="border-b px-6 py-5">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div>
         <div class="text-lg font-semibold text-gray-900">Coupon List</div>
-        <div class="text-sm text-gray-500">Manage codes, usage limits and validity</div>
+        <div class="text-sm text-gray-500">Manage campaign rules, availability windows, and redemption performance.</div>
       </div>
-      <div class="text-sm text-gray-600">
-        Showing <span class="font-semibold text-gray-900">{{ filtered.length }}</span>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+          Showing <span class="font-semibold text-gray-900">{{ pageStart }}</span>
+          -
+          <span class="font-semibold text-gray-900">{{ pageEnd }}</span>
+          of
+          <span class="font-semibold text-gray-900">{{ totalCount }}</span>
+        </div>
+        <label class="flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm text-gray-600">
+          <span>Rows</span>
+          <select
+            [(ngModel)]="pageSize"
+            (ngModelChange)="onPageSizeChange()"
+            class="rounded-xl border border-gray-200 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-black"
+          >
+            <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }}</option>
+          </select>
+        </label>
+      </div>
+      </div>
+      <div class="mt-4 flex flex-wrap gap-2 text-xs text-gray-500">
+        <span class="rounded-full bg-gray-100 px-3 py-1.5">Status: {{ appliedStatus }}</span>
+        <span class="rounded-full bg-gray-100 px-3 py-1.5">Date Range: {{ appliedStartDate }} to {{ appliedEndDate }}</span>
+        <span *ngIf="appliedQuery" class="rounded-full bg-gray-100 px-3 py-1.5">Search: {{ appliedQuery }}</span>
+      </div>
+
+      <div *ngIf="loadError" class="mt-4 flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 sm:flex-row sm:items-center sm:justify-between">
+        <span>{{ loadError }}</span>
+        <button type="button" (click)="retryLoad()" class="rounded-xl border border-red-200 bg-white px-3 py-2 font-medium text-red-700 transition hover:bg-red-50">
+          Retry
+        </button>
       </div>
     </div>
 
+    <div *ngIf="loading" class="border-b px-6 py-4 text-sm text-gray-500">
+      Loading coupons...
+    </div>
+
     <!-- Desktop table -->
-    <div class="hidden md:block">
-      <table class="w-full">
-        <thead class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+    <div class="hidden overflow-x-auto md:block">
+      <table class="w-full min-w-[1080px]">
+        <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
           <tr>
             <th class="px-6 py-3">Code</th>
             <th class="px-6 py-3">Discount</th>
-            <th class="px-6 py-3">Min Order</th>
-            <th class="px-6 py-3">Usage</th>
             <th class="px-6 py-3">Validity</th>
+            <th class="px-6 py-3">Usage</th>
             <th class="px-6 py-3">Status</th>
             <th class="px-6 py-3 text-right">Actions</th>
           </tr>
         </thead>
 
         <tbody class="divide-y">
-          <tr *ngFor="let c of filtered" class="hover:bg-gray-50 transition">
+          <tr *ngFor="let c of paginatedCoupons" class="transition hover:bg-gray-50">
             <td class="px-6 py-4">
               <div class="font-semibold text-gray-900">{{ c.code }}</div>
-              <div class="text-xs text-gray-500">{{ c.type }}</div>
+              <div class="mt-1 text-xs text-gray-500 line-clamp-2">{{ c.description }}</div>
             </td>
 
             <td class="px-6 py-4 text-sm text-gray-700">
-              <ng-container *ngIf="c.type === 'Percent'; else fixed">
-                {{ c.value }}% <span class="text-xs text-gray-500">(max {{ c.maxDiscount }})</span>
-              </ng-container>
-              <ng-template #fixed>
-                ${{ c.value }}
-              </ng-template>
+              <div class="font-medium text-gray-900">{{ discountSummary(c) }}</div>
+              <div class="mt-1 text-xs text-gray-500">Min order ${{ c.minOrder }}</div>
             </td>
 
-            <td class="px-6 py-4 text-sm text-gray-700">${{ c.minOrder }}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">
+              <div class="font-medium text-gray-900">{{ c.startDate }}</div>
+              <div class="mt-1 text-xs text-gray-500">to {{ c.endDate }}</div>
+            </td>
 
             <td class="px-6 py-4">
               <div class="text-xs text-gray-600 mb-2">{{ c.usedCount }} / {{ c.usageLimit }}</div>
               <div class="h-2 w-40 bg-gray-100 rounded-full overflow-hidden">
                 <div class="h-2 bg-black rounded-full" [style.width.%]="usagePercent(c)"></div>
               </div>
-            </td>
-
-            <td class="px-6 py-4 text-sm text-gray-700">
-              {{ c.startDate }} → {{ c.endDate }}
             </td>
 
             <td class="px-6 py-4">
@@ -129,6 +201,9 @@
 
             <td class="px-6 py-4">
               <div class="flex justify-end gap-2">
+                <a [routerLink]="['/coupons', c.id]" class="px-3 py-2 rounded-xl border hover:bg-gray-50 text-sm">
+                  View
+                </a>
                 <button (click)="openEdit(c)" type="button" class="px-3 py-2 rounded-xl border hover:bg-gray-50 text-sm">
                   Edit
                 </button>
@@ -139,7 +214,7 @@
             </td>
           </tr>
 
-          <tr *ngIf="filtered.length === 0">
+          <tr *ngIf="paginatedCoupons.length === 0">
             <td class="px-6 py-10 text-center text-sm text-gray-500" colspan="7">
               No coupons found.
             </td>
@@ -150,11 +225,11 @@
 
     <!-- Mobile cards -->
     <div class="md:hidden p-4 space-y-3">
-      <div *ngFor="let c of filtered" class="rounded-3xl border p-4 shadow-sm">
+      <div *ngFor="let c of paginatedCoupons" class="rounded-3xl border border-gray-200 p-4 shadow-sm">
         <div class="flex items-start justify-between gap-3">
           <div>
             <div class="font-semibold text-gray-900">{{ c.code }}</div>
-            <div class="text-xs text-gray-500">{{ c.type }}</div>
+            <div class="mt-1 text-xs text-gray-500">{{ c.description }}</div>
           </div>
 
           <span
@@ -168,15 +243,23 @@
           </span>
         </div>
 
-        <div class="mt-3 text-sm text-gray-700">
-          <div><span class="text-gray-500">Discount:</span>
-            <ng-container *ngIf="c.type === 'Percent'; else fixed2">
-              {{ c.value }}% (max {{ c.maxDiscount }})
-            </ng-container>
-            <ng-template #fixed2>${{ c.value }}</ng-template>
+        <div class="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-700">
+          <div>
+            <div class="text-xs text-gray-500">Discount</div>
+            <div class="mt-1 font-medium text-gray-900">{{ discountSummary(c) }}</div>
           </div>
-          <div class="mt-1"><span class="text-gray-500">Min Order:</span> ${{ c.minOrder }}</div>
-          <div class="mt-1"><span class="text-gray-500">Validity:</span> {{ c.startDate }} → {{ c.endDate }}</div>
+          <div>
+            <div class="text-xs text-gray-500">Usage</div>
+            <div class="mt-1 font-medium text-gray-900">{{ c.usedCount }} / {{ c.usageLimit }}</div>
+          </div>
+          <div>
+            <div class="text-xs text-gray-500">Scope</div>
+            <div class="mt-1 font-medium text-gray-900">{{ c.appliesTo }}</div>
+          </div>
+          <div>
+            <div class="text-xs text-gray-500">Valid Until</div>
+            <div class="mt-1 font-medium text-gray-900">{{ c.endDate }}</div>
+          </div>
         </div>
 
         <div class="mt-3">
@@ -187,13 +270,41 @@
         </div>
 
         <div class="flex justify-end gap-2 mt-4">
+          <a [routerLink]="['/coupons', c.id]" class="px-3 py-2 rounded-xl border text-sm">View</a>
           <button (click)="openEdit(c)" type="button" class="px-3 py-2 rounded-xl border text-sm">Edit</button>
           <button (click)="openDelete(c)" type="button" class="px-3 py-2 rounded-xl bg-black text-white text-sm">Delete</button>
         </div>
       </div>
 
-      <div *ngIf="filtered.length === 0" class="text-center text-sm text-gray-500 py-10">
+      <div *ngIf="paginatedCoupons.length === 0" class="py-10 text-center text-sm text-gray-500">
         No coupons found.
+      </div>
+    </div>
+
+    <div class="border-t bg-gray-50/80 px-4 py-4 sm:px-6">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="text-sm text-gray-600">
+          Page <span class="font-semibold text-gray-900">{{ currentPage }}</span> of
+          <span class="font-semibold text-gray-900">{{ totalPages }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            (click)="goToPage(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            class="rounded-xl border bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <button
+            type="button"
+            (click)="goToPage(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+            class="rounded-xl border bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -202,14 +313,17 @@
   <div *ngIf="modalOpen" class="fixed inset-0 z-50">
     <div class="absolute inset-0 bg-black/50" (click)="closeModal()"></div>
 
-    <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="w-full max-w-2xl rounded-3xl bg-white shadow-2xl overflow-hidden">
-        <div class="px-6 py-5 border-b flex items-center justify-between">
+    <div class="absolute inset-0 overflow-y-auto p-3 sm:p-4">
+      <div class="flex min-h-full items-start justify-center py-4 sm:items-center">
+      <div class="w-full max-w-2xl max-h-[calc(100vh-2rem)] overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b px-4 py-4 sm:px-6 sm:py-5">
           <div>
             <div class="text-lg font-semibold text-gray-900">
               {{ mode === 'create' ? 'Create Coupon' : 'Edit Coupon' }}
             </div>
-            <div class="text-sm text-gray-500">Configure discount rules and validity</div>
+            <div class="text-sm text-gray-500">
+              Set the offer value, redemption limits, description, and active dates to control how this coupon is applied at checkout.
+            </div>
           </div>
 
           <button type="button" class="p-2 rounded-xl hover:bg-gray-100" (click)="closeModal()">
@@ -219,13 +333,131 @@
           </button>
         </div>
 
-        <form class="p-6 space-y-5" [formGroup]="form" (ngSubmit)="save()">
+        <form class="max-h-[calc(100vh-8.5rem)] overflow-y-auto p-4 space-y-5 sm:p-6" [formGroup]="form" (ngSubmit)="save()">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="text-sm font-medium text-gray-700">Code</label>
               <input formControlName="code" placeholder="e.g. SAVE20"
                 class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
+              <p class="mt-1 text-xs text-gray-500">Use a short, memorable code that customers can enter easily at checkout.</p>
               <p *ngIf="isInvalid('code')" class="text-xs text-red-600 mt-1">Code is required.</p>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="text-sm font-medium text-gray-700">Description</label>
+              <textarea
+                formControlName="description"
+                rows="3"
+                placeholder="Example: 10% off for first-time shoppers on orders above $50."
+                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+              ></textarea>
+              <p class="mt-1 text-xs text-gray-500">Add an internal or campaign description so your team understands the purpose of this coupon.</p>
+              <p *ngIf="isInvalid('description')" class="mt-1 text-xs text-red-600">Description is required.</p>
+            </div>
+
+            <div>
+              <label class="text-sm font-medium text-gray-700">Customer Eligibility</label>
+              <select formControlName="customerEligibility"
+                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black">
+                <option value="All Customers">All Customers</option>
+                <option value="First Order Only">First Order Only</option>
+              </select>
+              <p class="mt-1 text-xs text-gray-500">Choose which customer segment can redeem this coupon.</p>
+            </div>
+
+            <div>
+              <label class="text-sm font-medium text-gray-700">Applies To</label>
+              <select formControlName="appliesTo"
+                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black">
+                <option value="All Products">All Products</option>
+                <option value="Selected Categories">Selected Categories</option>
+                <option value="Selected Products">Selected Products</option>
+              </select>
+              <p class="mt-1 text-xs text-gray-500">Define whether the offer applies storewide or only to selected assortments.</p>
+            </div>
+
+            <div *ngIf="form.value.appliesTo === 'Selected Categories'" class="md:col-span-2 rounded-2xl border border-gray-200 p-4">
+              <div class="text-sm font-medium text-gray-700">Category Targeting</div>
+              <p class="mt-1 text-xs text-gray-500">Search categories and attach only the ones this coupon should apply to. This should be backed by paginated API search in production.</p>
+              <input
+                [(ngModel)]="categorySearch"
+                (ngModelChange)="onCategorySearchChange($event)"
+                [ngModelOptions]="{ standalone: true }"
+                placeholder="Search categories by name..."
+                class="mt-3 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+              />
+
+              <div *ngIf="selectedCategories.length > 0" class="mt-3 flex flex-wrap gap-2">
+                <button
+                  *ngFor="let category of selectedCategories"
+                  type="button"
+                  (click)="removeSelection('selectedCategoryIds', category.id)"
+                  class="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  {{ category.name }} x
+                </button>
+              </div>
+
+              <div *ngIf="categorySearchResults.length > 0" class="mt-3 overflow-hidden rounded-2xl border border-gray-200">
+                <button
+                  *ngFor="let category of categorySearchResults"
+                  type="button"
+                  (click)="addSelection('selectedCategoryIds', category.id); categorySearch = ''"
+                  class="flex w-full items-center justify-between border-b border-gray-100 px-4 py-3 text-left last:border-b-0 hover:bg-gray-50"
+                >
+                  <span>
+                    <span class="block text-sm font-medium text-gray-800">{{ category.name }}</span>
+                    <span class="block text-xs text-gray-500">Category target</span>
+                  </span>
+                  <span class="text-xs font-medium text-gray-500">Add</span>
+                </button>
+              </div>
+
+              <p *ngIf="categorySearch && categorySearchResults.length === 0" class="mt-3 text-xs text-gray-500">
+                No matching categories found. Connect this input to your category search API for large catalogs.
+              </p>
+            </div>
+
+            <div *ngIf="form.value.appliesTo === 'Selected Products'" class="md:col-span-2 rounded-2xl border border-gray-200 p-4">
+              <div class="text-sm font-medium text-gray-700">Product Targeting</div>
+              <p class="mt-1 text-xs text-gray-500">Search by product name, SKU, or internal ID and attach only selected products. This is structured for remote backend search, not full catalog loading.</p>
+              <input
+                [(ngModel)]="productSearch"
+                (ngModelChange)="onProductSearchChange($event)"
+                [ngModelOptions]="{ standalone: true }"
+                placeholder="Search products by name or SKU..."
+                class="mt-3 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+              />
+
+              <div *ngIf="selectedProducts.length > 0" class="mt-3 flex flex-wrap gap-2">
+                <button
+                  *ngFor="let product of selectedProducts"
+                  type="button"
+                  (click)="removeSelection('selectedProductIds', product.id)"
+                  class="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  {{ product.name }} x
+                </button>
+              </div>
+
+              <div *ngIf="productSearchResults.length > 0" class="mt-3 overflow-hidden rounded-2xl border border-gray-200">
+                <button
+                  *ngFor="let product of productSearchResults"
+                  type="button"
+                  (click)="addSelection('selectedProductIds', product.id); productSearch = ''"
+                  class="flex w-full items-center justify-between border-b border-gray-100 px-4 py-3 text-left last:border-b-0 hover:bg-gray-50"
+                >
+                  <span>
+                    <span class="block text-sm font-medium text-gray-800">{{ product.name }}</span>
+                    <span class="block text-xs text-gray-500">{{ product.id }}</span>
+                  </span>
+                  <span class="text-xs font-medium text-gray-500">Add</span>
+                </button>
+              </div>
+
+              <p *ngIf="productSearch && productSearchResults.length === 0" class="mt-3 text-xs text-gray-500">
+                No matching products found. In production, this input should call a paginated product search endpoint.
+              </p>
             </div>
 
             <div>
@@ -235,42 +467,56 @@
                 <option value="Percent">Percent</option>
                 <option value="Fixed">Fixed</option>
               </select>
+              <p class="mt-1 text-xs text-gray-500">Choose percentage for proportional savings or fixed for a flat order discount.</p>
             </div>
 
             <div>
               <label class="text-sm font-medium text-gray-700">Value</label>
               <input type="number" formControlName="value"
                 class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
+              <p class="mt-1 text-xs text-gray-500">Enter the amount customers save when the promotion is applied.</p>
             </div>
 
             <div>
               <label class="text-sm font-medium text-gray-700">Min Order</label>
               <input type="number" formControlName="minOrder"
                 class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
+              <p class="mt-1 text-xs text-gray-500">Require a minimum cart subtotal before this coupon becomes valid.</p>
             </div>
 
             <div *ngIf="form.value.type === 'Percent'">
               <label class="text-sm font-medium text-gray-700">Max Discount</label>
               <input type="number" formControlName="maxDiscount"
                 class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
+              <p class="mt-1 text-xs text-gray-500">Set a savings cap to protect margins on high-value orders.</p>
             </div>
 
             <div>
               <label class="text-sm font-medium text-gray-700">Usage Limit</label>
               <input type="number" formControlName="usageLimit"
                 class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
+              <p class="mt-1 text-xs text-gray-500">Limit the total number of successful redemptions across all customers.</p>
+            </div>
+
+            <div>
+              <label class="text-sm font-medium text-gray-700">Per Customer Limit</label>
+              <input type="number" formControlName="perCustomerLimit"
+                class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
+              <p class="mt-1 text-xs text-gray-500">Limit how many times a single customer can use this coupon.</p>
             </div>
 
             <div>
               <label class="text-sm font-medium text-gray-700">Start Date</label>
               <input type="date" formControlName="startDate"
                 class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
+              <p class="mt-1 text-xs text-gray-500">Choose when the promotion should become active.</p>
             </div>
 
             <div>
               <label class="text-sm font-medium text-gray-700">End Date</label>
               <input type="date" formControlName="endDate"
                 class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black" />
+              <p class="mt-1 text-xs text-gray-500">Choose when the promotion should stop accepting redemptions.</p>
             </div>
 
             <div>
@@ -280,18 +526,47 @@
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
               </select>
+              <p class="mt-1 text-xs text-gray-500">Use inactive to draft or pause a coupon without deleting it.</p>
+            </div>
+
+            <div class="md:col-span-2 rounded-2xl border border-gray-200 p-4">
+              <div class="text-sm font-medium text-gray-700">Checkout Behavior</div>
+              <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <label class="flex items-start gap-3 rounded-2xl border border-gray-200 p-3">
+                  <input type="checkbox" formControlName="stackable" class="mt-1 h-4 w-4 rounded border-gray-300 text-black focus:ring-black" />
+                  <span>
+                    <span class="block text-sm font-medium text-gray-800">Stackable</span>
+                    <span class="block text-xs text-gray-500">Allow this coupon to combine with other offers.</span>
+                  </span>
+                </label>
+                <label class="flex items-start gap-3 rounded-2xl border border-gray-200 p-3">
+                  <input type="checkbox" formControlName="freeShipping" class="mt-1 h-4 w-4 rounded border-gray-300 text-black focus:ring-black" />
+                  <span>
+                    <span class="block text-sm font-medium text-gray-800">Free Shipping</span>
+                    <span class="block text-xs text-gray-500">Add shipping relief as part of this promotion.</span>
+                  </span>
+                </label>
+                <label class="flex items-start gap-3 rounded-2xl border border-gray-200 p-3">
+                  <input type="checkbox" formControlName="autoApply" class="mt-1 h-4 w-4 rounded border-gray-300 text-black focus:ring-black" />
+                  <span>
+                    <span class="block text-sm font-medium text-gray-800">Auto Apply</span>
+                    <span class="block text-xs text-gray-500">Apply automatically when cart conditions are met.</span>
+                  </span>
+                </label>
+              </div>
             </div>
           </div>
 
-          <div class="flex justify-end gap-3 pt-2">
-            <button type="button" (click)="closeModal()" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50">
+          <div class="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+            <button type="button" (click)="closeModal()" class="w-full rounded-xl border px-4 py-2.5 hover:bg-gray-50 sm:w-auto">
               Cancel
             </button>
-            <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900">
-              {{ mode === 'create' ? 'Create' : 'Save Changes' }}
+            <button type="submit" [disabled]="saving" class="w-full rounded-xl bg-black px-4 py-2.5 text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">
+              {{ saving ? 'Saving...' : (mode === 'create' ? 'Create' : 'Save Changes') }}
             </button>
           </div>
         </form>
+      </div>
       </div>
     </div>
   </div>
@@ -300,21 +575,23 @@
   <div *ngIf="confirmOpen" class="fixed inset-0 z-50">
     <div class="absolute inset-0 bg-black/50" (click)="closeConfirm()"></div>
 
-    <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div class="absolute inset-0 overflow-y-auto p-3 sm:p-4">
+      <div class="flex min-h-full items-center justify-center py-4">
       <div class="w-full max-w-md rounded-3xl bg-white shadow-2xl overflow-hidden">
-        <div class="p-6">
+        <div class="p-5 sm:p-6">
           <div class="text-lg font-semibold text-gray-900">Delete coupon?</div>
           <p class="text-sm text-gray-500 mt-1">This action cannot be undone.</p>
 
-          <div class="flex justify-end gap-3 mt-6">
-            <button type="button" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50" (click)="closeConfirm()">
+          <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button type="button" class="w-full rounded-xl border px-4 py-2.5 hover:bg-gray-50 sm:w-auto" (click)="closeConfirm()">
               Cancel
             </button>
-            <button type="button" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900" (click)="confirmDelete()">
-              Delete
+            <button type="button" [disabled]="deleting" class="w-full rounded-xl bg-black px-4 py-2.5 text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" (click)="confirmDelete()">
+              {{ deleting ? 'Deleting...' : 'Delete' }}
             </button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   </div>

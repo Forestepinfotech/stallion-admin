@@ -1,0 +1,101 @@
+const http = require("node:http");
+const fs = require("node:fs");
+const path = require("node:path");
+
+const host = process.env.HOST || "0.0.0.0";
+const port = Number(process.env.PORT || 4300);
+const basePath = (process.env.APP_BASE_PATH || "").trim().replace(/\/+$/, "");
+const rootCandidates = [
+  path.resolve(__dirname, "../dist/stallionadmin/browser"),
+  path.resolve(__dirname, "../dist/stallionadmin"),
+];
+
+const webRoot = rootCandidates.find((candidate) =>
+  fs.existsSync(path.join(candidate, "index.html")),
+);
+
+if (!webRoot) {
+  throw new Error(
+    'Build output not found. Run "npm run build" before starting PM2.',
+  );
+}
+
+const mimeTypes = {
+  ".css": "text/css; charset=utf-8",
+  ".html": "text/html; charset=utf-8",
+  ".ico": "image/x-icon",
+  ".js": "text/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".map": "application/json; charset=utf-8",
+  ".png": "image/png",
+  ".svg": "image/svg+xml",
+  ".txt": "text/plain; charset=utf-8",
+  ".webp": "image/webp",
+};
+
+const sendFile = (req, res, filePath) => {
+  const ext = path.extname(filePath).toLowerCase();
+  const stats = fs.statSync(filePath);
+  res.statusCode = 200;
+  res.setHeader("Content-Type", mimeTypes[ext] || "application/octet-stream");
+  res.setHeader("Content-Length", stats.size);
+
+  if (req.method === "HEAD") {
+    res.end();
+    return;
+  }
+
+  fs.createReadStream(filePath).pipe(res);
+};
+
+const normalizeRequestPath = (requestPath) => {
+  if (basePath && requestPath.startsWith(`${basePath}/`)) {
+    return requestPath.slice(basePath.length) || "/";
+  }
+
+  if (basePath && requestPath === basePath) {
+    return "/";
+  }
+
+  return requestPath;
+};
+
+const server = http.createServer((req, res) => {
+  if (!req.method || !["GET", "HEAD"].includes(req.method)) {
+    res.statusCode = 405;
+    res.setHeader("Allow", "GET, HEAD");
+    res.end("Method Not Allowed");
+    return;
+  }
+
+  const requestPath = decodeURIComponent((req.url || "/").split("?")[0]);
+  const safePath = path
+    .normalize(normalizeRequestPath(requestPath))
+    .replace(/^(\.\.[/\\])+/, "");
+  let filePath = path.join(
+    webRoot,
+    safePath === "/" ? "/index.html" : safePath,
+  );
+
+  if (!filePath.startsWith(webRoot)) {
+    res.statusCode = 403;
+    res.end("Forbidden");
+    return;
+  }
+
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
+    filePath = path.join(filePath, "index.html");
+  }
+
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+    sendFile(req, res, filePath);
+    return;
+  }
+
+  sendFile(req, res, path.join(webRoot, "index.html"));
+});
+
+server.listen(port, host, () => {
+  const publicBasePath = basePath || "/";
+  console.log(`stallionadmin listening on http://${host}:${port}${publicBasePath}`);
+});

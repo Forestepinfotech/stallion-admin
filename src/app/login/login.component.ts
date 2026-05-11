@@ -2,6 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { AuthSessionService } from '../core/auth/auth-session.service';
+import { ToastService } from '../core/notification/toast.service';
 @Component({
   selector: 'app-login',
   imports: [CommonModule, ReactiveFormsModule],
@@ -13,14 +16,16 @@ export class LoginComponent {
   loading = false;
   error = '';
   private fb = inject(FormBuilder);
+  private auth = inject(AuthSessionService);
+  private toast = inject(ToastService);
   form = this.fb.group({
-    username: ['', [Validators.required]],
+    identifier: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
   constructor() {}
 
-  isInvalid(controlName: 'username' | 'password') {
+  isInvalid(controlName: 'identifier' | 'password') {
     const c = this.form.get(controlName);
     return !!c && c.invalid && (c.dirty || c.touched);
   }
@@ -34,13 +39,24 @@ export class LoginComponent {
 
     this.loading = true;
     try {
-      const { username, password } = this.form.value;
-      // TODO: replace with your auth call
-      await new Promise((r) => setTimeout(r, 700));
-      console.log('login', { username, password });
-      this.router.navigateByUrl('/admin');
+      const { identifier, password } = this.form.value;
+      await firstValueFrom(
+        this.auth.login({
+          identifier: identifier ?? '',
+          password: password ?? '',
+        }),
+      );
+      const navigated = await this.router.navigateByUrl('/dashboard');
+      if (!navigated && typeof window !== 'undefined') {
+        window.location.assign(new URL('dashboard', document.baseURI).toString());
+      }
     } catch (e) {
-      this.error = 'Login failed. Please try again.';
+      const msg =
+        (e as any)?.error?.message ||
+        (e as Error)?.message ||
+        'Login failed. Please try again.';
+      this.error = msg;
+      this.toast.error(msg, 'Login failed');
     } finally {
       this.loading = false;
     }

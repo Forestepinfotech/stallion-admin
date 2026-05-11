@@ -1,20 +1,23 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { catchError, finalize, forkJoin, of } from 'rxjs';
+import { AdminDashboardService } from '../../../core/api/generated/admin-dashboard/admin-dashboard.service';
+import type {
+  ActivityItemDto,
+  DashboardSummaryDto,
+  ProfileDto,
+  RevenuePointDto,
+  SalesMixItemDto,
+  TopProductDto,
+} from '../../../core/api/generated/schemas';
+import { ToastService } from '../../../core/notification/toast.service';
 
-type SalesMix = { tire: number; wheel: number; cover: number };
-type Dealer = {
-  id: string;
-  name: string;
-  city: string;
-  status: 'Active' | 'Inactive';
+type DonutSegment = SalesMixItemDto & {
+  color: string;
+  trackColor: string;
 };
-type TopProduct = {
-  name: string;
-  sku: string;
-  type: 'Tire' | 'Wheel' | 'Cover';
-  sold: number;
-  revenue: number;
-};
+
+type DashboardSectionKey = 'summary' | 'revenueTrend' | 'salesMix' | 'topProducts' | 'recentActivity' | 'adminProfile';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -22,106 +25,299 @@ type TopProduct = {
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css',
 })
-export class AdminDashboardComponent {
-  // ====== MOCK DATA (replace with backend) ======
-  revenueTotal = 142_800; // $
-  soldProductsTotal = 1_284;
-  totalProducts = 342;
+export class AdminDashboardComponent implements OnInit {
+  private readonly dashboardApi = inject(AdminDashboardService);
+  private readonly toast = inject(ToastService);
 
-  dealers: Dealer[] = [
-    { id: 'd1', name: 'Prime Auto Parts', city: 'Edmonton', status: 'Active' },
-    { id: 'd2', name: 'Wheel Hub', city: 'Calgary', status: 'Active' },
-    { id: 'd3', name: 'Tire World', city: 'Red Deer', status: 'Inactive' },
-    { id: 'd4', name: 'Auto Zone', city: 'Sherwood Park', status: 'Active' },
-  ];
+  loading = false;
+  sectionErrors: Partial<Record<DashboardSectionKey, string>> = {};
 
-  // Revenue trend (7 bars)
-  revenueTrend = [
-    { label: 'Mon', value: 8400 },
-    { label: 'Tue', value: 11200 },
-    { label: 'Wed', value: 9800 },
-    { label: 'Thu', value: 13800 },
-    { label: 'Fri', value: 15600 },
-    { label: 'Sat', value: 12400 },
-    { label: 'Sun', value: 9700 },
-  ];
+  summary: DashboardSummaryDto = {
+    revenue: 0,
+    soldProducts: 0,
+    activeDealers: 0,
+    totalDealers: 0,
+    totalProducts: 0,
+  };
 
-  // Sales mix for donut chart
-  salesMix: SalesMix = { tire: 520, wheel: 410, cover: 354 };
+  revenueTrend: RevenuePointDto[] = [];
+  revenuePeak = 0;
 
-  topProducts: TopProduct[] = [
-    {
-      name: 'Michelin Pilot Sport 4 (205/55R16)',
-      sku: 'TIRE-20555R16-MIC',
-      type: 'Tire',
-      sold: 164,
-      revenue: 37600,
-    },
-    {
-      name: 'Alloy Wheel 17x7.5 (5x114.3)',
-      sku: 'WHL-17X75-AL',
-      type: 'Wheel',
-      sold: 131,
-      revenue: 24890,
-    },
-    {
-      name: 'Wheel Cover 16" Black',
-      sku: 'COV-16-BLK',
-      type: 'Cover',
-      sold: 228,
-      revenue: 5690,
-    },
-  ];
+  salesMixItems: SalesMixItemDto[] = [];
+  salesMixTotal = 0;
 
-  // ====== KPIs ======
-  get dealersCount() {
-    return this.dealers.length;
-  }
-  get activeDealers() {
-    return this.dealers.filter((d) => d.status === 'Active').length;
+  topProducts: TopProductDto[] = [];
+  recentActivity: ActivityItemDto[] = [];
+  adminProfile: ProfileDto | null = null;
+
+  ngOnInit(): void {
+    this.loadDashboard();
   }
 
-  // ====== Trend helpers ======
-  get maxTrend() {
-    return Math.max(...this.revenueTrend.map((x) => x.value), 1);
-  }
-  barHeightPercent(v: number) {
-    return Math.max(8, Math.round((v / this.maxTrend) * 100)); // min visible 8%
+  get revenueTotal(): number {
+    return this.summary.revenue ?? 0;
   }
 
-  // ====== Donut helpers ======
-  get mixTotal() {
-    return this.salesMix.tire + this.salesMix.wheel + this.salesMix.cover;
-  }
-  pct(v: number) {
-    return this.mixTotal ? (v / this.mixTotal) * 100 : 0;
+  get soldProductsTotal(): number {
+    return this.summary.soldProducts ?? 0;
   }
 
-  // Conic gradient string for donut
-  get donutStyle() {
-    const t = this.pct(this.salesMix.tire);
-    const w = this.pct(this.salesMix.wheel);
-    const c = this.pct(this.salesMix.cover);
-
-    // Tire = black, Wheel = gray-800, Cover = gray-500
-    // Feel free to change colors
-    const a = t;
-    const b = t + w;
-
-    return {
-      background: `conic-gradient(#000 0% ${a}%, #111827 ${a}% ${b}%, #6b7280 ${b}% 100%)`,
-    };
+  get dealersCount(): number {
+    return this.summary.totalDealers ?? 0;
   }
 
-  // badges
-  typeBadge(type: TopProduct['type']) {
-    switch (type) {
-      case 'Tire':
-        return 'bg-indigo-50 text-indigo-700 border-indigo-200';
-      case 'Wheel':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      default:
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+  get activeDealers(): number {
+    return this.summary.activeDealers ?? 0;
+  }
+
+  get totalProducts(): number {
+    return this.summary.totalProducts ?? 0;
+  }
+
+  get hasLoadErrors(): boolean {
+    return Object.values(this.sectionErrors).some((value) => Boolean(value));
+  }
+
+  get adminDisplayName(): string {
+    const user = this.adminProfile?.user;
+    const name = this.extractDisplayText(user?.name);
+    if (name) return name;
+
+    const email = typeof user?.email === 'string' ? user.email.trim() : '';
+    if (email) return email.split('@')[0];
+
+    return 'Admin';
+  }
+
+  get donutSegments(): DonutSegment[] {
+    const palette = [
+      { color: '#111827', trackColor: '#e5e7eb' },
+      { color: '#2563eb', trackColor: '#dbeafe' },
+      { color: '#059669', trackColor: '#d1fae5' },
+      { color: '#d97706', trackColor: '#fef3c7' },
+      { color: '#7c3aed', trackColor: '#ede9fe' },
+    ];
+
+    return this.salesMixItems.map((item, index) => ({
+      ...item,
+      ...palette[index % palette.length],
+    }));
+  }
+
+  get donutStyle(): Record<string, string> {
+    if (!this.salesMixTotal || this.donutSegments.length === 0) {
+      return { background: 'conic-gradient(#e5e7eb 0% 100%)' };
     }
+
+    let offset = 0;
+    const segments = this.donutSegments.map((item) => {
+      const start = offset;
+      const end = start + item.percent;
+      offset = end;
+      return `${item.color} ${start}% ${end}%`;
+    });
+
+    return { background: `conic-gradient(${segments.join(', ')})` };
+  }
+
+  get maxTrend(): number {
+    return Math.max(this.revenuePeak, ...this.revenueTrend.map((item) => item.revenue), 1);
+  }
+
+  barHeightPercent(value: number): number {
+    return Math.max(8, Math.round((value / this.maxTrend) * 100));
+  }
+
+  formatTrendLabel(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString(undefined, { weekday: 'short' });
+  }
+
+  formatTrendDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  productCategoryLabel(product: TopProductDto): string {
+    const category = this.extractDisplayText(product.category);
+    if (category) return category;
+
+    if (product.category && typeof product.category === 'object') {
+      const fallback = this.extractDisplayText((product.category as Record<string, unknown>)['label']);
+      if (fallback) return fallback;
+    }
+    return 'Product';
+  }
+
+  typeBadge(category: string): string {
+    const normalized = category.toLowerCase();
+    if (normalized.includes('tire')) return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+    if (normalized.includes('wheel')) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    if (normalized.includes('cover')) return 'bg-amber-50 text-amber-700 border-amber-200';
+    return 'bg-slate-100 text-slate-700 border-slate-200';
+  }
+
+  formatActivityTitle(item: ActivityItemDto): string {
+    const entity = this.titleCase(item.entity || 'activity');
+    const action = this.titleCase(item.action || 'updated');
+    return `${entity} ${action}`;
+  }
+
+  formatActivityDetails(item: ActivityItemDto): string {
+    const userEmail = this.extractDisplayText(item.user_email);
+    if (userEmail) return userEmail;
+
+    if (item.details && typeof item.details === 'object') {
+      const details = item.details as Record<string, unknown>;
+      const summary = [details['name'], details['title'], details['sku'], details['message'], details['email']]
+        .map((value) => this.extractDisplayText(value))
+        .find((value) => Boolean(value));
+      if (summary) return summary;
+      try {
+        return JSON.stringify(details);
+      } catch {
+        return 'Activity recorded';
+      }
+    }
+
+    return 'Activity recorded';
+  }
+
+  formatActivityTime(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString();
+  }
+
+  trackByRevenueDate(_: number, item: RevenuePointDto): string {
+    return item.date;
+  }
+
+  trackByMixCategory(_: number, item: SalesMixItemDto): string {
+    return item.category;
+  }
+
+  trackByProduct(_: number, item: TopProductDto): number {
+    return item.product_id;
+  }
+
+  trackByActivity(_: number, item: ActivityItemDto): number {
+    return item.audit_id;
+  }
+
+  private loadDashboard(): void {
+    this.loading = true;
+    this.sectionErrors = {};
+
+    forkJoin({
+      summary: this.dashboardApi.dashboardControllerSummary().pipe(
+        catchError((error: unknown) => {
+          this.sectionErrors.summary = this.getApiErrorMessage(error, 'Failed to load dashboard summary.');
+          return of(this.summary);
+        }),
+      ),
+      revenueTrend: this.dashboardApi.dashboardControllerRevenueTrend({ days: 7 }).pipe(
+        catchError((error: unknown) => {
+          this.sectionErrors.revenueTrend = this.getApiErrorMessage(error, 'Failed to load revenue trend.');
+          return of({ days: [], peak: 0 });
+        }),
+      ),
+      salesMix: this.dashboardApi.dashboardControllerSalesMix({ days: 30 }).pipe(
+        catchError((error: unknown) => {
+          this.sectionErrors.salesMix = this.getApiErrorMessage(error, 'Failed to load sales mix.');
+          return of({ total: 0, items: [] });
+        }),
+      ),
+      topProducts: this.dashboardApi.dashboardControllerTopProductsList({ limit: 10, days: 30 }).pipe(
+        catchError((error: unknown) => {
+          this.sectionErrors.topProducts = this.getApiErrorMessage(error, 'Failed to load top products.');
+          return of({ count: 0, items: [] });
+        }),
+      ),
+      recentActivity: this.dashboardApi.dashboardControllerRecentActivity({ page: 1, limit: 10 }).pipe(
+        catchError((error: unknown) => {
+          this.sectionErrors.recentActivity = this.getApiErrorMessage(error, 'Failed to load recent activity.');
+          return of({ data: [], meta: { page: 1, limit: 10, total: 0, totalPages: 1 } });
+        }),
+      ),
+      adminProfile: this.dashboardApi.dashboardControllerAdminProfile().pipe(
+        catchError((error: unknown) => {
+          this.sectionErrors.adminProfile = this.getApiErrorMessage(error, 'Failed to load admin profile.');
+          return of(null);
+        }),
+      ),
+    })
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+        next: (response) => {
+          this.summary = response.summary;
+          this.revenueTrend = Array.isArray(response.revenueTrend.days) ? response.revenueTrend.days : [];
+          this.revenuePeak = response.revenueTrend.peak ?? 0;
+          this.salesMixItems = Array.isArray(response.salesMix.items) ? response.salesMix.items : [];
+          this.salesMixTotal = response.salesMix.total ?? 0;
+          this.topProducts = Array.isArray(response.topProducts.items) ? response.topProducts.items : [];
+          this.recentActivity = Array.isArray(response.recentActivity.data) ? response.recentActivity.data : [];
+          this.adminProfile = response.adminProfile;
+        },
+        error: (error: unknown) => {
+          console.error(error);
+          this.toast.error('Failed to load dashboard data.');
+        },
+        complete: () => {
+          if (this.hasLoadErrors) {
+            this.toast.error('Some dashboard sections could not be loaded.');
+          }
+        },
+      });
+  }
+
+  private titleCase(value: string): string {
+    return value
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  private extractDisplayText(value: unknown): string {
+    if (typeof value === 'string') {
+      const text = value.trim();
+      return text;
+    }
+
+    if (value && typeof value === 'object') {
+      const record = value as Record<string, unknown>;
+      for (const key of ['name', 'title', 'label', 'value', 'email']) {
+        const candidate = record[key];
+        if (typeof candidate === 'string' && candidate.trim()) {
+          return candidate.trim();
+        }
+      }
+    }
+
+    return '';
+  }
+
+  private getApiErrorMessage(error: unknown, fallback: string): string {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'error' in error &&
+      typeof error.error === 'object' &&
+      error.error !== null &&
+      'message' in error.error
+    ) {
+      const message = error.error.message;
+      if (typeof message === 'string') return message;
+      if (Array.isArray(message) && message.length > 0) return String(message[0]);
+    }
+
+    if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string') {
+      return error.message;
+    }
+
+    return fallback;
   }
 }

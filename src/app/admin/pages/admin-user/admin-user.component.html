@@ -32,19 +32,34 @@
       </div>
 
       <div>
-        <select [(ngModel)]="roleFilter" class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30">
+        <select
+          [(ngModel)]="roleFilter"
+          class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+        >
           <option class="text-black" value="All">All Roles</option>
-          <option class="text-black" value="Manager">Manager</option>
-          <option class="text-black" value="Staff">Staff</option>
+          <option *ngFor="let r of roleOptions" class="text-black" [value]="r.usertypeid.toString()">{{ r.usertypename }}</option>
         </select>
       </div>
 
       <div>
-        <select [(ngModel)]="statusFilter" class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30">
+        <select
+          [(ngModel)]="statusFilter"
+          class="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+        >
           <option class="text-black" value="All">All Status</option>
           <option class="text-black" value="Active">Active</option>
           <option class="text-black" value="Inactive">Inactive</option>
         </select>
+      </div>
+
+      <div class="flex items-center">
+        <button
+          type="button"
+          (click)="applyFilters()"
+          class="w-full rounded-2xl bg-white text-black font-semibold px-4 py-3 hover:bg-gray-100 transition"
+        >
+          Filter
+        </button>
       </div>
     </div>
   </div>
@@ -56,13 +71,30 @@
         <div class="text-lg font-semibold text-gray-900">User List</div>
         <div class="text-sm text-gray-500">Edit, deactivate, change password, delete</div>
       </div>
-      <div class="text-sm text-gray-600">
-        Showing <span class="font-semibold text-gray-900">{{ filtered.length }}</span>
+      <div class="flex items-center gap-4 text-sm text-gray-600">
+        <div class="hidden md:flex items-center gap-2">
+          <span>Rows per page</span>
+          <select
+            class="rounded-xl border px-2 py-1 text-gray-800"
+            [ngModel]="pageSize"
+            (ngModelChange)="changePageSize($event)"
+          >
+            <option *ngFor="let s of pageSizeOptions" [ngValue]="s">{{ s }}</option>
+          </select>
+        </div>
+        <div>
+          Showing <span class="font-semibold text-gray-900">{{ filtered.length }}</span>
+          <span class="text-gray-400">/ {{ total || '—' }}</span>
+        </div>
       </div>
     </div>
 
+    <div *ngIf="listLoading" class="p-6 space-y-4">
+      <app-skeleton-panel *ngFor="let _ of [1,2,3]" [minHeight]="92"></app-skeleton-panel>
+    </div>
+
     <!-- Desktop table -->
-    <div class="hidden md:block">
+    <div class="hidden md:block" *ngIf="!listLoading">
       <table class="w-full">
         <thead class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
           <tr>
@@ -88,15 +120,15 @@
                 </div>
 
                 <div class="min-w-0">
-                  <div class="font-semibold text-gray-900 truncate">{{ u.name }}</div>
+                  <a [routerLink]="['/users', u.id]" (click)="warnIfRestricted(u)" class="font-semibold text-gray-900 truncate hover:underline">{{ u.name }}</a>
                   <div class="text-xs text-gray-500 truncate">{{ u.email }}</div>
                 </div>
               </div>
             </td>
 
             <td class="px-6 py-4">
-              <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="badgeRole(u.role)">
-                {{ u.role }}
+              <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="badgeRole(u.roleName)">
+                {{ u.roleName }}
               </span>
             </td>
 
@@ -149,7 +181,7 @@
     </div>
 
     <!-- Mobile cards -->
-    <div class="md:hidden p-4 space-y-3">
+    <div class="md:hidden p-4 space-y-3" *ngIf="!listLoading">
       <div *ngFor="let u of filtered" class="rounded-3xl border p-4 shadow-sm">
         <div class="flex items-start justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0">
@@ -162,7 +194,7 @@
             </div>
 
             <div class="min-w-0">
-              <div class="font-semibold text-gray-900 truncate">{{ u.name }}</div>
+              <a [routerLink]="['/users', u.id]" (click)="warnIfRestricted(u)" class="font-semibold text-gray-900 truncate hover:underline">{{ u.name }}</a>
               <div class="text-xs text-gray-500 truncate">{{ u.email }}</div>
             </div>
           </div>
@@ -173,8 +205,8 @@
         </div>
 
         <div class="mt-3 flex flex-wrap gap-2">
-          <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="badgeRole(u.role)">
-            {{ u.role }}
+          <span class="text-xs font-medium px-3 py-1 rounded-full border" [ngClass]="badgeRole(u.roleName)">
+            {{ u.roleName }}
           </span>
           <span class="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-700">{{ u.phone }}</span>
         </div>
@@ -202,18 +234,51 @@
         No users found.
       </div>
     </div>
+
+    <!-- Pagination controls -->
+    <div class="flex items-center justify-between px-6 py-4 border-t" *ngIf="!listLoading">
+      <div class="flex items-center gap-2 md:hidden">
+        <span class="text-sm text-gray-600">Rows</span>
+        <select
+          class="rounded-xl border px-2 py-1 text-gray-800 text-sm"
+          [ngModel]="pageSize"
+          (ngModelChange)="changePageSize($event)"
+        >
+          <option *ngFor="let s of pageSizeOptions" [ngValue]="s">{{ s }}</option>
+        </select>
+      </div>
+      <div class="text-sm text-gray-600">Page {{ page }} • {{ totalPages }}</div>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="px-3 py-2 rounded-xl border text-sm disabled:opacity-50"
+          (click)="prevPage()"
+          [disabled]="page === 1 || listLoading"
+        >
+          Prev
+        </button>
+        <button
+          type="button"
+          class="px-3 py-2 rounded-xl border text-sm disabled:opacity-50"
+          (click)="nextPage()"
+          [disabled]="page * pageSize >= total || listLoading"
+        >
+          Next
+        </button>
+      </div>
+    </div>
   </div>
 
-  <!-- ============ EDIT/CREATE MODAL ============ -->
-  <div *ngIf="editOpen" class="fixed inset-0 z-50">
-    <div class="absolute inset-0 bg-black/50" (click)="closeEdit()"></div>
+	  <!-- ============ EDIT/CREATE MODAL ============ -->
+	  <div *ngIf="editOpen" class="fixed inset-0 z-50 overflow-y-auto">
+	    <div class="fixed inset-0 bg-black/50" (click)="closeEdit()"></div>
 
-    <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="w-full max-w-2xl rounded-3xl bg-white shadow-2xl overflow-hidden">
-        <div class="px-6 py-5 border-b flex items-center justify-between">
-          <div>
-            <div class="text-lg font-semibold text-gray-900">
-              {{ editMode === 'create' ? 'Add User' : 'Edit User' }}
+	    <div class="relative flex min-h-full items-start justify-center p-4 sm:p-6">
+	      <div class="w-full max-w-2xl rounded-3xl bg-white shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)]">
+	        <div class="px-6 py-5 border-b flex items-center justify-between">
+	          <div>
+	            <div class="text-lg font-semibold text-gray-900">
+	              {{ editMode === 'create' ? 'Add User' : 'Edit User' }}
             </div>
             <div class="text-sm text-gray-500">Update personal details and role</div>
           </div>
@@ -222,11 +287,11 @@
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
               <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-          </button>
-        </div>
+	          </button>
+	        </div>
 
-        <form class="p-6 space-y-5" [formGroup]="userForm" (ngSubmit)="saveUser()">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+	        <form class="p-6 space-y-5 overflow-y-auto" [formGroup]="userForm" (ngSubmit)="saveUser()">
+	          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="text-sm font-medium text-gray-700">Name</label>
               <input formControlName="name" class="mt-1 w-full rounded-2xl border px-4 py-3" />
@@ -236,8 +301,7 @@
             <div>
               <label class="text-sm font-medium text-gray-700">Role</label>
               <select formControlName="role" class="mt-1 w-full rounded-2xl border px-4 py-3">
-                <option value="Manager">Manager</option>
-                <option value="Staff">Staff</option>
+                <option *ngFor="let r of roleOptions" [value]="r.usertypeid.toString()">{{ r.usertypename }}</option>
               </select>
             </div>
 
@@ -255,21 +319,88 @@
 
             <div class="md:col-span-2">
               <label class="text-sm font-medium text-gray-700">Address</label>
-              <input formControlName="address" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+              <input formControlName="address" class="mt-1 w-full rounded-2xl border px-4 py-3" placeholder="Street / Suite" />
             </div>
 
             <div>
-              <label class="text-sm font-medium text-gray-700">Status</label>
-              <select formControlName="status" class="mt-1 w-full rounded-2xl border px-4 py-3">
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
+              <label class="text-sm font-medium text-gray-700">Postal Code</label>
+              <input formControlName="postalCode" class="mt-1 w-full rounded-2xl border px-4 py-3" placeholder="Optional" />
             </div>
 
             <div>
-              <label class="text-sm font-medium text-gray-700">Avatar</label>
-              <input type="file" accept="image/*" (change)="onAvatarChange($event)"
-                class="mt-1 w-full rounded-2xl border px-4 py-2.5" />
+              <label class="text-sm font-medium text-gray-700">Province</label>
+              <input formControlName="province" class="mt-1 w-full rounded-2xl border px-4 py-3" placeholder="Optional" />
+            </div>
+
+            <div>
+              <label class="text-sm font-medium text-gray-700">Country</label>
+              <input formControlName="country" class="mt-1 w-full rounded-2xl border px-4 py-3" placeholder="Optional" />
+            </div>
+
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Status</label>
+	              <select formControlName="status" class="mt-1 w-full rounded-2xl border px-4 py-3">
+	                <option value="Active">Active</option>
+	                <option value="Inactive">Inactive</option>
+	              </select>
+	            </div>
+
+	            <div class="md:col-span-2">
+	              <label class="flex items-center justify-between gap-4 rounded-2xl border bg-gray-50 p-4">
+	                <div>
+	                  <div class="text-sm font-semibold text-gray-900">Account Locked</div>
+	                  <div class="mt-1 text-sm text-gray-500">
+	                    <ng-container *ngIf="userForm.value.locked; else unlockedHint">
+	                      Locked until {{ selected?.lockedUntil || '—' }}
+	                    </ng-container>
+	                    <ng-template #unlockedHint>Not locked</ng-template>
+	                  </div>
+	                </div>
+	                <div class="flex items-center gap-3">
+	                  <button
+	                    *ngIf="editMode === 'edit' && selected?.isLocked"
+	                    type="button"
+	                    class="px-3 py-2 rounded-xl border text-sm hover:bg-white"
+	                    (click)="resetLock()"
+	                    [disabled]="savingUser"
+	                  >
+	                    Reset lock
+	                  </button>
+	                  <input
+	                    type="checkbox"
+	                    class="h-5 w-5 accent-black"
+	                    formControlName="locked"
+	                    [disabled]="editMode === 'create'"
+	                    (change)="onLockedToggle($any($event.target).checked)"
+	                  />
+	                </div>
+	              </label>
+	            </div>
+
+	            <div>
+	              <label class="text-sm font-medium text-gray-700">Avatar</label>
+	              <label
+                class="mt-1 flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-4 py-5 text-center transition"
+                [class.border-slate-300]="!avatarDragActive"
+                [class.bg-white]="!avatarDragActive"
+                [class.border-slate-900]="avatarDragActive"
+                [class.bg-slate-50]="avatarDragActive"
+                (dragover)="onAvatarDragOver($event)"
+                (dragleave)="onAvatarDragLeave($event)"
+                (drop)="onAvatarDrop($event)"
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  (change)="onAvatarChange($event)"
+                  class="hidden"
+                />
+                <span class="text-sm font-semibold text-gray-900">Click or drag and drop an avatar</span>
+                <span class="text-xs text-gray-500">Optional • PNG/JPG/WebP • Max 50MB</span>
+                <span *ngIf="avatarUploadProgress !== null" class="text-xs font-semibold text-slate-700">
+                  Uploading {{ avatarUploadProgress }}%
+                </span>
+              </label>
               <p class="text-xs text-gray-500 mt-1">Optional • PNG/JPG/WebP</p>
             </div>
 
@@ -290,43 +421,89 @@
             <button type="button" (click)="closeEdit()" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50">
               Cancel
             </button>
-            <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900">
-              {{ editMode === 'create' ? 'Create' : 'Save Changes' }}
+            <button type="submit" [disabled]="savingUser" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900 disabled:opacity-60">
+              {{ savingUser ? 'Saving…' : (editMode === 'create' ? 'Create' : 'Save Changes') }}
             </button>
           </div>
-        </form>
-      </div>
-    </div>
-  </div>
+	        </form>
+	      </div>
+	    </div>
+	  </div>
 
-  <!-- ============ CHANGE PASSWORD MODAL ============ -->
-  <div *ngIf="passwordOpen && selected" class="fixed inset-0 z-50">
-    <div class="absolute inset-0 bg-black/50" (click)="closePassword()"></div>
+	  <!-- ============ CHANGE PASSWORD MODAL ============ -->
+	  <div *ngIf="passwordOpen && selected" class="fixed inset-0 z-50 overflow-y-auto">
+	    <div class="fixed inset-0 bg-black/50" (click)="closePassword()"></div>
 
-    <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden">
-        <div class="px-6 py-5 border-b flex items-center justify-between">
-          <div>
-            <div class="text-lg font-semibold text-gray-900">Change Password</div>
-            <div class="text-sm text-gray-500">{{ selected.name }} • {{ selected.role }}</div>
-          </div>
+	    <div class="relative flex min-h-full items-start justify-center p-4 sm:p-6">
+	      <div class="w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)]">
+	        <div class="px-6 py-5 border-b flex items-center justify-between">
+	          <div>
+	            <div class="text-lg font-semibold text-gray-900">Change Password</div>
+	            <div class="text-sm text-gray-500">{{ selected.name }} • {{ selected.roleName }}</div>
+	          </div>
 
           <button type="button" class="p-2 rounded-xl hover:bg-gray-100" (click)="closePassword()">
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
               <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
           </button>
-        </div>
+	        </div>
 
-        <form class="p-6 space-y-4" [formGroup]="passwordForm" (ngSubmit)="changePassword()">
-          <div>
-            <label class="text-sm font-medium text-gray-700">New Password</label>
-            <input type="password" formControlName="newPassword" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+	        <form class="p-6 space-y-4 overflow-y-auto" [formGroup]="passwordForm" (ngSubmit)="changePassword()" autocomplete="off">
+	          <div>
+	            <label class="text-sm font-medium text-gray-700">New Password</label>
+	            <div class="relative mt-1">
+	              <input
+                [type]="passwordInputType('new')"
+                formControlName="newPassword"
+                autocomplete="new-password"
+                name="managed-user-new-password"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                class="w-full rounded-2xl border px-4 py-3 pr-12"
+              />
+              <button type="button" (click)="togglePasswordVisibility('new')"
+                class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700">
+                <svg *ngIf="!newPasswordVisible" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                  <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <svg *ngIf="newPasswordVisible" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M10.6 10.7A3 3 0 0 0 13.3 13.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M9.9 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17.3 17.3 0 0 1-4 4.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M6.2 6.3A17.7 17.7 0 0 0 2 12s3.5 7 10 7a10.7 10.7 0 0 0 4-.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
           </div>
 
           <div>
             <label class="text-sm font-medium text-gray-700">Confirm Password</label>
-            <input type="password" formControlName="confirmPassword" class="mt-1 w-full rounded-2xl border px-4 py-3" />
+            <div class="relative mt-1">
+              <input
+                [type]="passwordInputType('confirm')"
+                formControlName="confirmPassword"
+                autocomplete="new-password"
+                name="managed-user-confirm-password"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                class="w-full rounded-2xl border px-4 py-3 pr-12"
+              />
+              <button type="button" (click)="togglePasswordVisibility('confirm')"
+                class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700">
+                <svg *ngIf="!confirmPasswordVisible" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                  <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <svg *ngIf="confirmPasswordVisible" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M10.6 10.7A3 3 0 0 0 13.3 13.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M9.9 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17.3 17.3 0 0 1-4 4.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M6.2 6.3A17.7 17.7 0 0 0 2 12s3.5 7 10 7a10.7 10.7 0 0 0 4-.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
             <p *ngIf="passwordMismatch" class="text-xs text-red-600 mt-1">Passwords do not match.</p>
           </div>
 
@@ -334,14 +511,14 @@
             <button type="button" (click)="closePassword()" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50">
               Cancel
             </button>
-            <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900">
-              Update Password
+            <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900 disabled:opacity-60" [disabled]="savingPassword">
+              {{ savingPassword ? 'Updating...' : 'Update Password' }}
             </button>
           </div>
-        </form>
-      </div>
-    </div>
-  </div>
+	        </form>
+	      </div>
+	    </div>
+	  </div>
 
   <!-- ============ DELETE CONFIRM MODAL ============ -->
   <div *ngIf="deleteOpen && selected" class="fixed inset-0 z-50">

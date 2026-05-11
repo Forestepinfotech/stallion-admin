@@ -1,0 +1,9 @@
+:host {
+  display: block;
+}
+
+button[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+

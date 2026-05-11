@@ -1,255 +1,948 @@
-<div class="space-y-6">
-  <!-- Top bar -->
-  <div class="rounded-3xl p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white shadow-2xl">
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <h1 class="text-2xl md:text-3xl font-semibold">Create Product</h1>
-        <p class="text-sm text-white/70 mt-1">Add Tire, Rim, or Cover products with dynamic attributes</p>
-      </div>
-
-      <div class="flex gap-2">
-        <button
-          type="button"
-          (click)="goBack()"
-          class="px-4 py-2 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/15 transition"
-        >
-          ← Return
-        </button>
-        <button
-          type="button"
-          (click)="save()"
-          class="px-4 py-2 rounded-2xl bg-white text-black font-medium hover:bg-gray-100 transition"
-        >
-          Save Product
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Form card -->
-  <div class="rounded-3xl border bg-white shadow-sm overflow-hidden">
-    <div class="px-6 py-5 border-b">
-      <div class="text-lg font-semibold text-gray-900">Product Information</div>
-      <div class="text-sm text-gray-500">Common fields + type-specific attributes</div>
+<div class="product-page">
+  <header class="product-hero">
+    <div class="product-hero__copy">
+      <span class="product-hero__eyebrow">Server-Driven Catalog</span>
+      <h1>{{ isEditMode ? "Edit Product" : "Add Product" }}</h1>
+      <p *ngIf="loadingProduct">Loading product data...</p>
     </div>
 
-    <form class="p-6 space-y-6" [formGroup]="form" (ngSubmit)="save()">
-      <!-- Row 1 -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label class="text-sm font-medium text-gray-700">Product Type</label>
-          <select
-            formControlName="productType"
-            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+    <div class="product-hero__actions">
+      <button type="button" class="ghost-button" (click)="goBack()">Return</button>
+    </div>
+  </header>
+
+  <form class="product-layout" [formGroup]="form" (ngSubmit)="save()">
+    <section class="product-main">
+      <article class="product-card">
+        <div class="product-card__header">
+          <div>
+            <h2>Catalog Context</h2>
+          </div>
+        </div>
+
+        <div class="field-grid field-grid--two">
+          <label class="field">
+            <span>Category *</span>
+            <select formControlName="categoryId" [class.is-invalid]="hasError('categoryId')">
+              <option [ngValue]="null">Select category</option>
+              <option *ngFor="let category of categories" [ngValue]="category.category_id">
+                {{ category.category_name }}
+              </option>
+            </select>
+            <small *ngIf="loadingCategories">Loading categories from server...</small>
+            <small *ngIf="hasError('categoryId')" class="field-error">{{ getErrorMessage('categoryId', 'Category') }}</small>
+          </label>
+
+          <div class="field field--dropdown" *ngIf="!isEditMode">
+            <span>Copy From Product</span>
+            <input
+              [ngModel]="copyFromSearch"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onCopyFromSearchChange($event)"
+              (focus)="showCopyFromDropdown = true"
+              (blur)="hideCopyFromDropdown()"
+              placeholder="Search existing product..."
+            />
+            <div class="field-dropdown" *ngIf="showCopyFromDropdown">
+              <button
+                *ngFor="let option of copyFromSearchResults"
+                type="button"
+                class="field-dropdown__item"
+                (mousedown)="selectCopyFromProduct(option)"
+              >
+                {{ option.title }}
+                <span *ngIf="option.sku">· {{ option.sku }}</span>
+              </button>
+              <div *ngIf="copyFromSearchPending" class="field-dropdown__empty">
+                Waiting for you to stop typing...
+              </div>
+              <div *ngIf="copyFromSearchLoading" class="field-dropdown__empty">Searching...</div>
+              <div *ngIf="!copyFromSearchLoading && copyFromSearchError" class="field-dropdown__empty">
+                {{ copyFromSearchError }}
+              </div>
+              <div
+                *ngIf="!copyFromSearchPending && !copyFromSearchLoading && !copyFromSearchError && copyFromSearchResults.length === 0 && copyFromSearch.trim()"
+                class="field-dropdown__empty"
+              >
+                No products found
+              </div>
+            </div>
+            <small>Copies attributes, return policy, media, and cross-sells. SKU/slug/UPC are cleared.</small>
+          </div>
+        </div>
+      </article>
+
+      <article class="product-card">
+        <div class="field-grid field-grid--three">
+          <label class="field">
+            <span>Status *</span>
+            <select formControlName="status" [class.is-invalid]="hasError('status')">
+              <option *ngFor="let item of statusOptions" [value]="item">{{ item }}</option>
+            </select>
+            <small *ngIf="hasError('status')" class="field-error">{{ getErrorMessage('status', 'Status') }}</small>
+          </label>
+
+          <label class="field">
+            <span>Visibility *</span>
+            <select formControlName="visibility" [class.is-invalid]="hasError('visibility')">
+              <option *ngFor="let item of visibilityOptions" [value]="item">{{ item }}</option>
+            </select>
+            <small *ngIf="hasError('visibility')" class="field-error">{{ getErrorMessage('visibility', 'Visibility') }}</small>
+          </label>
+
+          <label class="field">
+            <span>Condition *</span>
+            <select formControlName="condition" [class.is-invalid]="hasError('condition')">
+              <option *ngFor="let item of conditionOptions" [value]="item">{{ item }}</option>
+            </select>
+            <small *ngIf="hasError('condition')" class="field-error">{{ getErrorMessage('condition', 'Condition') }}</small>
+          </label>
+        </div>
+
+        <div class="field-grid field-grid--three">
+          <label class="field">
+            <span>SKU *</span>
+            <input formControlName="sku" placeholder="SKU-001" [class.is-invalid]="hasError('sku')" />
+            <small *ngIf="hasError('sku')" class="field-error">{{ getErrorMessage('sku', 'SKU') }}</small>
+          </label>
+
+          <label class="field">
+            <span>MPN</span>
+            <input formControlName="mpn" placeholder="Manufacturer part number" />
+          </label>
+
+          <label class="field">
+            <span>UPC / Barcode</span>
+            <input formControlName="upc" placeholder="GTIN / UPC / EAN" />
+          </label>
+        </div>
+
+        <div class="field-grid field-grid--two">
+          <label class="field field--wide">
+            <span>Product Title *</span>
+            <input formControlName="title" placeholder="Enter product title" [class.is-invalid]="hasError('title')" />
+            <small *ngIf="hasError('title')" class="field-error">{{ getErrorMessage('title', 'Product title') }}</small>
+          </label>
+
+          <label class="field">
+            <span>Slug</span>
+            <input formControlName="slug" placeholder="auto-generated-from-title" />
+          </label>
+        </div>
+
+        <div class="field-grid field-grid--two">
+          <div class="field field--dropdown">
+            <span>Car Brand</span>
+            <input
+              [ngModel]="brandSearch"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onBrandSearchChange($event)"
+              (focus)="showBrandDropdown = true"
+              (blur)="hideBrandDropdown()"
+              placeholder="Search brand..."
+            />
+            <div class="field-dropdown" *ngIf="showBrandDropdown">
+              <button
+                *ngFor="let brand of brands"
+                type="button"
+                class="field-dropdown__item"
+                (mousedown)="selectBrand(brand)"
+              >
+                {{ brand.car_brand_name }}
+              </button>
+              <button
+                *ngIf="brands.length === 20"
+                type="button"
+                class="field-dropdown__more"
+                (mousedown)="loadMoreBrands()"
+              >
+                {{ loadingBrands ? "Loading..." : "Load more" }}
+              </button>
+              <div *ngIf="!loadingBrands && brands.length === 0" class="field-dropdown__empty">
+                No brands found
+              </div>
+            </div>
+            <small *ngIf="selectedBrandName">Selected: {{ selectedBrandName }}</small>
+          </div>
+
+          <div class="field field--dropdown">
+            <span>Car Model</span>
+            <input
+              [ngModel]="modelSearch"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onModelSearchChange($event)"
+              (focus)="showModelDropdown = true"
+              (blur)="hideModelDropdown()"
+              [disabled]="!form.value.brandId"
+              placeholder="Search model..."
+            />
+            <div class="field-dropdown" *ngIf="showModelDropdown && form.value.brandId">
+              <button
+                *ngFor="let model of models"
+                type="button"
+                class="field-dropdown__item"
+                (mousedown)="selectModel(model)"
+              >
+                {{ model.model_name }}
+                <span *ngIf="model.model_engine">· {{ model.model_engine }}</span>
+              </button>
+              <button
+                *ngIf="models.length === 20"
+                type="button"
+                class="field-dropdown__more"
+                (mousedown)="loadMoreModels()"
+              >
+                {{ loadingModels ? "Loading..." : "Load more" }}
+              </button>
+              <div *ngIf="!loadingModels && models.length === 0" class="field-dropdown__empty">
+                No models found
+              </div>
+            </div>
+            <small *ngIf="selectedModelName">Selected: {{ selectedModelName }}</small>
+          </div>
+
+          <label class="field">
+            <span>Currency *</span>
+            <select formControlName="currency" [class.is-invalid]="hasError('currency')">
+              <option *ngFor="let item of currencyOptions" [value]="item">{{ item }}</option>
+            </select>
+            <small *ngIf="hasError('currency')" class="field-error">{{ getErrorMessage('currency', 'Currency') }}</small>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Short Description *</span>
+          <textarea
+            rows="3"
+            formControlName="shortDescription"
+            [class.is-invalid]="hasError('shortDescription')"
+            placeholder="Summary for cards, search results, and quick previews."
+          ></textarea>
+          <small *ngIf="hasError('shortDescription')" class="field-error">{{ getErrorMessage('shortDescription', 'Short description') }}</small>
+        </label>
+
+        <label class="field">
+          <span>Long Description *</span>
+          <textarea
+            rows="6"
+            formControlName="longDescription"
+            [class.is-invalid]="hasError('longDescription')"
+            placeholder="Full product description, usage notes, key benefits, and details."
+          ></textarea>
+          <small *ngIf="hasError('longDescription')" class="field-error">{{ getErrorMessage('longDescription', 'Long description') }}</small>
+        </label>
+
+        <div class="inline-section-header">
+          <div class="section-title-with-help">
+            <h3>Product Options</h3>
+            <div class="section-help section-help--above section-help--start">
+              <button type="button" class="section-help__trigger" aria-label="Product options help">
+                i
+              </button>
+              <div class="section-help__tooltip">
+                <strong>Option meanings</strong>
+                <span><b>Featured Product:</b> Marks this item for extra visibility in hand-picked sections such as homepage highlights, promotional collections, staff picks, or campaign-driven product groups. It is mainly a merchandising flag used to showcase important products.</span>
+                <span><b>Universal Fit:</b> Use this when the product works across many vehicles or applications and does not depend on a strict fitment map. It helps prevent the item from being treated as compatible with only one brand, model, or year range.</span>
+                <span><b>Requires Serial:</b> Enable this when each unit must be tracked by serial number, batch number, or another unique identifier during receiving, storage, fulfillment, warranty handling, or after-sales support.</span>
+                <span><b>Returnable:</b> Indicates whether customers can send the product back through the normal returns process after delivery. Turn this off for final-sale, special-order, hazardous, installed, or otherwise non-returnable items.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="toggle-grid">
+          <label class="toggle-card">
+            <input type="checkbox" formControlName="featured" />
+            <div>
+              <strong>Featured Product</strong>
+              <span>Promote this product in curated collections.</span>
+            </div>
+          </label>
+
+          <label class="toggle-card">
+            <input type="checkbox" formControlName="universalFit" />
+            <div>
+              <strong>Universal Fit</strong>
+              <span>Use when the item is not tied to a specific fitment map.</span>
+            </div>
+          </label>
+
+          <label class="toggle-card">
+            <input type="checkbox" formControlName="requiresSerial" />
+            <div>
+              <strong>Requires Serial</strong>
+              <span>Track serial or batch details during fulfillment.</span>
+            </div>
+          </label>
+
+          <label class="toggle-card">
+            <input type="checkbox" formControlName="returnable" />
+            <div>
+              <strong>Returnable</strong>
+              <span>Allow normal return workflow after delivery.</span>
+            </div>
+          </label>
+        </div>
+      </article>
+
+      <article class="product-card">
+        <div class="product-card__header">
+          <div class="section-title-with-help">
+            <h2>Operations & Policies</h2>
+            <div class="section-help section-help--start">
+              <button type="button" class="section-help__trigger" aria-label="Operations and policies help">
+                i
+              </button>
+              <div class="section-help__tooltip">
+                <strong>Professional product operations</strong>
+                <span><b>Internal Reference Code:</b> Your company’s internal stock or sourcing code for this item. Use it for warehouse operations, catalog matching, and internal reporting.</span>
+                <span><b>Stock Strategy:</b> Tells your team whether the item is kept in stock, handled as a special order, or produced/prepared only when needed.</span>
+                <span><b>Min Order Qty:</b> The smallest quantity your company should sell or process in one order line.</span>
+                <span><b>Return Policy:</b> Professional catalogs define both eligibility and customer-facing return terms, not only a yes/no toggle.</span>
+                <span><b>Serial Tracking Note:</b> Internal instructions for capturing serial, IMEI, batch, or lot numbers during fulfillment and support.</span>
+                <span><b>Fulfillment Note:</b> Extra handling instructions for packing, dispatch, installation, hazmat checks, or warehouse coordination.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-grid field-grid--three">
+          <label class="field">
+            <span>Internal Reference Code</span>
+            <input formControlName="supplierSku" placeholder="Internal stock code / sourcing reference" />
+          </label>
+          <label class="field">
+            <span>Stock Strategy</span>
+            <select formControlName="procurementType">
+              <option *ngFor="let item of procurementTypeOptions" [value]="item.value">{{ item.label }}</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Min Retail Qty</span>
+            <input type="number" formControlName="minRetailQty" [class.is-invalid]="hasError('minRetailQty')" />
+            <small *ngIf="hasError('minRetailQty')" class="field-error">{{ getErrorMessage('minRetailQty', 'Minimum retail qty') }}</small>
+          </label>
+          <label class="field">
+            <span>Min Dealer Qty</span>
+            <input type="number" formControlName="minDealerQty" [class.is-invalid]="hasError('minDealerQty')" />
+            <small *ngIf="hasError('minDealerQty')" class="field-error">{{ getErrorMessage('minDealerQty', 'Minimum dealer qty') }}</small>
+          </label>
+        </div>
+
+        <div class="field-grid field-grid--two">
+          <label class="field">
+            <span>Return Window (days)</span>
+            <input type="number" formControlName="returnWindowDays" />
+            <small>Required when the product is returnable.</small>
+          </label>
+          <div class="field">
+            <span>Non-returnable Reasons</span>
+            <div class="tag-input">
+              <input
+                [(ngModel)]="nonReturnReasonInput"
+                [ngModelOptions]="{ standalone: true }"
+                [disabled]="form.value.returnable === true"
+                placeholder="Final sale / installed electrical part / special order"
+              />
+              <button
+                type="button"
+                class="ghost-button ghost-button--small"
+                [disabled]="form.value.returnable === true"
+                (click)="addNonReturnableReason()"
+              >
+                Add
+              </button>
+            </div>
+            <div class="chip-list">
+              <span *ngFor="let reason of nonReturnableReasons" class="chip">
+                {{ reason }}
+                <button type="button" (click)="removeNonReturnableReason(reason)">×</button>
+              </span>
+            </div>
+            <small>Required when returns are disabled. Saved as a list.</small>
+          </div>
+        </div>
+
+        <div class="field-grid field-grid--two">
+          <label class="field">
+            <span>Return Policy Note</span>
+            <textarea
+              rows="3"
+              formControlName="returnPolicyNote"
+              placeholder="Example: Return accepted within 30 days in unused condition with original packaging."
+            ></textarea>
+            <small>Customer-facing explanation shown to support, sales, or storefront surfaces.</small>
+          </label>
+          <label class="field">
+            <span>Serial Tracking Note</span>
+            <textarea
+              rows="3"
+              formControlName="serialTrackingNote"
+              placeholder="Capture serial number before dispatch and match it to the order line."
+            ></textarea>
+            <small>Required when serial tracking is enabled.</small>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Fulfillment Note</span>
+          <textarea
+            rows="3"
+            formControlName="fulfillmentNote"
+            placeholder="Internal handling instructions such as fragile packing, hazmat checks, or supplier coordination."
+          ></textarea>
+        </label>
+      </article>
+
+      <article class="product-card">
+        <div class="product-card__header">
+          <div class="section-title-with-help">
+            <h2>Pricing & Inventory</h2>
+            <div class="section-help">
+              <button type="button" class="section-help__trigger" aria-label="Pricing and inventory help">
+                i
+              </button>
+              <div class="section-help__tooltip">
+                <strong>Field meanings</strong>
+                <span><b>Selling Price:</b> The live customer-facing price.</span>
+                <span><b>Compare At:</b> The higher reference price used for discounts or strike-through pricing.</span>
+                <span><b>Unit Cost:</b> Your internal cost for one unit.</span>
+                <span><b>Inventory Source:</b> The internal warehouse, stock source, or operational origin used by your company for this item.</span>
+                <span><b>Stock Status:</b> Current availability state shown for the product.</span>
+                <span><b>On Hand Qty:</b> The actual inventory count available now.</span>
+                <span><b>Safety Stock:</b> Minimum quantity buffer before the item is considered low stock.</span>
+                <span><b>Lead Time:</b> Estimated number of days needed to restock or fulfill.</span>
+                <span><b>Warehouse Bin:</b> Internal storage location for picking the item.</span>
+                <span><b>Warranty:</b> Coverage period or warranty terms for the product.</span>
+                <span><b>Shipping Class:</b> Fulfillment/shipping category used for handling rules.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-grid field-grid--four">
+          <label class="field">
+            <span>Selling Price *</span>
+            <input type="number" formControlName="price" [class.is-invalid]="hasError('price')" />
+            <small *ngIf="hasError('price')" class="field-error">{{ getErrorMessage('price', 'Selling price') }}</small>
+          </label>
+          <label class="field">
+            <span>Compare At</span>
+            <input type="number" formControlName="compareAtPrice" />
+          </label>
+          <label class="field">
+            <span>Unit Cost</span>
+            <input type="number" formControlName="cost" />
+          </label>
+          <label class="field">
+            <span>Inventory Source</span>
+            <input formControlName="supplier" />
+          </label>
+        </div>
+
+        <div class="field-grid field-grid--four">
+          <label class="field">
+            <span>Stock Status *</span>
+            <select formControlName="stockStatus" [class.is-invalid]="hasError('stockStatus')">
+              <option *ngFor="let item of stockStatusOptions" [value]="item">{{ item }}</option>
+            </select>
+            <small *ngIf="hasError('stockStatus')" class="field-error">{{ getErrorMessage('stockStatus', 'Stock status') }}</small>
+          </label>
+          <label class="field">
+            <span>On Hand Qty *</span>
+            <input type="number" formControlName="stockQty" [class.is-invalid]="hasError('stockQty')" />
+            <small *ngIf="hasError('stockQty')" class="field-error">{{ getErrorMessage('stockQty', 'On hand qty') }}</small>
+          </label>
+          <label class="field">
+            <span>Safety Stock</span>
+            <input type="number" formControlName="safetyStock" />
+          </label>
+          <label class="field">
+            <span>Lead Time (days)</span>
+            <input type="number" formControlName="leadTimeDays" />
+          </label>
+        </div>
+
+	        <div class="field-grid field-grid--three">
+	          <label class="field">
+	            <span>Warehouse Bin</span>
+	            <input formControlName="warehouseBin" />
+	          </label>
+	          <label class="field">
+	            <span>Warranty</span>
+	            <input formControlName="warranty" />
+	          </label>
+	        </div>
+      </article>
+
+	      <article class="product-card">
+	        <div class="product-card__header">
+	          <div class="flex items-center justify-between gap-3">
+	            <h2>Dimensions & Media</h2>
+	            <button
+	              type="button"
+	              class="ghost-button ghost-button--small"
+	              [disabled]="!isEditMode"
+	              (click)="openGallery()"
+	            >
+	              Open Gallery
+	            </button>
+	          </div>
+	        </div>
+
+        <div class="field-grid field-grid--four">
+          <label class="field">
+            <span>Weight (kg)</span>
+            <input type="number" formControlName="weightKg" />
+          </label>
+          <label class="field">
+            <span>Length (cm)</span>
+            <input type="number" formControlName="lengthCm" />
+          </label>
+          <label class="field">
+            <span>Width (cm)</span>
+            <input type="number" formControlName="widthCm" />
+          </label>
+          <label class="field">
+            <span>Height (cm)</span>
+            <input type="number" formControlName="heightCm" />
+          </label>
+        </div>
+
+        <div class="media-grid">
+          <label
+            class="field upload-dropzone"
+            [class.upload-dropzone--active]="primaryImageDragActive"
+            (dragover)="onPrimaryImageDragOver($event)"
+            (dragleave)="onPrimaryImageDragLeave($event)"
+            (drop)="onPrimaryImageDrop($event)"
           >
-            <option value="tire">Tire</option>
-            <option value="rim">Rim</option>
-            <option value="cover">Cover</option>
-          </select>
-        </div>
+            <span>Primary Image</span>
+            <input type="file" accept="image/*" (change)="onFileChange($event)" />
+            <small>Click or drag and drop an image here. Max 50MB. JPG, PNG, or WebP.</small>
+            <small *ngIf="primaryImageUploadProgress !== null">Uploading {{ primaryImageUploadProgress }}%</small>
+          </label>
 
-        <div>
-          <label class="text-sm font-medium text-gray-700">SKU</label>
-          <input
-            formControlName="sku"
-            placeholder="e.g. TIRE-20555R16-MIC"
-            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-          />
-        </div>
-
-        <div>
-          <label class="text-sm font-medium text-gray-700">Status</label>
-          <select
-            formControlName="status"
-            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+          <label
+            class="field upload-dropzone"
+            [class.upload-dropzone--active]="galleryImagesDragActive"
+            (dragover)="onGalleryImagesDragOver($event)"
+            (dragleave)="onGalleryImagesDragLeave($event)"
+            (drop)="onGalleryImagesDrop($event)"
           >
-            <option>Active</option>
-            <option>Inactive</option>
-          </select>
-        </div>
-      </div>
+            <span>Gallery Images</span>
+            <input type="file" accept="image/*" multiple (change)="onGalleryFilesChange($event)" />
+            <small>Click or drag and drop multiple images here.</small>
+            <small *ngIf="galleryUploadProgress !== null">Uploading {{ galleryUploadProgress }}%</small>
+          </label>
 
-      <!-- Row 2 -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="md:col-span-2">
-          <label class="text-sm font-medium text-gray-700">Product Name</label>
-          <input
-            formControlName="name"
-            placeholder="e.g. Michelin Pilot Sport 4"
-            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-          />
-        </div>
-
-        <div>
-          <label class="text-sm font-medium text-gray-700">Price</label>
-          <input
-            type="number"
-            formControlName="price"
-            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-          />
-        </div>
-      </div>
-
-      <!-- Tire dependent selects -->
-      <div *ngIf="productType === 'tire'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="text-sm font-medium text-gray-700">Tire Brand</label>
-          <select
-            formControlName="brandId"
-            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
+          <label
+            class="field upload-dropzone"
+            [class.upload-dropzone--active]="videoDragActive"
+            (dragover)="onVideoDragOver($event)"
+            (dragleave)="onVideoDragLeave($event)"
+            (drop)="onVideoDrop($event)"
           >
-            <option value="">Select brand</option>
-            <option *ngFor="let b of brands" [value]="b.id">{{ b.name }}</option>
-          </select>
+            <span>Product Video</span>
+            <input type="file" accept="video/*" multiple (change)="onVideoFilesChange($event)" />
+            <small>Click or drag and drop videos here. New videos replace existing ones in edit mode.</small>
+            <small *ngIf="videoUploadProgress !== null">Uploading {{ videoUploadProgress }}%</small>
+          </label>
+
+          <div class="preview-card">
+            <div class="preview-card__image">
+              <ng-container *ngIf="form.value.imageUrl; else emptyProductImage">
+                <img [src]="form.value.imageUrl!" alt="Product Preview" />
+              </ng-container>
+              <ng-template #emptyProductImage>
+                <span>No Image</span>
+              </ng-template>
+            </div>
+
+            <div class="preview-card__body">
+              <strong>{{ form.value.title || "Product Preview" }}</strong>
+              <span>{{ selectedCategoryName }}</span>
+              <span>SKU: {{ form.value.sku || "-" }}</span>
+            </div>
+
+            <button
+              *ngIf="form.value.imageUrl"
+              type="button"
+              class="ghost-button ghost-button--small"
+              (click)="removeImage()"
+            >
+              Remove
+            </button>
+          </div>
         </div>
 
-        <div>
-          <label class="text-sm font-medium text-gray-700">Tire Model</label>
-          <select
-            formControlName="modelId"
-            [disabled]="!form.value.brandId"
-            class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black disabled:bg-gray-100"
+        <div class="tag-panel" *ngIf="galleryImages.length > 0">
+          <div class="tag-panel__header">
+            <strong>Gallery Images</strong>
+            <span>{{ galleryImages.length }} uploaded</span>
+          </div>
+          <div class="media-preview-grid">
+            <article *ngFor="let image of galleryImages; let i = index" class="media-preview-card">
+              <button
+                type="button"
+                class="media-preview-card__delete"
+                aria-label="Delete photo"
+                (click)="removeGalleryImage(i)"
+              >
+                ×
+              </button>
+              <img [src]="getMediaPreviewSrc(image)" [alt]="'Gallery image ' + (i + 1)" class="media-preview-card__image" />
+              <div class="media-preview-card__meta">Photo {{ i + 1 }}</div>
+            </article>
+          </div>
+        </div>
+
+        <div class="tag-panel" *ngIf="videoUrls.length > 0">
+          <div class="tag-panel__header">
+            <strong>Product Videos</strong>
+            <span>{{ videoUrls.length }} uploaded</span>
+          </div>
+          <div class="media-preview-grid">
+            <article *ngFor="let video of videoUrls; let i = index" class="media-preview-card media-preview-card--video">
+              <button
+                type="button"
+                class="media-preview-card__delete"
+                aria-label="Delete video"
+                (click)="removeVideo(i)"
+              >
+                ×
+              </button>
+              <video [src]="getMediaPreviewSrc(video)" class="media-preview-card__video" controls preload="metadata"></video>
+              <div class="media-preview-card__meta">Video {{ i + 1 }}</div>
+            </article>
+          </div>
+        </div>
+      </article>
+
+      <article class="product-card">
+        <div class="product-card__header">
+          <div>
+            <h2>Dynamic Attributes</h2>
+          </div>
+        </div>
+
+        <div class="suggestion-strip">
+          <button
+            *ngFor="let key of suggestedAttributeKeys"
+            type="button"
+            class="chip chip--outline"
+            (click)="addSuggestedAttribute(key)"
           >
-            <option value="">Select model</option>
-            <option *ngFor="let m of availableModels" [value]="m.id">{{ m.name }}</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Description -->
-      <div>
-        <label class="text-sm font-medium text-gray-700">Description</label>
-        <textarea
-          rows="4"
-          formControlName="description"
-          placeholder="Write product details..."
-          class="mt-1 w-full rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black"
-        ></textarea>
-      </div>
-
-      <!-- Image upload + preview -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-        <div>
-          <label class="text-sm font-medium text-gray-700">Product Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            (change)="onFileChange($event)"
-            class="mt-1 w-full rounded-2xl border px-4 py-2.5"
-          />
-          <p class="text-xs text-gray-500 mt-1">Max 2MB • JPG/PNG/WebP</p>
+            + {{ key }}
+          </button>
         </div>
 
-        <div class="rounded-2xl border bg-gray-50 p-4 flex items-center gap-4">
-          <div class="w-20 h-20 rounded-2xl bg-white overflow-hidden border flex items-center justify-center">
-            <ng-container *ngIf="form.value.imageUrl; else noImg">
-              <img [src]="form.value.imageUrl!" class="w-full h-full object-cover" alt="preview" />
-            </ng-container>
-            <ng-template #noImg>
-              <span class="text-xs text-gray-400">No Image</span>
-            </ng-template>
+        <p class="section-hint">
+          Add a row only when needed. Any visible row must have both an attribute key and a value.
+        </p>
+
+        <div class="attribute-table">
+          <div class="attribute-row attribute-row--header">
+            <span>Attribute Key</span>
+            <span>Value</span>
+            <span></span>
           </div>
 
-          <div class="text-sm text-gray-600">
-            <div class="font-semibold text-gray-900">{{ form.value.name || 'Product Preview' }}</div>
-            <div class="text-gray-500">{{ productType | uppercase }} • SKU: {{ form.value.sku || '-' }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== Attributes (type-based) ===== -->
-      <div class="rounded-3xl border bg-white">
-        <div class="px-5 py-4 border-b">
-          <div class="font-semibold text-gray-900">Attributes</div>
-          <div class="text-sm text-gray-500">Fields change based on product type</div>
-        </div>
-
-        <div class="p-5" formGroupName="attrs">
-          <!-- Tire attributes -->
-          <div *ngIf="productType === 'tire'" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="text-sm font-medium text-gray-700">Width</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="width" placeholder="205" />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Aspect Ratio</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="aspect" placeholder="55" />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Diameter</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="diameter" placeholder="16" />
-            </div>
-
-            <div>
-              <label class="text-sm font-medium text-gray-700">Season</label>
-              <select class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="season">
-                <option value="">Select</option>
-                <option>Summer</option>
-                <option>Winter</option>
-                <option>All-season</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Load Index</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="loadIndex" placeholder="91" />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Speed Rating</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="speedRating" placeholder="V" />
-            </div>
+          <div *ngIf="attributeRows.length === 0" class="attribute-empty-state">
+            No dynamic attributes added yet.
           </div>
 
-          <!-- Rim attributes -->
-          <div *ngIf="productType === 'rim'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="text-sm font-medium text-gray-700">Rim Size</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="rimSize" placeholder="17x7.5" />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Bolt Pattern</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="boltPattern" placeholder="5x114.3" />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Offset</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="offset" placeholder="+35" />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Material</label>
-              <select class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="material">
-                <option value="">Select</option>
-                <option>Alloy</option>
-                <option>Steel</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Cover attributes -->
-          <div *ngIf="productType === 'cover'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="text-sm font-medium text-gray-700">Cover Size</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="coverSize" placeholder='16"' />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Material</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="coverMaterial" placeholder="ABS / Plastic" />
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Color</label>
-              <input class="mt-1 w-full rounded-2xl border px-4 py-3" formControlName="color" placeholder="Black / Silver" />
-            </div>
+          <div *ngFor="let attribute of attributeRows; let i = index" class="attribute-row">
+            <input
+              [(ngModel)]="attribute.key"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="e.g. tire_size"
+            />
+            <input
+              [(ngModel)]="attribute.value"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="e.g. 225/45R17"
+            />
+            <button
+              type="button"
+              class="ghost-button ghost-button--small"
+              (click)="removeAttributeRow(i)"
+            >
+              Remove
+            </button>
           </div>
         </div>
-      </div>
 
-      <!-- Submit row -->
-      <div class="flex justify-end gap-3">
-        <button type="button" class="px-4 py-2.5 rounded-xl border hover:bg-gray-50" (click)="goBack()">
-          Return
+        <p *ngIf="hasIncompleteAttributeRows" class="field-error">
+          Complete both fields in each dynamic attribute row, or remove the incomplete row.
+        </p>
+
+        <button type="button" class="ghost-button ghost-button--small" (click)="addAttributeRow()">
+          Add Attribute Row
         </button>
-        <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white hover:bg-gray-900">
-          Save Product
+      </article>
+
+      <article class="product-card">
+        <div class="product-card__header">
+          <div class="section-title-with-help">
+            <h2>Fitment, Contents & SEO</h2>
+            <div class="section-help">
+              <button type="button" class="section-help__trigger" aria-label="Fitment, contents, and SEO help">
+                i
+              </button>
+              <div class="section-help__tooltip">
+                <strong>Section meanings</strong>
+                <span><b>Vehicle Fitment:</b> Defines which vehicles, trims, engines, or year ranges this product is compatible with. This is important for catalog accuracy, product search, and reducing incorrect orders.</span>
+                <span><b>Package Contents:</b> Lists exactly what the buyer receives in the box, such as the main part, hardware, brackets, seals, cables, or instruction sheets.</span>
+                <span><b>Tags:</b> Short merchandising or search-oriented labels that help group products internally or surface them in promotional experiences.</span>
+                <span><b>Notes:</b> Internal-only operational notes for QA, purchasing, packing, support, or merchandising teams.</span>
+                <span><b>SEO Title:</b> Search-facing title meant to improve how the product appears in search engine results and browser tabs.</span>
+                <span><b>SEO Description:</b> Meta description summary used to improve search-result snippets and click-through quality.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stack-grid">
+          <div class="tag-panel">
+            <div class="tag-panel__header">
+              <strong>Vehicle Fitment</strong>
+              <span>One entry per application</span>
+            </div>
+            <div class="tag-input">
+              <input [(ngModel)]="fitmentInput" [ngModelOptions]="{standalone: true}" placeholder="2021-2024 Honda Civic 2.0L" />
+              <button type="button" class="ghost-button ghost-button--small" (click)="addFitment()">Add</button>
+            </div>
+            <div class="chip-list">
+              <span *ngFor="let fitment of fitments" class="chip">
+                {{ fitment }}
+                <button type="button" (click)="removeFitment(fitment)">×</button>
+              </span>
+            </div>
+          </div>
+
+          <div class="tag-panel">
+            <div class="tag-panel__header">
+              <strong>Package Contents</strong>
+              <span>What the customer receives</span>
+            </div>
+            <div class="tag-input">
+              <input [(ngModel)]="packageItemInput" [ngModelOptions]="{standalone: true}" placeholder="Main unit / hardware / guide" />
+              <button type="button" class="ghost-button ghost-button--small" (click)="addPackageItem()">Add</button>
+            </div>
+            <div class="chip-list">
+              <span *ngFor="let item of packageItems" class="chip">
+                {{ item }}
+                <button type="button" (click)="removePackageItem(item)">×</button>
+              </span>
+            </div>
+          </div>
+
+          <div class="tag-panel">
+            <div class="tag-panel__header">
+              <strong>Tags & Notes</strong>
+              <span>Merchandising and internal handling</span>
+            </div>
+            <div class="tag-input">
+              <input [(ngModel)]="tagInput" [ngModelOptions]="{standalone: true}" placeholder="premium / oem / summer" />
+              <button type="button" class="ghost-button ghost-button--small" (click)="addTag()">Add</button>
+            </div>
+            <div class="chip-list">
+              <span *ngFor="let tag of tags" class="chip chip--dark">
+                {{ tag }}
+                <button type="button" (click)="removeTag(tag)">×</button>
+              </span>
+            </div>
+
+            <div class="tag-input tag-input--secondary">
+              <input [(ngModel)]="noteInput" [ngModelOptions]="{standalone: true}" placeholder="Internal note for QA or purchasing" />
+              <button type="button" class="ghost-button ghost-button--small" (click)="addNote()">Add</button>
+            </div>
+            <div class="note-list">
+              <div *ngFor="let note of notes" class="note-item">
+                <span>{{ note }}</span>
+                <button type="button" (click)="removeNote(note)">Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-grid field-grid--two">
+          <label class="field">
+            <span>SEO Title</span>
+            <input formControlName="seoTitle" placeholder="Search-friendly title" />
+          </label>
+
+          <label class="field">
+            <span>SEO Description</span>
+            <textarea rows="3" formControlName="seoDescription" placeholder="Meta description for search snippets."></textarea>
+          </label>
+        </div>
+      </article>
+
+      <article class="product-card">
+        <div class="product-card__header">
+          <div class="section-title-with-help">
+            <h2>Cross-sell Products</h2>
+            <div class="section-help section-help--start">
+              <button type="button" class="section-help__trigger" aria-label="Cross-sell help">
+                i
+              </button>
+              <div class="section-help__tooltip">
+                <strong>Attach recommended products</strong>
+                <span>Search by title or SKU, add multiple products, control order, and decide whether each recommendation is active.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cross-sell-panel">
+          <label class="field">
+            <span>Search Products</span>
+            <input
+              [ngModel]="crossSellSearch"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onCrossSellSearchChange($event)"
+              placeholder="Search by title or SKU"
+            />
+            <small *ngIf="loadingCrossSells">Loading existing cross-sell products...</small>
+            <small *ngIf="crossSellSearchLoading">Searching catalog...</small>
+            <small *ngIf="crossSellSearchError" class="field-error">{{ crossSellSearchError }}</small>
+            <small *ngIf="crossSellHydrationError" class="field-error">{{ crossSellHydrationError }}</small>
+            <small *ngIf="crossSellValidationError" class="field-error">{{ crossSellValidationError }}</small>
+          </label>
+
+          <div class="cross-sell-search-results" *ngIf="crossSellSearchLoading || crossSellSearchResults.length > 0 || (hasCrossSellSearchTerm && !crossSellSearchLoading)">
+            <button
+              *ngFor="let option of crossSellSearchResults"
+              type="button"
+              class="cross-sell-search-item"
+              (click)="addCrossSell(option)"
+            >
+              <div class="cross-sell-search-item__copy">
+                <strong>{{ option.title }}</strong>
+                <span>{{ option.sku || ('Product #' + option.id) }}</span>
+              </div>
+              <span class="cross-sell-search-item__action">Add</span>
+            </button>
+
+            <div *ngIf="!crossSellSearchLoading && crossSellSearchResults.length === 0 && hasCrossSellSearchTerm" class="cross-sell-empty">
+              No matching products are available to add.
+            </div>
+          </div>
+
+          <div class="cross-sell-list" *ngIf="crossSellItems.length > 0; else crossSellEmptyState">
+            <article
+              *ngFor="let item of crossSellItems; let index = index; trackBy: trackCrossSellByProductId"
+              class="cross-sell-item"
+            >
+              <div class="cross-sell-item__media" [class.cross-sell-item__media--placeholder]="!item.thumbnail_image">
+                <img *ngIf="item.thumbnail_image" [src]="getMediaPreviewSrc(item.thumbnail_image)" [alt]="item.title" />
+                <span *ngIf="!item.thumbnail_image">No image</span>
+              </div>
+
+              <div class="cross-sell-item__copy">
+                <div class="cross-sell-item__heading">
+                  <strong>{{ item.title }}</strong>
+                  <span>#{{ item.recommended_product_id }}</span>
+                </div>
+                <div class="cross-sell-item__meta">
+                  <span>{{ item.sku || 'SKU unavailable' }}</span>
+                  <span *ngIf="item.price !== null">{{ item.currency || form.value.currency }} {{ item.price }}</span>
+                </div>
+              </div>
+
+              <label class="cross-sell-toggle">
+                <input type="checkbox" [(ngModel)]="item.is_active" [ngModelOptions]="{ standalone: true }" />
+                <span>Active</span>
+              </label>
+
+              <div class="cross-sell-order">
+                <button type="button" class="ghost-button ghost-button--small" (click)="moveCrossSell(index, -1)" [disabled]="index === 0">
+                  Up
+                </button>
+                <button
+                  type="button"
+                  class="ghost-button ghost-button--small"
+                  (click)="moveCrossSell(index, 1)"
+                  [disabled]="index === crossSellItems.length - 1"
+                >
+                  Down
+                </button>
+              </div>
+
+              <button type="button" class="ghost-button ghost-button--small cross-sell-remove" (click)="removeCrossSell(index)">
+                Remove
+              </button>
+            </article>
+          </div>
+
+          <ng-template #crossSellEmptyState>
+            <div class="cross-sell-empty">
+              No cross-sell products selected yet.
+            </div>
+          </ng-template>
+        </div>
+      </article>
+
+      <div class="product-form-actions">
+        <button type="button" class="ghost-button ghost-button--small" (click)="goBack()">Cancel</button>
+        <button type="submit" class="primary-button" [disabled]="saving">
+          {{
+            form.invalid && form.touched
+              ? "Fix Required Fields"
+              : (saving ? "Saving..." : (isEditMode ? "Update Product" : "Save Product"))
+          }}
         </button>
       </div>
-    </form>
-  </div>
+    </section>
+
+    <aside class="product-sidebar">
+      <article class="sidebar-card sidebar-card--summary">
+        <div class="sidebar-card__eyebrow">Launch Summary</div>
+        <h3>{{ form.value.title || "Untitled Product" }}</h3>
+        <p>{{ selectedCategoryName }}</p>
+
+        <div class="summary-grid">
+          <div>
+            <span>Brand</span>
+            <strong>{{ form.value.brandId || "Not set" }}</strong>
+          </div>
+          <div>
+            <span>Price</span>
+            <strong>{{ form.value.currency }} {{ form.value.price || 0 }}</strong>
+          </div>
+          <div>
+            <span>Margin</span>
+            <strong>{{ marginValue }}%</strong>
+          </div>
+          <div>
+            <span>Attributes</span>
+            <strong>{{ attributeCount }}</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="sidebar-card">
+        <div class="sidebar-card__title">Catalog Readiness</div>
+        <div class="checklist">
+          <div *ngFor="let item of publishChecklist" class="checklist__item">{{ item }}</div>
+          <div *ngIf="publishChecklist.length === 0" class="checklist__empty">
+            Fill the form to build a server-ready create-product payload.
+          </div>
+        </div>
+      </article>
+
+	      <article class="sidebar-card">
+	        <div class="sidebar-card__title">Operational Snapshot</div>
+	        <div class="ops-list">
+	          <div><span>Stock</span><strong>{{ form.value.stockQty || 0 }}</strong></div>
+	          <div><span>Safety Stock</span><strong>{{ form.value.safetyStock || 0 }}</strong></div>
+	          <div><span>Warehouse Bin</span><strong>{{ form.value.warehouseBin || "-" }}</strong></div>
+	          <div><span>Stock Strategy</span><strong>{{ selectedProcurementTypeLabel }}</strong></div>
+	          <div><span>Returns</span><strong>{{ form.value.returnable ? ((form.value.returnWindowDays || 0) + ' days') : 'No returns' }}</strong></div>
+	        </div>
+	      </article>
+    </aside>
+  </form>
 </div>
